@@ -17,7 +17,7 @@ use Nadybot\Core\{
 	Exceptions\UnfreezeFatalException,
 	Exceptions\UnfreezeTmpException
 };
-use Safe\Exceptions\JsonException;
+use Nadylib\Type;
 use Throwable;
 
 /** This class handles unfreezing a frozen account */
@@ -317,10 +317,8 @@ class AccountUnfreezer {
 		$body = $response->getBody()->buffer();
 		try {
 			$json = json_decode($body, false);
-			if (!is_array($json) || !isset($json[0]) || !is_string($json[0])) {
-				return null;
-			}
-		} catch (JsonException) {
+			Type\nonEmptyVec(Type\string())->assert($json);
+		} catch (Throwable) {
 			return null;
 		}
 		return $json[0];

@@ -25,6 +25,7 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	AODBItem,
 	ItemsController,
 };
+use Nadylib\Type;
 use Safe\Exceptions\JsonException;
 
 /**
@@ -187,13 +188,13 @@ class RecipeController extends ModuleInstance {
 
 	private function parseJSONFile(int $id, string $fileName): Recipe {
 		try {
-			/** @var array<string,mixed> */
 			$json = json_decode($this->fs->read($this->path . $fileName), true);
+			Type\dict(Type\string(), Type\mixed())->assert($json);
 
 			$data = Hydrator::literalHydrate(RecipeData::class, $json);
 		} catch (JsonException $e) {
 			throw new UserException("Could not read '{$fileName}': invalid JSON", 0, $e);
-		} catch (UnableToHydrateObject $e) {
+		} catch (UnableToHydrateObject | Type\Exception\AssertException $e) {
 			throw new UserException("Invalid recipe data in '{$fileName}': unsupported format", 0, $e);
 		}
 

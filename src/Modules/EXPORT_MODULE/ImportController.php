@@ -24,6 +24,7 @@ use Nadybot\Modules\{
 	PRIVATE_CHANNEL_MODULE\ExportMember,
 	VOTE_MODULE\ExportPoll,
 };
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Throwable;
@@ -218,32 +219,31 @@ class ImportController extends ModuleInstance {
 		$this->logger->notice('Decoding the JSON data');
 		try {
 			$import = json_decode($this->fs->read($fileName), true);
+			Type\dict(Type\string(), Type\mixed())->assert($import);
 		} catch (FilesystemException $e) {
 			$sendto->reply("Error reading <highlight>{$fileName}<end>: ".
 				$e->getMessage() . '.');
+			return null;
+		} catch (Type\Exception\AssertException $e) {
+			$sendto->reply("The file <highlight>{$fileName}<end> is not a valid export file.");
 			return null;
 		} catch (Throwable $e) {
 			$sendto->reply("Error decoding <highlight>{$fileName}<end>.");
 			return null;
 		}
-		if (!is_array($import)) {
-			$sendto->reply("The file <highlight>{$fileName}<end> is not a valid export file.");
-			return null;
-		}
 
-		/** @var array<string,mixed> $import */
 		$this->logger->notice('Loading schema data');
 		$sendto->reply('Validating the import data. This could take a while.');
 
 		/** @var array<string,list<object>> */
 		$result = [];
 		try {
+			$validator = Type\vec(Type\dict(Type\string(), Type\mixed()));
 			foreach ($import as $key => $importData) {
-				if (!is_array($importData)) {
+				if (!$validator->matches($importData)) {
 					continue;
 				}
 
-				/** @var array<array<string,mixed>> $importData */
 				$objects = Hydrator::literalHydrateObjects(
 					className: $this->keyToClass[$key],
 					data: $importData,

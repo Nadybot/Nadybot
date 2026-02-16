@@ -35,6 +35,7 @@ use Nadybot\Modules\TIMERS_MODULE\{
 	TimerController,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Safe\DateTimeImmutable;
 use Safe\Exceptions\JsonException;
@@ -497,11 +498,14 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		/** @var list<ApiGauntletBuff> */
 		$buffs = [];
 		try {
-			/** @var array<array-key,array<string,mixed>> */
 			$data = json_decode($body, true);
+			Type\dict(Type\arrayKey(), Type\dict(Type\string(), Type\mixed()))->assert($data);
 			$buffs = Hydrator::hydrateObjects(ApiGauntletBuff::class, $data)->toArray();
-		} catch (JsonException | UnableToHydrateObject) {
-			$this->logger->error('Gauntlet buff API sent invalid json.');
+		} catch (JsonException | UnableToHydrateObject | Type\Exception\AssertException $e) {
+			$this->logger->error('Gauntlet buff API sent invalid json.', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
+			]);
 			return;
 		} catch (ValueError) {
 			$this->logger->error('Gauntlet buff API sent invalid data.');

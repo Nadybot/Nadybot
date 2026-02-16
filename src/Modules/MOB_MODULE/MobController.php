@@ -22,6 +22,7 @@ use Nadybot\Core\{
 	Util
 };
 use Nadybot\Modules\WHEREIS_MODULE\{Whereis, WhereisController};
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 
@@ -108,8 +109,15 @@ class MobController extends ModuleInstance {
 		$body = $response->getBody()->buffer();
 
 		try {
-			/** @var array<string,list<array<string,mixed>>> */
 			$json = json_decode($body, true);
+			Type\dict(
+				Type\string(),
+				Type\vec(
+					Type\dict(Type\string(), Type\mixed())
+				)
+			)->assert($json);
+
+			/** @var array<string,list<array<string,mixed>>> $json */
 
 			$this->mobs = [];
 			foreach ($json as $type => $entries) {
@@ -126,7 +134,7 @@ class MobController extends ModuleInstance {
 				'exception' => $e,
 			]);
 			return;
-		} catch (UnableToHydrateObject $e) {
+		} catch (UnableToHydrateObject | Type\Exception\AssertException $e) {
 			$this->logger->error('Unable to parse mob-api: {error}', [
 				'error' => $e->getMessage(),
 				'exception' => $e,

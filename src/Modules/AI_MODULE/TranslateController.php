@@ -7,7 +7,6 @@ namespace Nadybot\Modules\AI_MODULE;
  */
 
 use function Amp\delay;
-use function Safe\json_decode;
 use Amp\Http\Client\{BufferedContent, HttpClientBuilder, Request};
 use Error;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
@@ -268,21 +267,17 @@ class TranslateController extends ModuleInstance {
 				return 'An error occurred during translation. Please check your logs for details.';
 			}
 		}
-		$rawTranslation = json_decode($body, true);
-		if (!is_array($rawTranslation) || !isset($rawTranslation['translated_text'])) {
-			$this->logger->error('Unexpected response format from translation API: {body}', ['body' => $body]);
-			return 'An error occurred during translation. Please check your logs for details.';
-		}
-
 		try {
 			$translation = Hydrator::hydrateString(Models\Translation::class, $body);
-		} catch (UnableToHydrateObject $e) {
+		} catch (Exception $e) {
 			$this->logger->error('Unexpected response format from translation API: {body}', [
 				'body' => $body,
 				'exception' => $e,
+				'error' => $e->getMessage(),
 			]);
 			return 'An error occurred during translation. Please check your logs for details.';
 		}
+
 		return $translation->translated_text;
 	}
 }

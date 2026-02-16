@@ -25,6 +25,7 @@ use Nadybot\Core\{
 	Types\Government,
 	Types\Profession,
 };
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Safe\DateTimeImmutable;
@@ -118,12 +119,17 @@ class GuildManager extends ModuleInstance {
 		if (!isset($body) || $body === '') {
 			throw new Exception('Empty data received when reading org data');
 		}
+		$data = json_decode($body, true);
+		if (!$this->checkGuildDataValid($data)) {
+			return null;
+		}
 
-		[$orgInfo, $members, $lastUpdated] = json_decode($body, true);
+		[$orgInfo, $members, $lastUpdated] = $data;
 
 		/**
 		 * @var array<string,mixed>       $orgInfo
 		 * @var list<array<string,mixed>> $members
+		 * @var non-empty-string          $lastUpdated
 		 */
 
 		try {
@@ -146,7 +152,7 @@ class GuildManager extends ModuleInstance {
 			governing_form: Government::from($orgInfo->GOVERNINGNAME),
 			orgname: $orgInfo->NAME,
 			orgside: Faction::tryFrom($orgInfo->SIDE_NAME) ?? Faction::Unknown,
-			last_update: DateTimeImmutable::createFromFormat('!Y/m/d H:i:s', (string)$lastUpdated, new DateTimeZone('UTC')),
+			last_update: DateTimeImmutable::createFromFormat('!Y/m/d H:i:s', $lastUpdated, new DateTimeZone('UTC')),
 		);
 		$luDateTime = $guild->last_update;
 		// Try to reduce the cache time to the last updated time + 24h
@@ -230,5 +236,18 @@ class GuildManager extends ModuleInstance {
 	public function isMyGuild(int $guildId): bool {
 		return isset($this->config->orgId)
 			&& $this->config->orgId === $guildId;
+	}
+
+	/**
+	 * Check if the received guild data is in the expected format
+	 *
+	 * @psalm-assert-if-true array{0:array<string,mixed>,1:list<array<string,mixed>>,2:non-empty-string} $data
+	 */
+	private function checkGuildDataValid(mixed $data): bool {
+		return Type\shape([
+			0 => Type\dict(Type\string(), Type\mixed()),
+			1 => Type\vec(Type\dict(Type\string(), Type\mixed())),
+			2 => Type\nonEmptyString(),
+		])->matches($data);
 	}
 }

@@ -37,6 +37,7 @@ use Nadybot\Core\Types\TitleLevel;
 use Nadybot\Modules\LEVEL_MODULE\LevelController;
 use Nadybot\Modules\PVP_MODULE\FeedMessage\{TowerAttack, TowerOutcome};
 use Nadybot\Modules\TIMERS_MODULE\{Alert, Timer, TimerController};
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Safe\Exceptions\JsonException;
@@ -424,8 +425,8 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$body = $response->getBody()->buffer(new TimeoutCancellation(60, 'Parsing towers was too slow'));
 		try {
-			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
+			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($json);
 
 			$sites = Hydrator::hydrateObjects(FeedMessage\SiteUpdate::class, $json)->getIterator();
 			foreach ($sites as $site) {
@@ -437,7 +438,7 @@ class NotumWarsController extends ModuleInstance {
 				'exception' => $e,
 			]);
 			return;
-		} catch (UnableToHydrateObject $e) {
+		} catch (UnableToHydrateObject | Type\Exception\AssertException $e) {
 			$this->logger->error('Unable to parse tower-api: {error}', [
 				'error' => $e->getMessage(),
 				'exception' => $e,
@@ -487,8 +488,8 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$body = $response->getBody()->buffer();
 		try {
-			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
+			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($json);
 
 			$attacks = Hydrator::hydrateObjects(FeedMessage\TowerAttack::class, $json)->getIterator();
 
@@ -522,7 +523,7 @@ class NotumWarsController extends ModuleInstance {
 				'exception' => $e,
 			]);
 			return;
-		} catch (UnableToHydrateObject $e) {
+		} catch (UnableToHydrateObject | Type\Exception\AssertException $e) {
 			$this->logger->error('Unable to parse attack-api: {error}', [
 				'error' => $e->getMessage(),
 				'exception' => $e,
@@ -551,8 +552,8 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$body = $response->getBody()->buffer();
 		try {
-			/** @var list<array<string,mixed>> */
 			$json = json_decode($body, true);
+			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($json);
 
 			$outcomes = Hydrator::hydrateObjects(FeedMessage\TowerOutcome::class, $json)->getIterator();
 
@@ -574,7 +575,7 @@ class NotumWarsController extends ModuleInstance {
 				'exception' => $e,
 			]);
 			return;
-		} catch (UnableToHydrateObject $e) {
+		} catch (UnableToHydrateObject | Type\Exception\AssertException $e) {
 			$this->logger->error('Unable to parse outcome-api: {error}', [
 				'error' => $e->getMessage(),
 				'exception' => $e,

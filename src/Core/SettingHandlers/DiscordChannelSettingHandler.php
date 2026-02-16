@@ -8,6 +8,7 @@ use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Exception;
 use Nadybot\Core\{Attributes as NCA, Safe, SettingManager};
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\DiscordGatewayController;
+use Nadylib\Type;
 
 use Safe\Exceptions\JsonException;
 
@@ -68,17 +69,12 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		}
 		$body = $response->getBody()->buffer();
 		try {
-			$reply = json_decode($body);
-		} catch (JsonException $e) {
+			$reply = json_decode($body, true);
+			Type\shape(['message' => Type\string()], true)->assert($reply);
+		} catch (JsonException | Type\Exception\AssertException $e) {
 			throw new Exception("Cannot use <highlight>{$newValue}<end> as value.", 0, $e);
 		}
-		if (is_object($reply)) {
-			/** @var object{message?:string}&\stdClass $reply */
-			if (isset($reply->message)) {
-				throw new Exception("<highlight>{$newValue}<end>: {$reply->message}.");
-			}
-		}
-		throw new Exception("<highlight>{$newValue}<end>: Unknown error getting channel info.");
+		throw new Exception("<highlight>{$newValue}<end>: {$reply['message']}.");
 	}
 
 	/** {@inheritDoc} */

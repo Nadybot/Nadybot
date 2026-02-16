@@ -7,8 +7,8 @@ use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, UnableToHydrateObject};
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 use Nadybot\Core\Attributes\{Instance, JSON\Ignore};
 use Nadybot\Core\{BotRunner, Filesystem, Hydrator, Safe};
-use Nadylib\IMEX;
 use Nadylib\IMEX\ImportException;
+use Nadylib\{IMEX, Type};
 
 /**
  * The BotConfig class provides convenient interface for reading and saving
@@ -77,7 +77,9 @@ class BotConfig {
 			$php = $fs->read($filePath);
 			$vars = IMEX\PHP::import($php);
 		}
-		if (!is_array($vars)) {
+		try {
+			Type\dict(Type\string(), Type\mixed())->assert($vars);
+		} catch (Type\Exception\AssertException $e) {
 			// @phpstan-ignore-next-line
 			fwrite(
 				\STDERR,
@@ -86,7 +88,6 @@ class BotConfig {
 			exit(1);
 		}
 
-		/** @var array<string,mixed> $vars */
 		$settings = self::convertOldSettings($vars);
 		$settings['file_path'] = $filePath;
 

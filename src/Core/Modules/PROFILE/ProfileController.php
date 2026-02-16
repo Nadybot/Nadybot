@@ -13,6 +13,7 @@ use Nadybot\Core\{
 	Config\BotConfig,
 	DB,
 	Filesystem,
+	Hydrator,
 	MessageHub,
 	ModuleInstance,
 	Nadybot,
@@ -36,6 +37,7 @@ use Nadybot\Core\DBSchema\{
 	RouteHopFormat,
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\Uuid;
 
@@ -453,8 +455,18 @@ class ProfileController extends ModuleInstance {
 	}
 
 	private function loadPermissions(string $export, CommandReply $reply): void {
-		/** @var list<ExtCmdPermissionSet> */
-		$sets = json_decode($export);
+		try {
+			$json = json_decode($export, true);
+			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($json);
+			$sets = Hydrator::hydrateObjects(ExtCmdPermissionSet::class, $json)->getIterator();
+		} catch (Exception $e) {
+			$this->logger->error('Invalid permissions export: {error}', [
+				'error' => $e->getMessage(),
+				'exception' => $e,
+			]);
+			$reply->reply("Invalid permissions export: <highlight>{$export}<end>");
+			return;
+		}
 		$this->db->table(CmdPermission::getTable())->delete();
 		$this->db->table(CmdPermissionSet::getTable())->delete();
 		$this->db->table(CmdPermSetMapping::getTable())->delete();

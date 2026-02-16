@@ -8,13 +8,14 @@ use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
 use AO\Utils;
 use DateInterval;
+use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Hydrator,
 	ModuleInstance,
 };
+use Nadylib\Type;
 use Psr\SimpleCache\CacheInterface;
-use Safe\Exceptions\JsonException;
 use Throwable;
 
 #[NCA\Instance]
@@ -72,14 +73,10 @@ class PlayerHistoryManager extends ModuleInstance {
 	private function parsePlayerHistory(string $data, string $name): ?PlayerHistory {
 		try {
 			$history = json_decode($data, true);
-		} catch (JsonException) {
+			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($history);
+		} catch (Exception) {
 			return null;
 		}
-		if (!is_array($history)) {
-			return null;
-		}
-
-		/** @var array<array<string,mixed>> $history */
 
 		$entries = Hydrator::hydrateObjects(PlayerHistoryData::class, $history)->toArray();
 		return new PlayerHistory(name: $name, data: $entries);

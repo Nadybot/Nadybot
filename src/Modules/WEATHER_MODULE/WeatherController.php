@@ -345,14 +345,13 @@ class WeatherController extends ModuleInstance {
 				$e
 			);
 		}
-		if (!is_array($data)) {
+		if (!Type\dict(Type\string(), Type\mixed())->matches($data)) {
 			throw new UserException(
 				'Invalid answer received from Weather provider: '.
-				'<highlight>' . json_encode($data) . '<end>.'
+				"<highlight>{$body}<end>."
 			);
 		}
 
-		/** @var array<string,mixed> $data */
 		$weather = Hydrator::literalHydrate(Weather::class, $data);
 		return $weather;
 	}
