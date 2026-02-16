@@ -41,7 +41,7 @@ use Nadybot\Modules\{
 	WEBSERVER_MODULE\StatsController,
 };
 use Nadybot\Modules\WEBSERVER_MODULE\WebserverController;
-use Psl\Type;
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;

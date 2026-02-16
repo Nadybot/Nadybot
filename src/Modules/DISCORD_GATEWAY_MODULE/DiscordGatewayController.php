@@ -73,7 +73,7 @@ use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\{
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Nadybot\Modules\WEBSERVER_MODULE\StatsController;
-use Psl\Type;
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionClassConstant;

@@ -21,7 +21,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl, intl, sodium, fileinfo, yaml
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, openssl, fileinfo, yaml
 
       - name: Install dependencies
         run: composer install -q --no-dev
@@ -71,7 +71,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, bcmath, json, mbstring, openssl, intl, sodium, fileinfo
+          extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql, bcmath, json, mbstring, openssl, fileinfo
 
       - name: Install dependencies
         run: composer install -q --no-dev
@@ -121,7 +121,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          extensions: bcmath, json, mbstring, sodium, intl, sqlite3, sockets, pdo_sqlite, pdo_mysql
+          extensions: bcmath, json, mbstring, sqlite3, sockets, pdo_sqlite, pdo_mysql
 
       - name: Install dependencies
         run: composer install -q --no-dev
@@ -170,7 +170,7 @@ jobs:
         with:
           php-version: ${{ matrix.php }}
           coverage: none
-          extensions: bcmath, json, mbstring, sodium, intl, sqlite3, sockets, pdo_sqlite, pdo_mysql
+          extensions: bcmath, json, mbstring, sqlite3, sockets, pdo_sqlite, pdo_mysql
 
       - name: Install dependencies
         run: composer install -q --no-dev

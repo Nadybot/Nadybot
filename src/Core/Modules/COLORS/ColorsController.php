@@ -22,7 +22,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
-use Psl\Type;
+use Nadylib\Type;
 
 #[
 	NCA\Instance,

@@ -37,7 +37,7 @@ use Nadybot\Core\Modules\DISCORD\{
 	DiscordException
 };
 use Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Interaction;
-use Psl\Type;
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
 use ReflectionNamedType;

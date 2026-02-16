@@ -38,7 +38,7 @@ use Nadybot\Core\Events\EventFeed\{JoinPackageEvent, LeavePackageEvent, MessageP
 use Nadybot\Core\Modules\ALTS\{AltsController, NickController};
 use Nadybot\Core\ParamClass\{PCharacter, PDuration, PUuid};
 use Nadybot\Core\Routing\{Character, RoutableEvent, RoutableMessage, Source};
-use Psl\Type;
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\UuidInterface;
 use Revolt\EventLoop;

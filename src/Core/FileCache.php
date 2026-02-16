@@ -3,7 +3,7 @@
 namespace Nadybot\Core;
 
 use function Amp\File\filesystem;
-use function Safe\{pack, unpack};
+use function Safe\{pack, unpack, unserialize};
 use Amp\Cache\CacheException;
 use Amp\File\{Filesystem, FilesystemException};
 use Amp\{ForbidCloning, ForbidSerialization};
