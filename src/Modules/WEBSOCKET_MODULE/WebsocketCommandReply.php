@@ -49,6 +49,7 @@ class WebsocketCommandReply implements CommandReply, MessageEmitter {
 
 	/** {@inheritDoc} */
 	public function reply(string|array $msg): void {
+		$color = null;
 		$msg = (array)$msg;
 		if (!count($msg)) {
 			return;

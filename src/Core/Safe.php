@@ -3,6 +3,7 @@
 namespace Nadybot\Core;
 
 use function Safe\{json_decode, preg_match, preg_match_all, preg_replace, preg_split};
+use Nadylib\Type;
 
 use Safe\Exceptions\{JsonException, PcreException};
 
@@ -328,50 +329,23 @@ class Safe {
 	}
 
 	/**
-	 * @param string     $json  The JSON string to decode
-	 * @param int<1,max> $depth How many levels to decode
+	 * @template T
 	 *
-	 * @return array<string,mixed>
+	 * @param string                $json  The JSON string to decode
+	 * @param Type\TypeInterface<T> $type  The expected format of the decoded data
+	 * @param int<1,max>            $depth How many levels to decode
 	 *
-	 * @throws JsonException on wrong format
-	 */
-	public static function jsonDecodeArr(string $json, int $depth=512, int $flags=0): array {
-		$obj = json_decode($json, true, $depth, $flags);
-		if (!is_array($obj)) {
-			throw new JsonException('Expected a JSON object, found ' . gettype($obj));
-		}
-		if (count(array_filter(array_keys($obj), 'is_int')) > 0) {
-			throw new JsonException('Expected a JSON object with string keys, but also found numeric keys');
-		}
-
-		/** @var array<string,mixed> $obj */
-		return $obj;
-	}
-
-	/**
-	 * @param string     $json  The JSON string to decode
-	 * @param int<1,max> $depth How many levels to decode
-	 *
-	 * @return list<array<string,mixed>>
+	 * @return T
 	 *
 	 * @throws JsonException on wrong format
 	 */
-	public static function jsonDecodeList(string $json, int $depth=512, int $flags=0): array {
-		$obj = json_decode($json, true, $depth, $flags);
-		if (!is_array($obj) || !array_is_list($obj)) {
-			throw new JsonException('Expected a list of objects, found ' . gettype($obj));
+	public static function jsonDecode(string $json, Type\TypeInterface $type, int $depth=512, int $flags=0): mixed {
+		$data = json_decode($json, true, $depth, $flags);
+		try {
+			return $type->coerce($data);
+		} catch (\Exception $e) {
+			throw new JsonException($e->getMessage(), previous: $e);
 		}
-		foreach ($obj as $key => $value) {
-			if (!is_array($value)) {
-				throw new JsonException('Expected an array of JSON objects, found a ' . gettype($obj));
-			}
-			if (!static::isSerializedObj($value)) {
-				throw new JsonException('Expected an array of JSON object with string keys, but also found numeric keys');
-			}
-		}
-
-		/** @var list<array<string,mixed>> $obj */
-		return $obj;
 	}
 
 	/**

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\SettingHandlers;
 
-use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Http\Client\Interceptor\AddRequestHeader;
 use Exception;
@@ -69,8 +68,7 @@ class DiscordChannelSettingHandler extends SettingHandler {
 		}
 		$body = $response->getBody()->buffer();
 		try {
-			$reply = json_decode($body, true);
-			Type\shape(['message' => Type\string()], true)->assert($reply);
+			$reply = Safe::jsonDecode($body, Type\shape(['message' => Type\string()], true));
 		} catch (JsonException | Type\Exception\AssertException $e) {
 			throw new Exception("Cannot use <highlight>{$newValue}<end> as value.", 0, $e);
 		}

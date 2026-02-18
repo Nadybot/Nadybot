@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 };
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Revolt\EventLoop\Suspension;
@@ -96,8 +97,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$request->setBody(new DiscordBody($message));
 		$json = $this->sendRequest($request);
 
-		/** @var list<array<string,mixed>> */
-		$body = json_decode($json, true);
+		$body = Safe::jsonDecode($json, Type\vec(Type\dict(Type\string(), Type\mixed())));
 		return Hydrator::hydrateObjects(ApplicationCommand::class, $body)->toArray();
 	}
 
@@ -117,8 +117,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getGlobalApplicationCommands(string $applicationId): array {
 		$json = $this->sendRequest(new Request(self::DISCORD_API . "/applications/{$applicationId}/commands"));
 
-		/** @var list<array<string,mixed>> */
-		$body = json_decode($json, true);
+		$body = Safe::jsonDecode($json, Type\vec(Type\dict(Type\string(), Type\mixed())));
 		return Hydrator::hydrateObjects(ApplicationCommand::class, $body)->toArray();
 	}
 
@@ -287,8 +286,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getGuildInvites(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/invites");
 
-		/** @var list<array<string,mixed>> */
-		$json = json_decode($this->sendRequest($request), true);
+		$json = Safe::jsonDecode($this->sendRequest($request), Type\vec(Type\dict(Type\string(), Type\mixed())));
 		return Hydrator::hydrateObjects(DiscordChannelInvite::class, $json)->toArray();
 	}
 
@@ -300,8 +298,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getGuildEvents(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/scheduled-events?with_user_count=true");
 
-		/** @var list<array<string,mixed>> */
-		$json = json_decode($this->sendRequest($request), true);
+		$json = Safe::jsonDecode($this->sendRequest($request), Type\vec(Type\dict(Type\string(), Type\mixed())));
 		return Hydrator::hydrateObjects(DiscordScheduledEvent::class, $json)->toArray();
 	}
 
@@ -313,8 +310,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getEmojis(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis");
 
-		/** @var list<array<string,mixed>> */
-		$json = json_decode($this->sendRequest($request), true);
+		$json = Safe::jsonDecode($this->sendRequest($request), Type\vec(Type\dict(Type\string(), Type\mixed())));
 		return Hydrator::hydrateObjects(Emoji::class, $json)->toArray();
 	}
 

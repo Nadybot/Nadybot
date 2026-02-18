@@ -43,6 +43,7 @@ class MigrateToRoutes implements SchemaMigration {
 		if (!isset($relayChannel) || !isset($relayChannel->value) || $relayChannel->value === 'off') {
 			return;
 		}
+		$discordRelayChannel = $relayChannel->value;
 		if (!isset($relayWhat) || $relayWhat->value === '0') {
 			return;
 		}
@@ -53,7 +54,7 @@ class MigrateToRoutes implements SchemaMigration {
 			$relayCommands = false;
 		}
 		try {
-			$channel = $this->discordApiClient->getChannel($relayChannel->value);
+			$channel = $this->discordApiClient->getChannel($discordRelayChannel);
 			$this->migrateChannelToRoute($channel, $db, $relayWhat, $relayCommands);
 		} catch (Throwable) {
 		}

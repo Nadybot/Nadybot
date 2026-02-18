@@ -4,7 +4,6 @@ namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Amp\{async, delay};
 use function Amp\Future\await;
-use function Safe\json_decode;
 
 use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\TimeoutCancellation;
@@ -21,6 +20,7 @@ use Nadybot\Core\{
 	Hydrator,
 	ModuleInstance,
 	Nadybot,
+	Safe,
 	Types\Faction,
 	Types\Government,
 	Types\Profession,
@@ -119,10 +119,12 @@ class GuildManager extends ModuleInstance {
 		if (!isset($body) || $body === '') {
 			throw new Exception('Empty data received when reading org data');
 		}
-		$data = json_decode($body, true);
-		if (!$this->checkGuildDataValid($data)) {
-			return null;
-		}
+		$validator = Type\shape([
+			0 => Type\dict(Type\string(), Type\mixed()),
+			1 => Type\vec(Type\dict(Type\string(), Type\mixed())),
+			2 => Type\nonEmptyString(),
+		]);
+		$data = Safe::jsonDecode($body, $validator);
 
 		[$orgInfo, $members, $lastUpdated] = $data;
 
@@ -236,18 +238,5 @@ class GuildManager extends ModuleInstance {
 	public function isMyGuild(int $guildId): bool {
 		return isset($this->config->orgId)
 			&& $this->config->orgId === $guildId;
-	}
-
-	/**
-	 * Check if the received guild data is in the expected format
-	 *
-	 * @psalm-assert-if-true array{0:array<string,mixed>,1:list<array<string,mixed>>,2:non-empty-string} $data
-	 */
-	private function checkGuildDataValid(mixed $data): bool {
-		return Type\shape([
-			0 => Type\dict(Type\string(), Type\mixed()),
-			1 => Type\vec(Type\dict(Type\string(), Type\mixed())),
-			2 => Type\nonEmptyString(),
-		])->matches($data);
 	}
 }

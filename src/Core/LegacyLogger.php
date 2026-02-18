@@ -12,6 +12,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Routing\Source,
 };
+use Nadylib\Type;
 use RuntimeException;
 use Safe\Exceptions\JsonException;
 use SplObjectStorage;
@@ -93,7 +94,7 @@ class LegacyLogger {
 		$configFile = BotRunner::getArguments()->logConfig ?? './conf/logging.json';
 		$json = self::$fs->read($configFile);
 		try {
-			$jsonStruct = Safe::jsonDecodeArr($json, 512);
+			$jsonStruct = Safe::jsonDecode($json, Type\dict(Type\string(), Type\mixed()));
 			if (!isset($jsonStruct['monolog'])) {
 				throw new RuntimeException('Invalid logging config, missing "monolog" key');
 			}

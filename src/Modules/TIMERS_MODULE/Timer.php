@@ -3,6 +3,7 @@
 namespace Nadybot\Modules\TIMERS_MODULE;
 
 use Nadybot\Core\{Attributes\DB, DBTable, Safe};
+use Nadylib\Type;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use Safe\DateTimeImmutable;
 use Safe\Exceptions\JsonException;
@@ -51,7 +52,7 @@ class Timer extends DBTable {
 			return [];
 		}
 		try {
-			$alertsData = Safe::jsonDecodeList($alerts);
+			$alertsData = Safe::jsonDecode($alerts, Type\vec(Type\mixedDict()));
 		} catch (JsonException) {
 			return [];
 		}

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core\Modules\COLORS;
 
-use function Safe\json_decode;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -203,8 +202,7 @@ class ColorsController extends ModuleInstance {
 	public function loadTheme(string $filename): ?Theme {
 		try {
 			$json = $this->fs->read($filename);
-			$data = json_decode($json, true);
-			Type\dict(Type\string(), Type\mixed())->assert($data);
+			$data = Safe::jsonDecode($json, Type\dict(Type\string(), Type\mixed()));
 		} catch (Exception) {
 			return null;
 		}

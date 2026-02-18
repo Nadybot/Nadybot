@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\MOB_MODULE;
 
-use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Closure;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
@@ -109,15 +108,15 @@ class MobController extends ModuleInstance {
 		$body = $response->getBody()->buffer();
 
 		try {
-			$json = json_decode($body, true);
-			Type\dict(
-				Type\string(),
-				Type\vec(
-					Type\dict(Type\string(), Type\mixed())
+			$json = Safe::jsonDecode(
+				$body,
+				Type\dict(
+					Type\string(),
+					Type\vec(
+						Type\dict(Type\string(), Type\mixed())
+					)
 				)
-			)->assert($json);
-
-			/** @var array<string,list<array<string,mixed>>> $json */
+			);
 
 			$this->mobs = [];
 			foreach ($json as $type => $entries) {
@@ -156,9 +155,10 @@ class MobController extends ModuleInstance {
 		$body = $response->getBody()->buffer();
 
 		try {
-			/** @var array<string,list<array<string,mixed>>> */
-			$json = json_decode($body, true);
-
+			$json = Safe::jsonDecode(
+				$body,
+				Type\dict(Type\string(), Type\vec(Type\dict(Type\string(), Type\mixed())))
+			);
 			foreach ($json as $entry) {
 				$mobs = Hydrator::hydrateObjects(Mob::class, $entry)->getIterator();
 

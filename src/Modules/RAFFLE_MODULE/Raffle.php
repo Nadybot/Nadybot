@@ -113,4 +113,13 @@ class Raffle {
 		// @mago-ignore analysis:invalid-return-statement
 		return array_merge(...$winners);
 	}
+
+	public function getMatchingSlot(RaffleSlot $check): ?RaffleSlot {
+		foreach ($this->slots as $slot) {
+			if ($slot->isSameAs($check)) {
+				return $slot;
+			}
+		}
+		return null;
+	}
 }

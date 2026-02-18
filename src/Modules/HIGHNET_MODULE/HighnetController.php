@@ -42,6 +42,7 @@ use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\UuidInterface;
 use Revolt\EventLoop;
+use Safe\Exceptions\JsonException;
 
 /**
  * @author Nadyita (RK5)
@@ -263,11 +264,11 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		}
 		$senderUUID = $package->user;
 		$body = $package->body;
-		if (is_string($body)) {
-			$body = json_decode($body, true);
-		}
 
 		try {
+			if (is_string($body)) {
+				$body = json_decode($body, true);
+			}
 			Type\dict(Type\string(), Type\mixed())->assert($body);
 			$message = Hydrator::hydrate(Message::class, $body);
 			if (!$this->isWantedMessage($message)) {
@@ -292,7 +293,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 			}
 			$event = new HighnetEvent(message: $nextMessage);
 			$this->eventManager->dispatch($event);
-		} catch (UnableToHydrateObject $e) {
+		} catch (UnableToHydrateObject | JsonException $e) {
 			$this->logger->info('Invalid highnet-package received: {data}.', [
 				'data' => $body,
 				'exception' => $e,

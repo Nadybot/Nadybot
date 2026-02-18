@@ -2,10 +2,10 @@
 
 namespace Nadybot\Modules\WEATHER_MODULE;
 
-use function Safe\{json_decode, json_encode};
 use Amp\Cache\LocalCache;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\Http\Client\Interceptor\AddRequestHeader;
+use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -308,7 +308,10 @@ class WeatherController extends ModuleInstance {
 
 	private function decodeNominatim(string $body): Nominatim {
 		try {
-			$data = json_decode($body, true);
+			$data = Safe::jsonDecode(
+				$body,
+				Type\vec(Type\dict(Type\string(), Type\mixed()))
+			);
 		} catch (JsonException $e) {
 			throw new UserException(
 				'Invalid JSON received from Location provider: '.
@@ -316,13 +319,10 @@ class WeatherController extends ModuleInstance {
 				0,
 				$e
 			);
-		}
-		try {
-			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($data);
 		} catch (\Exception $e) {
 			throw new UserException(
 				'Invalid answer received from Location provider: '.
-				'<highlight>' . json_encode($data) . '<end>.',
+				"<highlight>{$body}<end>.",
 				previous: $e,
 			);
 		}
@@ -336,7 +336,10 @@ class WeatherController extends ModuleInstance {
 
 	private function decodeWeather(string $body): Weather {
 		try {
-			$data = json_decode($body, true);
+			$data = Safe::jsonDecode(
+				$body,
+				Type\dict(Type\string(), Type\mixed())
+			);
 		} catch (JsonException $e) {
 			throw new UserException(
 				'Invalid JSON received from Weather provider: '.
@@ -344,11 +347,11 @@ class WeatherController extends ModuleInstance {
 				0,
 				$e
 			);
-		}
-		if (!Type\dict(Type\string(), Type\mixed())->matches($data)) {
+		} catch (Exception $e) {
 			throw new UserException(
 				'Invalid answer received from Weather provider: '.
-				"<highlight>{$body}<end>."
+				"<highlight>{$body}<end>.",
+				previous: $e
 			);
 		}
 

@@ -32,6 +32,7 @@ use Nadybot\Core\{
 	Types\Playfield,
 	Util,
 };
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Safe\DateTimeImmutable;
 use Safe\Exceptions\JsonException;
@@ -1312,7 +1313,7 @@ class WorldBossController extends ModuleInstance {
 		/** @var list<ApiSpawnData> */
 		$timers = [];
 		try {
-			$data = Safe::jsonDecodeList($body);
+			$data = Safe::jsonDecode($body, Type\vec(Type\mixedDict()));
 			$timers = Hydrator::literalHydrateObjects(ApiSpawnData::class, $data)->toArray();
 		} catch (JsonException | UnableToHydrateObject) {
 			$this->logger->error('Worldboss API sent invalid json.', [

@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Amp\delay;
-use function Safe\{json_decode, parse_url};
+use function Safe\parse_url;
 
 use Amp\Http\Client\{
 	HttpClientBuilder,
@@ -12,7 +12,6 @@ use Amp\Http\Client\{
 };
 use Amp\TimeoutCancellation;
 use AO\Utils;
-use DateTimeZone;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -21,19 +20,16 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	Exceptions\SQLException,
+	Hydrator,
 	ModuleInstance,
 	Nadybot,
 	Registry,
 	Safe,
-	Types\Faction,
-	Types\Profession,
 	Types\Status,
 };
-use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Revolt\EventLoop;
-use Safe\DateTimeImmutable;
 
 /**
  * @author Tyrence (RK2)
@@ -300,114 +296,20 @@ class PlayerManager extends ModuleInstance {
 		return $query->asObj(Player::class);
 	}
 
-	/**
-	 * Check if the received guild data is in the expected format
-	 *
-	 * @psalm-assert array{
-	 *   0:array{
-	 *     FIRSTNAME:string,
-	 *     NAME:string,
-	 *     LASTNAME:string,
-	 *     LEVELX:?int,
-	 *     BREED?:string,
-	 *     SEX?:string,
-	 *     SIDE:string,
-	 *     PROF:string,
-	 *     PROFNAME?:string,
-	 *     RANK_name?:string,
-	 *     ALIENLEVEL:?int,
-	 *     HEADID:?int,
-	 *     PVPRATING:?int,
-	 *     PVPTITLE:?string,
-	 *     CHAR_INSTANCE:int,
-	 *     CHAR_DIMENSION:?int
-	 *   },
-	 *   1:?array{
-	 *     ORG_INSTANCE:?int,
-	 *     NAME?:string,
-	 *     RANK_TITLE?:string,
-	 *     RANK:?int
-	 *   },
-	 *   2:non-empty-string
-	 * } $data
-	 */
-	private function assertPlayerDataValid(mixed $data): void {
-		Type\shape([
-			0 => Type\shape([
-				'FIRSTNAME' => Type\string(),
-				'NAME' => Type\string(),
-				'LASTNAME' => Type\string(),
-				'LEVELX' => Type\optional(Type\nullable(Type\int())),
-				'BREED' => Type\optional(Type\nullable(Type\string())),
-				'SEX' => Type\optional(Type\nullable(Type\string())),
-				'SIDE' => Type\string(),
-				'PROF' => Type\string(),
-				'PROFNAME' => Type\optional(Type\nullable(Type\string())),
-				'RANK_name' => Type\optional(Type\nullable(Type\string())),
-				'ALIENLEVEL' => Type\optional(Type\nullable(Type\int())),
-				'HEADID' => Type\optional(Type\nullable(Type\int())),
-				'PVPRATING' => Type\optional(Type\nullable(Type\int())),
-				'PVPTITLE' => Type\optional(Type\nullable(Type\string())),
-				'CHAR_INSTANCE' => Type\int(),
-				'CHAR_DIMENSION' => Type\optional(Type\nullable(Type\int())),
-			]),
-			1 => Type\nullable(Type\shape([
-				'ORG_DIMENSION' => Type\optional(Type\nullable(Type\int())),
-				'ORG_INSTANCE' => Type\optional(Type\nullable(Type\int())),
-				'NAME' => Type\optional(Type\nullable(Type\string())),
-				'RANK_TITLE' => Type\optional(Type\nullable(Type\string())),
-				'RANK' => Type\optional(Type\nullable(Type\int())),
-			])),
-			2 => Type\nonEmptyString(),
-		])->assert($data);
-	}
-
 	private function parsePlayerFromBody(string $body): ?Player {
 		if ($body === 'null') {
 			return null;
 		}
-		$data = null;
 		try {
-			$data = json_decode($body, true);
-			$this->assertPlayerDataValid($data);
-			[$char, $org, $lastUpdated] = $data;
+			return Hydrator::hydrateString(PlayerInfo::class, $body)->toPlayer();
 		} catch (Exception $e) {
 			$this->logger->warning('Error parsing player data: {error} ({class})', [
 				'error' => $e->getMessage(),
 				'class' => $e::class,
 				'exception' => $e,
-				// @phpstan-ignore nullCoalesce.variable
-				'data' => $data ?? $body,
+				'data' => $body,
 			]);
 			return null;
 		}
-		$org ??= [];
-
-		$luDateTime = DateTimeImmutable::createFromFormat('Y/m/d H:i:s', $lastUpdated, new DateTimeZone('UTC'));
-		$obj = new Player(
-			firstname: trim($char['FIRSTNAME']),
-			name: $char['NAME'],
-			lastname: trim($char['LASTNAME']),
-			level: $char['LEVELX'],
-			breed: $char['BREED'] ?? '',
-			gender: $char['SEX'] ?? '',
-			faction: Faction::tryFrom($char['SIDE']) ?? Faction::Unknown,
-			profession: Profession::tryFrom($char['PROF']),
-			prof_title: $char['PROFNAME'] ?? '',
-			ai_rank: $char['RANK_name'] ?? '',
-			ai_level: $char['ALIENLEVEL'],
-			guild_id: $org['ORG_INSTANCE'] ?? null,
-			guild: $org['NAME'] ?? '',
-			guild_rank: $org['RANK_TITLE'] ?? '',
-			guild_rank_id: $org['RANK'] ?? null,
-			head_id: $char['HEADID'],
-			pvp_rating: $char['PVPRATING'],
-			pvp_title: $char['PVPTITLE'],
-			charid: $char['CHAR_INSTANCE'],
-			dimension: $char['CHAR_DIMENSION'],
-			last_update: $luDateTime->getTimestamp(),
-		);
-
-		return $obj;
 	}
 }
