@@ -12,7 +12,10 @@ use Psr\Log\LoggerInterface;
 class CreateClusterTable implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = Cluster::getTable();
-		$db->schema()->dropIfExists('Cluster');
+		if ($db->schema()->hasTable('Cluster')) {
+			$db->schema()->rename('Cluster', 'cluster_old');
+		}
+		// $db->schema()->dropIfExists('Cluster');
 		$db->schema()->dropIfExists($table);
 		$db->schema()->create($table, static function (Blueprint $table): void {
 			$table->integer('cluster_id')->primary();

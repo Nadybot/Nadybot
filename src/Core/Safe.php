@@ -3,9 +3,12 @@
 namespace Nadybot\Core;
 
 use function Safe\{json_decode, preg_match, preg_match_all, preg_replace, preg_split};
+
+use Exception;
 use Nadylib\Type;
 
 use Safe\Exceptions\{JsonException, PcreException};
+use stdClass;
 
 /**
  * This is a wrapper class for some functions with signatures that make it impossible
@@ -343,9 +346,24 @@ class Safe {
 		$data = json_decode($json, true, $depth, $flags);
 		try {
 			return $type->coerce($data);
-		} catch (\Exception $e) {
+		} catch (Exception $e) {
 			throw new JsonException($e->getMessage(), previous: $e);
 		}
+	}
+
+	/**
+	 * @param string     $json  The JSON string to decode
+	 * @param int<1,max> $depth How many levels to decode
+	 *
+	 * @throws JsonException on wrong format
+	 */
+	public static function jsonDecodeObj(string $json, int $depth=512, int $flags=0): stdClass {
+		$data = json_decode($json, true, $depth, $flags);
+		// @phpstan-ignore instanceof.alwaysFalse
+		if ($data instanceof stdClass) {
+			return $data;
+		}
+		throw new JsonException('Invalid JSON-data. Expected: object, got: ' . get_debug_type($data));
 	}
 
 	/**

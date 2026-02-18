@@ -4,11 +4,13 @@ declare(strict_types=1);
 
 namespace Nadybot\Core\Attributes\Hydrator;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 
 use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster};
 use Exception;
+use Nadybot\Core\Safe;
+use Nadylib\Type;
 use stdClass;
 
 /** Cast the associative array to a stdClass() object */
@@ -19,8 +21,6 @@ final class CastToStdClass implements PropertyCaster {
 			throw new Exception('Can only recode arrays or objects');
 		}
 
-		/** @var \stdClass */
-		$recoded = json_decode(json_encode($value), false);
-		return $recoded;
+		return Safe::jsonDecode(json_encode($value), Type\instanceOfType(stdClass::class));
 	}
 }

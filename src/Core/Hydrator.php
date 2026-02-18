@@ -40,8 +40,8 @@ class Hydrator {
 	 *
 	 * @template T of object
 	 *
-	 * @param class-string<T>     $className The class to hydrate to
-	 * @param array<string,mixed> $data      an associative array with the data to use
+	 * @param class-string<T>        $className The class to hydrate to
+	 * @param array<array-key,mixed> $data      an associative array with the data to use
 	 *
 	 * @return T
 	 *

@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Amp\delay;
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 use Amp\Http\Client\{BufferedContent, HttpClient, HttpClientBuilder, Request};
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Exception;
@@ -80,11 +80,11 @@ class DiscordAPIClient extends ModuleInstance {
 		$uri = self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}";
 		$request = new Request($uri, 'PATCH');
 		$request->setBody(new DiscordBody($data));
-		$json = json_decode($this->sendRequest($request), false);
-		if ($json instanceof stdClass) {
-			return $json;
+		try {
+			return Safe::jsonDecodeObj($this->sendRequest($request));
+		} catch (JsonException) {
+			return new stdClass();
 		}
-		return new stdClass();
 	}
 
 	/** @return list<ApplicationCommand> */
@@ -106,11 +106,11 @@ class DiscordAPIClient extends ModuleInstance {
 		string $commandId,
 	): stdClass {
 		$url = self::DISCORD_API . "/applications/{$applicationId}/commands/{$commandId}";
-		$body = json_decode($this->sendRequest(new Request($url, 'DELETE')), false);
-		if ($body instanceof stdClass) {
-			return $body;
+		try {
+			return Safe::jsonDecodeObj($this->sendRequest(new Request($url, 'DELETE')));
+		} catch (JsonException) {
+			return new stdClass();
 		}
-		return new stdClass();
 	}
 
 	/** @return list<ApplicationCommand> */
@@ -129,20 +129,20 @@ class DiscordAPIClient extends ModuleInstance {
 		$url = DiscordAPIClient::DISCORD_API . "/interactions/{$interactionId}/{$interactionToken}/callback";
 		$request = new Request($url, 'POST');
 		$request->setBody(new DiscordBody($message));
-		$json = json_decode($this->sendRequest($request), false);
-		if ($json instanceof stdClass) {
-			return $json;
+		try {
+			return Safe::jsonDecodeObj($this->sendRequest($request));
+		} catch (JsonException) {
+			return new stdClass();
 		}
-		return new stdClass();
 	}
 
 	public function leaveGuild(string $guildId): stdClass {
 		$request = new Request(self::DISCORD_API . "/users/@me/guilds/{$guildId}", 'DELETE');
-		$json = json_decode($this->sendRequest($request), false);
-		if ($json instanceof stdClass) {
-			return $json;
+		try {
+			return Safe::jsonDecodeObj($this->sendRequest($request));
+		} catch (JsonException) {
+			return new stdClass();
 		}
-		return new stdClass();
 	}
 
 	public function queueToChannel(string $channel, string $message): void {
@@ -351,11 +351,11 @@ class DiscordAPIClient extends ModuleInstance {
 	/** Delete an already existing emoji */
 	public function deleteEmoji(string $guildId, string $emojiId): stdClass {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emojiId}", 'DELETE');
-		$result = json_decode($this->sendRequest($request), false);
-		if ($result instanceof \stdClass) {
-			return $result;
+		try {
+			return Safe::jsonDecodeObj($this->sendRequest($request));
+		} catch (JsonException) {
+			return new stdClass();
 		}
-		return new stdClass();
 	}
 
 	private function getClient(): HttpClient {

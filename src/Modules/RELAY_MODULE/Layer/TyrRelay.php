@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\Layer;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 use Nadybot\Core\{Attributes as NCA, Safe};
 use Nadybot\Modules\RELAY_MODULE\{
 	Relay,
@@ -15,7 +15,6 @@ use Nadybot\Modules\RELAY_MODULE\{
 use Psr\Log\LoggerInterface;
 
 use Safe\Exceptions\JsonException;
-use stdClass;
 
 #[NCA\RelayStackMember(name: 'tyr-relay')]
 /** This is the protocol spoken by Tyrence's websocket-server */
@@ -74,10 +73,7 @@ class TyrRelay implements RelayLayerInterface, StatusProvider {
 	public function receive(RelayMessage $msg): RelayMessage {
 		foreach ($msg->packages as &$data) {
 			try {
-				$json = json_decode($data);
-				if (!is_object($json) || !($json instanceof stdClass)) {
-					throw new JsonException('Non-object received');
-				}
+				$json = Safe::jsonDecodeObj($data);
 			} catch (JsonException $e) {
 				$this->status = new RelayStatus(
 					RelayStatusType::ERROR,

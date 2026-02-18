@@ -2,10 +2,10 @@
 
 namespace Nadybot\Core\Modules\MESSAGES;
 
-use function Safe\json_decode;
 use Nadybot\Core\DBSchema\{Route, RouteModifier, RouteModifierArgument};
+use Nadybot\Core\Safe;
+use Nadylib\Type;
 use ParserGenerator\Parser;
-
 use ParserGenerator\SyntaxTreeNode\{Branch, Root};
 
 class ModifierExpressionParser {
@@ -106,7 +106,7 @@ class ModifierExpressionParser {
 			throw new \Exception('Invalid modifier expression');
 		}
 		if ($value->getDetailType() === 'string') {
-			$value = (string)json_decode($value->toString());
+			$value = (string)Safe::jsonDecode($value->toString(), Type\scalar());
 		} else {
 			$value = $value->toString();
 		}
