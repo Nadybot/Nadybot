@@ -18,7 +18,7 @@ enum Skill: int {
 	 *                              the skill or null, wildcard matches will always
 	 *                              return an array of Skills
 	 *
-	 * @psalm-return null|self|non-empty-list<self>
+	 * @psalm-return ($exactMatchOnly is true ? null|self : null|self|non-empty-list<self>)
 	 */
 	public static function tryFromName(string $name, bool $exactMatchOnly=true): null|self|array {
 		try {
@@ -73,12 +73,12 @@ enum Skill: int {
 	 *                         the skill or a ValueError, wildcard matches will always
 	 *                         return an array of Skills
 	 *
-	 * @psalm-return self|non-empty-list<self>
+	 * @psalm-return ($exactMatchOnly is true ? self : self|non-empty-list<self>)
 	 *
 	 * @throws ValueError on non-existing skill
 	 */
 	public static function fromName(string $name, bool $exactMatchOnly=true): self|array {
-		$name = strtolower($name);
+		$name = str_replace(' (%)', '', rtrim(strtolower($name), '*'));
 
 		/** @var array<string,self> */
 		$mapping = [
@@ -90,6 +90,7 @@ enum Skill: int {
 			'1 hand blunt weapons' => self::OneHB,
 			'1hb' => self::OneHB,
 			'1 handed edged weapons' => self::OneHE,
+			'1 handed edged weapon' => self::OneHE,
 			'1 hand edged weapons' => self::OneHE,
 			'1he' => self::OneHE,
 			'2 handed blunt weapons' => self::TwoHB,

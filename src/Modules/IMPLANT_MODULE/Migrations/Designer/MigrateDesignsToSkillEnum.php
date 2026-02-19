@@ -6,7 +6,8 @@ use function Safe\json_encode;
 
 use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\{Collection, DB, Safe, Types\SchemaMigration};
-use Nadybot\Modules\IMPLANT_MODULE\{Cluster, ImplantDesign};
+use Nadybot\Core\Types\Skill;
+use Nadybot\Modules\IMPLANT_MODULE\ImplantDesign;
 use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 
@@ -14,47 +15,7 @@ use Safe\Exceptions\JsonException;
 
 #[NCA\Migration(order: 2025_02_05_09_13_23, shared: true)]
 class MigrateDesignsToSkillEnum implements SchemaMigration {
-	/** @var array<string,int> */
-	private array $skills = [];
-
 	public function migrate(LoggerInterface $logger, DB $db): void {
-		if ($db->schema()->hasTable('cluster_old')) {
-			$this->skills = $db->table('cluster_old')
-				->getArray()
-				->reduce(
-					/**
-					 * @param array<string,int>     $result
-					 * @param array<string,?scalar> $cluster
-					 *
-					 * @return array<string,int>
-					 */
-					static function (array $result, array $cluster): array {
-						if (isset($cluster['SkillID'], $cluster['LongName'])) {
-							$result[(string)$cluster['LongName']] = (int)$cluster['SkillID'];
-						}
-						return $result;
-					},
-					[]
-				);
-		} else {
-			$this->skills = $db->table(Cluster::getTable())
-				->asObj(Cluster::class)
-				->reduce(
-					/**
-					 * @param array<string,int> $result
-					 *
-					 * @return array<string,int>
-					 */
-					static function (array $result, Cluster $cluster): array {
-						if (isset($cluster->skill)) {
-							$result[$cluster->long_name] = $cluster->skill->value;
-						}
-						return $result;
-					},
-					[]
-				);
-		}
-
 		/**
 		 * @var Collection<int,array{"design"?:string,"name"?:string,"owner"?:string}>
 		 *
@@ -99,7 +60,7 @@ class MigrateDesignsToSkillEnum implements SchemaMigration {
 					} else {
 						foreach (['shiny', 'bright', 'faded'] as $grade) {
 							if (array_key_exists($grade, $slotConfig) && is_string($slotConfig[$grade])) {
-								$slotConfig[$grade] = $this->skills[$slotConfig[$grade]] ?? null;
+								$slotConfig[$grade] = Skill::tryFromName($slotConfig[$grade], true)?->value;
 							}
 						}
 					}
@@ -119,7 +80,7 @@ class MigrateDesignsToSkillEnum implements SchemaMigration {
 	 */
 	private function convertSkills(array $skillAmount): array {
 		return [
-			'skill' => $this->skills[$skillAmount['Name']],
+			'skill' => Skill::fromName($skillAmount['Name'])->value,
 			'amount' => $skillAmount['Amount'],
 		];
 	}
