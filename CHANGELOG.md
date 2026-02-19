@@ -17,7 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add the `!death`- and `!deathmsg`-commands
 - Option to turn off 'Unknown command'-messages or suggestions for direct and/or public messages.
 - Add a WebUI for setting up the bot
-- Support PHP 8.4 without throwing deprecation messages
+- Support PHP 8.4 + 8.5 without throwing deprecation messages
+- New `!ga` and `!gaf` command to see what can be worn with social armor (like grid armor)
+- New AI_MODULE allows chatting with chatbots (`!ai`) or translating text
+- New location for inferno doja chips added
 
 ### Changed
 
@@ -29,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `!implantdesigner` was reworked and modernized. It now supports special symbiants (TOTW drops, etc.), and also shows the bonus that adding a cluster would give you when choosing the cluster for a slot. It now recognizes cluster names as well as skill names and their shortcuts (`implantdesigner head shiny cl` works for example)
 - The `!calc`-command  now uses a proper calculator implementation that supports math-functions, as well as constants like `e`, and `pi`. `!calc INF^0`, or `!calc cot(2pi)` work now as well. And while I was at it, I added the possibility to store and solve formulas with the new `!formula`-command.
 - Events are now executed simultaneously. While this breaks some core concepts, it greatly speeds up a lot of things.
+- Before applying migrations to an SQLite database, Nadybot now takes a backup by default
 
 ### Coding
 
@@ -39,7 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Don't block on orglist updates anymore
 - Apply stricter checks and rules for everything
 - All exceptions will now be logged including the previous exceptions leading to them.
-- Importer and exporter don't use a schema-checker anymore, but rather import into proper classes.
+- Importer and exporter don't use a schema-checker anymore, but rather import into proper classes and allow extending these in user modules.
 - Remove all redundant libraries and only keep a single one for each type
 - Profession, Faction, Playfield, and a lot more are now enums. A new enum interface allows the usage of enums as command arguments.
 - No uninitialized properties anymore. All non-injected properties without default are now part of the constructor
@@ -48,6 +52,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Get all table names from the models, don't hard-code them.
 - Drill is now part of Core
 - NadyUI is now part of Nadybot
+- We now use `mago` for linting and analyzing alongside `psalm` and `phpstan`
 
 ### Fixed
 
@@ -57,6 +62,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix bug on big Big-endian
 - **All** bot commands are now permanently being tested on every commit to catch errors that are introduced due to side-effects, and generally test different platforms, architectures, and event libraries.
 - Fix deletion of tracked org members
+- A possible timing-attack on webserver auth was fixed
 
 ## [6.2.8] - 2024-02-21
 
