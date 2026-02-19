@@ -3,7 +3,6 @@
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
 use function Amp\async;
-use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
 use AO\Utils;
@@ -13,6 +12,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Hydrator,
 	ModuleInstance,
+	Safe,
 };
 use Nadylib\Type;
 use Psr\SimpleCache\CacheInterface;
@@ -72,8 +72,7 @@ class PlayerHistoryManager extends ModuleInstance {
 	/** @psalm-param callable(?PlayerHistory, mixed...) $callback */
 	private function parsePlayerHistory(string $data, string $name): ?PlayerHistory {
 		try {
-			$history = json_decode($data, true);
-			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($history);
+			$history = Safe::jsonDecode($data, Type\vec(Type\dict(Type\string(), Type\mixed())));
 		} catch (Exception) {
 			return null;
 		}

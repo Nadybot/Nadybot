@@ -2,8 +2,9 @@
 
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 
+use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
@@ -11,9 +12,11 @@ use Nadybot\Core\{
 	Modules\ALTS\AltsController,
 	Modules\PREFERENCES\Preferences,
 	ParamClass\PCharacter,
+	Safe,
 	Text,
 	Types\AccessLevel,
 };
+use Nadylib\Type;
 
 /**
  * @author Equi
@@ -53,12 +56,15 @@ class GauntletInventoryController extends ModuleInstance {
 	public function getData(string $name): array {
 		$data = $this->preferences->get($name, 'gauntlet');
 		if (isset($data)) {
-			$array = json_decode($data, true);
-			if (!is_array($array) || !array_is_list($array) || count($array) !== 17) {
+			try {
+				$array = Safe::jsonDecode($data, Type\nonEmptyVec(Type\int()));
+				if (count($array) !== 17) {
+					throw new Exception('Invalid save data');
+				}
+			} catch (Exception) {
 				return array_fill(0, 17, 0);
 			}
 
-			/** @var non-empty-list<int> $array */
 			return $array;
 		}
 		return array_fill(0, 17, 0);

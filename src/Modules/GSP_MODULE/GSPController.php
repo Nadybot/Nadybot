@@ -212,10 +212,11 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			$song->title ?? '<unknown song>'
 		);
 		if (isset($song->duration) && $song->duration > 0) {
+			$duration = $this->msToTime($song->duration);
 			$startTime = DateTimeImmutable::createFromFormat('Y-m-d*H:i:sT', $song->date)->setTimezone(new DateTimeZone('UTC'));
 			$time = DateTimeImmutable::createFromFormat('Y-m-d*H:i:sT', $show->date)->setTimezone(new DateTimeZone('UTC'));
 			$diff = $time->diff($startTime, true);
-			$msg .= ' ['.$diff->format('%i:%S').'/'.$this->msToTime($song->duration).']';
+			$msg .= ' ['.$diff->format('%i:%S').'/'.$duration.']';
 		}
 		return $msg;
 	}

@@ -29,6 +29,7 @@ use Nadybot\Modules\{
 	RELAY_MODULE\RelayProtocol\Nadybot\OnlineList,
 	RELAY_MODULE\RelayProtocol\Nadybot\RelayCharacter,
 };
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
 
@@ -111,7 +112,7 @@ class NadyNative implements RelayProtocolInterface {
 		}
 		$serialized = array_shift($message->packages);
 		try {
-			$data = json_decode($serialized, true, 10, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
+			$data = Safe::jsonDecode($serialized, Type\dict(Type\string(), Type\mixed()), 10, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
 		} catch (JsonException $e) {
 			$this->logger->error(
 				'Invalid data received via Nadynative protocol',
@@ -120,9 +121,6 @@ class NadyNative implements RelayProtocolInterface {
 					'data' => $serialized,
 				]
 			);
-			return null;
-		}
-		if (!is_array($data)) {
 			return null;
 		}
 
@@ -154,9 +152,9 @@ class NadyNative implements RelayProtocolInterface {
 
 		/** @var ?array{type?:string} */
 		$eventData = $data['data']??null;
-		if (isset($data['char']) && is_array($data['char']) && isset($data['char']['name'])) {
-			/** @var array<string,mixed> $data['char'] */
-			$event->setCharacter(Hydrator::literalHydrate(Character::class, $data['char']));
+		if (isset($data['char']['name'])) {
+			$char = Type\mixedDict()->coerce($data['char']);
+			$event->setCharacter(Hydrator::literalHydrate(Character::class, $char));
 		}
 		if ($event->type === RoutableEvent::TYPE_EVENT
 			&& is_array($eventData)
@@ -184,13 +182,7 @@ class NadyNative implements RelayProtocolInterface {
 			return null;
 		}
 		$decoded = json_decode(json_encode($eventData), false, 10, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
-		if (
-			!is_null($decoded)
-			&& !is_string($decoded)
-			&& !($decoded instanceof Base)
-			&& !($decoded instanceof SyncEvent)
-			&& !($decoded instanceof \stdClass)
-		) {
+		if (!is_null($decoded) && !is_string($decoded)) {
 			return null;
 		}
 		$event->data = $decoded;

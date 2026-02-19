@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PACKAGE_MODULE;
 
-use function Safe\json_decode;
 use Amp\File\FilesystemException;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
@@ -26,6 +25,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 };
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use RecursiveDirectoryIterator;
@@ -744,15 +744,10 @@ class PackageController extends ModuleInstance {
 	/** @return list<Package> */
 	private function parsePackages(string $body): array {
 		try {
-			$data = json_decode($body, true);
+			$data = Safe::jsonDecode($body, Type\vec(Type\mixedDict()));
 		} catch (JsonException $e) {
 			throw new UserException('Package data contained invalid JSON', 0, $e);
 		}
-		if (!is_array($data) || !array_is_list($data)) {
-			throw new UserException('Package data was not in the expected format');
-		}
-
-		/** @var list<array<mixed>> $data */
 
 		$packages = new Collection(
 			Hydrator::literalHydrateObjects(Package::class, $data)->toArray()

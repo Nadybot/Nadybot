@@ -3,7 +3,7 @@
 namespace Nadybot\Modules\WORLDBOSS_MODULE;
 
 use function Amp\delay;
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
@@ -23,6 +23,7 @@ use Nadybot\Core\{
 	ParamClass\PDuration,
 	Routing\RoutableMessage,
 	Routing\Source,
+	Safe,
 	Text,
 	Types\AccessLevel,
 	Types\Faction,
@@ -498,8 +499,10 @@ class GauntletBuffController extends ModuleInstance implements MessageEmitter {
 		/** @var list<ApiGauntletBuff> */
 		$buffs = [];
 		try {
-			$data = json_decode($body, true);
-			Type\dict(Type\arrayKey(), Type\dict(Type\string(), Type\mixed()))->assert($data);
+			$data = Safe::jsonDecode(
+				$body,
+				Type\dict(Type\arrayKey(), Type\dict(Type\string(), Type\mixed()))
+			);
 			$buffs = Hydrator::hydrateObjects(ApiGauntletBuff::class, $data)->toArray();
 		} catch (JsonException | UnableToHydrateObject | Type\Exception\AssertException $e) {
 			$this->logger->error('Gauntlet buff API sent invalid json.', [

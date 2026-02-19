@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\RECIPE_MODULE;
 
-use function Safe\json_decode;
 use Amp\File\FilesystemException;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
@@ -188,8 +187,10 @@ class RecipeController extends ModuleInstance {
 
 	private function parseJSONFile(int $id, string $fileName): Recipe {
 		try {
-			$json = json_decode($this->fs->read($this->path . $fileName), true);
-			Type\dict(Type\string(), Type\mixed())->assert($json);
+			$json = Safe::jsonDecode(
+				$this->fs->read($this->path . $fileName),
+				Type\dict(Type\string(), Type\mixed())
+			);
 
 			$data = Hydrator::literalHydrate(RecipeData::class, $json);
 		} catch (JsonException $e) {

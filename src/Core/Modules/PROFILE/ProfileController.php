@@ -2,7 +2,7 @@
 
 namespace Nadybot\Core\Modules\PROFILE;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 
 use Amp\File\FilesystemException;
 use Exception;
@@ -456,8 +456,7 @@ class ProfileController extends ModuleInstance {
 
 	private function loadPermissions(string $export, CommandReply $reply): void {
 		try {
-			$json = json_decode($export, true);
-			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($json);
+			$json = Safe::jsonDecode($export, Type\vec(Type\dict(Type\string(), Type\mixed())));
 			$sets = Hydrator::hydrateObjects(ExtCmdPermissionSet::class, $json)->getIterator();
 		} catch (Exception $e) {
 			$this->logger->error('Invalid permissions export: {error}', [

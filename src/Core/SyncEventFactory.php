@@ -7,6 +7,7 @@ use function Safe\json_encode;
 use InvalidArgumentException;
 use Nadybot\Core\Attributes\Event;
 use Nadybot\Core\Events\SyncEvent;
+use Nadylib\Type;
 use ReflectionAttribute;
 use ReflectionClass;
 use Safe\Exceptions\JsonException;
@@ -33,7 +34,7 @@ class SyncEventFactory {
 	public static function create(array|object $data): SyncEvent {
 		if (is_object($data)) {
 			try {
-				$data = Safe::jsonDecodeArr(json_encode($data));
+				$data = Safe::jsonDecode(json_encode($data), Type\dict(Type\string(), Type\mixed()));
 			} catch (JsonException $e) {
 				throw new InvalidArgumentException(message: __CLASS__  . '::create(): Argument #1 ($data) must be an object or an array', previous: $e);
 			}

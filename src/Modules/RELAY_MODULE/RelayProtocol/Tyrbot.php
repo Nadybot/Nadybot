@@ -2,7 +2,7 @@
 
 namespace Nadybot\Modules\RELAY_MODULE\RelayProtocol;
 
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Blob,
@@ -94,9 +94,12 @@ class Tyrbot implements RelayProtocolInterface {
 		]);
 		$serialized = array_shift($message->packages);
 		try {
-			$data = json_decode($serialized, true, 10, \JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE);
-			Type\dict(Type\string(), Type\mixed())->assert($data);
-
+			$data = Safe::jsonDecode(
+				$serialized,
+				Type\dict(Type\string(), Type\mixed()),
+				10,
+				\JSON_UNESCAPED_SLASHES|\JSON_INVALID_UTF8_SUBSTITUTE
+			);
 			$identify = Hydrator::hydrate(BasePacket::class, $data);
 			return $this->decodeAndHandlePacket($message->sender, $identify, $data);
 		} catch (AssertException | JsonException $e) {

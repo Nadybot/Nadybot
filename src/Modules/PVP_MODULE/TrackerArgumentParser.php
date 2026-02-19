@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use function Safe\json_decode;
-
 use Exception;
+use Nadybot\Core\Safe;
+use Nadylib\Type;
 use ParserGenerator\Parser;
 
 use ParserGenerator\SyntaxTreeNode\{Branch, Root};
@@ -94,8 +94,7 @@ class TrackerArgumentParser {
 			throw new Exception('Invalid tracker argument structure');
 		}
 		if ($value->getDetailType() === 'string') {
-			/** @var string */
-			$rValue = json_decode($value->toString());
+			$rValue = Safe::jsonDecode($value->toString(), Type\string());
 		} else {
 			$rValue = $value->toString();
 		}

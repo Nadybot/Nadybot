@@ -2,9 +2,9 @@
 
 namespace Nadybot\Modules\RELAY_MODULE;
 
-use function Safe\json_decode;
-
 use Exception;
+use Nadybot\Core\Safe;
+use Nadylib\Type;
 use ParserGenerator\Parser;
 
 use ParserGenerator\SyntaxTreeNode\Branch;
@@ -103,7 +103,7 @@ class RelayLayerExpressionParser {
 			throw new Exception('Invalid Relay Layer structure');
 		}
 		if ($value->getDetailType() === 'string') {
-			$value = json_decode($value->toString());
+			$value = Safe::jsonDecode($value->toString(), Type\scalar());
 		} else {
 			$value = $value->toString();
 		}

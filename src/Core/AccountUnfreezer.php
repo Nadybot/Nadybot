@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_decode;
 use Amp\{CancelledException, TimeoutCancellation};
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
 use Amp\Http\Client\{HttpClient, HttpClientBuilder, Request, SocketException, TimeoutException};
@@ -316,8 +315,7 @@ class AccountUnfreezer {
 		}
 		$body = $response->getBody()->buffer();
 		try {
-			$json = json_decode($body, false);
-			Type\nonEmptyVec(Type\string())->assert($json);
+			$json = Safe::jsonDecode($body, Type\nonEmptyVec(Type\string()));
 		} catch (Throwable) {
 			return null;
 		}

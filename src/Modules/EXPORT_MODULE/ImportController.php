@@ -2,8 +2,6 @@
 
 namespace Nadybot\Modules\EXPORT_MODULE;
 
-use function Safe\json_decode;
-
 use Amp\File\FilesystemException;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\{
@@ -27,6 +25,7 @@ use Nadybot\Modules\{
 use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
+use Safe\Exceptions\JsonException;
 use Throwable;
 use ValueError;
 
@@ -218,13 +217,12 @@ class ImportController extends ModuleInstance {
 		}
 		$this->logger->notice('Decoding the JSON data');
 		try {
-			$import = json_decode($this->fs->read($fileName), true);
-			Type\dict(Type\string(), Type\mixed())->assert($import);
+			$import = Safe::jsonDecode($this->fs->read($fileName), Type\dict(Type\string(), Type\mixed()));
 		} catch (FilesystemException $e) {
 			$sendto->reply("Error reading <highlight>{$fileName}<end>: ".
 				$e->getMessage() . '.');
 			return null;
-		} catch (Type\Exception\AssertException $e) {
+		} catch (JsonException $e) {
 			$sendto->reply("The file <highlight>{$fileName}<end> is not a valid export file.");
 			return null;
 		} catch (Throwable $e) {

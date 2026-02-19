@@ -3,7 +3,7 @@
 namespace Nadybot\Core\Modules\DISCORD;
 
 use function Amp\delay;
-use function Safe\{json_decode, json_encode};
+use function Safe\json_encode;
 use Amp\Http\Client\{BufferedContent, HttpClient, HttpClientBuilder, Request};
 use Amp\Http\Client\Interceptor\SetRequestHeaderIfUnset;
 use Exception;
@@ -14,6 +14,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Safe,
 };
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 use Revolt\EventLoop\Suspension;
@@ -79,11 +80,11 @@ class DiscordAPIClient extends ModuleInstance {
 		$uri = self::DISCORD_API . "/guilds/{$guildId}/members/{$userId}";
 		$request = new Request($uri, 'PATCH');
 		$request->setBody(new DiscordBody($data));
-		$json = json_decode($this->sendRequest($request), false);
-		if ($json instanceof stdClass) {
-			return $json;
+		try {
+			return Safe::jsonDecodeObj($this->sendRequest($request));
+		} catch (JsonException) {
+			return new stdClass();
 		}
-		return new stdClass();
 	}
 
 	/** @return list<ApplicationCommand> */
@@ -96,8 +97,7 @@ class DiscordAPIClient extends ModuleInstance {
 		$request->setBody(new DiscordBody($message));
 		$json = $this->sendRequest($request);
 
-		/** @var list<array<string,mixed>> */
-		$body = json_decode($json, true);
+		$body = Safe::jsonDecode($json, Type\vec(Type\dict(Type\string(), Type\mixed())));
 		return Hydrator::hydrateObjects(ApplicationCommand::class, $body)->toArray();
 	}
 
@@ -106,19 +106,18 @@ class DiscordAPIClient extends ModuleInstance {
 		string $commandId,
 	): stdClass {
 		$url = self::DISCORD_API . "/applications/{$applicationId}/commands/{$commandId}";
-		$body = json_decode($this->sendRequest(new Request($url, 'DELETE')), false);
-		if ($body instanceof stdClass) {
-			return $body;
+		try {
+			return Safe::jsonDecodeObj($this->sendRequest(new Request($url, 'DELETE')));
+		} catch (JsonException) {
+			return new stdClass();
 		}
-		return new stdClass();
 	}
 
 	/** @return list<ApplicationCommand> */
 	public function getGlobalApplicationCommands(string $applicationId): array {
 		$json = $this->sendRequest(new Request(self::DISCORD_API . "/applications/{$applicationId}/commands"));
 
-		/** @var list<array<string,mixed>> */
-		$body = json_decode($json, true);
+		$body = Safe::jsonDecode($json, Type\vec(Type\dict(Type\string(), Type\mixed())));
 		return Hydrator::hydrateObjects(ApplicationCommand::class, $body)->toArray();
 	}
 
@@ -130,20 +129,20 @@ class DiscordAPIClient extends ModuleInstance {
 		$url = DiscordAPIClient::DISCORD_API . "/interactions/{$interactionId}/{$interactionToken}/callback";
 		$request = new Request($url, 'POST');
 		$request->setBody(new DiscordBody($message));
-		$json = json_decode($this->sendRequest($request), false);
-		if ($json instanceof stdClass) {
-			return $json;
+		try {
+			return Safe::jsonDecodeObj($this->sendRequest($request));
+		} catch (JsonException) {
+			return new stdClass();
 		}
-		return new stdClass();
 	}
 
 	public function leaveGuild(string $guildId): stdClass {
 		$request = new Request(self::DISCORD_API . "/users/@me/guilds/{$guildId}", 'DELETE');
-		$json = json_decode($this->sendRequest($request), false);
-		if ($json instanceof stdClass) {
-			return $json;
+		try {
+			return Safe::jsonDecodeObj($this->sendRequest($request));
+		} catch (JsonException) {
+			return new stdClass();
 		}
-		return new stdClass();
 	}
 
 	public function queueToChannel(string $channel, string $message): void {
@@ -287,8 +286,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getGuildInvites(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/invites");
 
-		/** @var list<array<string,mixed>> */
-		$json = json_decode($this->sendRequest($request), true);
+		$json = Safe::jsonDecode($this->sendRequest($request), Type\vec(Type\dict(Type\string(), Type\mixed())));
 		return Hydrator::hydrateObjects(DiscordChannelInvite::class, $json)->toArray();
 	}
 
@@ -300,8 +298,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getGuildEvents(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/scheduled-events?with_user_count=true");
 
-		/** @var list<array<string,mixed>> */
-		$json = json_decode($this->sendRequest($request), true);
+		$json = Safe::jsonDecode($this->sendRequest($request), Type\vec(Type\dict(Type\string(), Type\mixed())));
 		return Hydrator::hydrateObjects(DiscordScheduledEvent::class, $json)->toArray();
 	}
 
@@ -313,8 +310,7 @@ class DiscordAPIClient extends ModuleInstance {
 	public function getEmojis(string $guildId): array {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis");
 
-		/** @var list<array<string,mixed>> */
-		$json = json_decode($this->sendRequest($request), true);
+		$json = Safe::jsonDecode($this->sendRequest($request), Type\vec(Type\dict(Type\string(), Type\mixed())));
 		return Hydrator::hydrateObjects(Emoji::class, $json)->toArray();
 	}
 
@@ -355,11 +351,11 @@ class DiscordAPIClient extends ModuleInstance {
 	/** Delete an already existing emoji */
 	public function deleteEmoji(string $guildId, string $emojiId): stdClass {
 		$request = new Request(self::DISCORD_API . "/guilds/{$guildId}/emojis/{$emojiId}", 'DELETE');
-		$result = json_decode($this->sendRequest($request), false);
-		if ($result instanceof \stdClass) {
-			return $result;
+		try {
+			return Safe::jsonDecodeObj($this->sendRequest($request));
+		} catch (JsonException) {
+			return new stdClass();
 		}
-		return new stdClass();
 	}
 
 	private function getClient(): HttpClient {

@@ -2,7 +2,6 @@
 
 namespace Nadybot\Core;
 
-use function Safe\json_decode;
 use EventSauce\ObjectHydrator\{
 	DefinitionProvider,
 	IterableList,
@@ -41,8 +40,8 @@ class Hydrator {
 	 *
 	 * @template T of object
 	 *
-	 * @param class-string<T>     $className The class to hydrate to
-	 * @param array<string,mixed> $data      an associative array with the data to use
+	 * @param class-string<T>        $className The class to hydrate to
+	 * @param array<array-key,mixed> $data      an associative array with the data to use
 	 *
 	 * @return T
 	 *
@@ -77,8 +76,7 @@ class Hydrator {
 		?DefinitionProvider $definitionProvider=null
 	): object {
 		try {
-			$json = json_decode($data, true);
-			Type\dict(Type\string(), Type\mixed())->assert($json);
+			$json = Safe::jsonDecode($data, Type\mixedDict());
 		} catch (Exception $e) {
 			throw UnableToHydrateObject::dueToError($className, $e);
 		}
@@ -90,8 +88,8 @@ class Hydrator {
 	 *
 	 * @template T of object
 	 *
-	 * @param class-string<T>     $className The class to hydrate to
-	 * @param array<string,mixed> $data      an associative array with the data to use
+	 * @param class-string<T>        $className The class to hydrate to
+	 * @param array<array-key,mixed> $data      an associative array with the data to use
 	 *
 	 * @return T
 	 *

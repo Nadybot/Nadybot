@@ -2,7 +2,6 @@
 
 namespace Nadybot\Modules\PVP_MODULE;
 
-use function Safe\json_decode;
 use Amp\Http\Client\{HttpClientBuilder, Request};
 use Amp\TimeoutCancellation;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
@@ -425,8 +424,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$body = $response->getBody()->buffer(new TimeoutCancellation(60, 'Parsing towers was too slow'));
 		try {
-			$json = json_decode($body, true);
-			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($json);
+			$json = Safe::jsonDecode($body, Type\vec(Type\dict(Type\string(), Type\mixed())));
 
 			$sites = Hydrator::hydrateObjects(FeedMessage\SiteUpdate::class, $json)->getIterator();
 			foreach ($sites as $site) {
@@ -488,8 +486,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$body = $response->getBody()->buffer();
 		try {
-			$json = json_decode($body, true);
-			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($json);
+			$json = Safe::jsonDecode($body, Type\vec(Type\dict(Type\string(), Type\mixed())));
 
 			$attacks = Hydrator::hydrateObjects(FeedMessage\TowerAttack::class, $json)->getIterator();
 
@@ -552,8 +549,7 @@ class NotumWarsController extends ModuleInstance {
 		}
 		$body = $response->getBody()->buffer();
 		try {
-			$json = json_decode($body, true);
-			Type\vec(Type\dict(Type\string(), Type\mixed()))->assert($json);
+			$json = Safe::jsonDecode($body, Type\vec(Type\dict(Type\string(), Type\mixed())));
 
 			$outcomes = Hydrator::hydrateObjects(FeedMessage\TowerOutcome::class, $json)->getIterator();
 

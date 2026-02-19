@@ -29,6 +29,7 @@ use Nadybot\Core\Events\EventFeed\{
 	RoomInfoPackageEvent,
 	SuccessPackageEvent
 };
+use Nadylib\Type;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use Revolt\EventLoop;
@@ -377,7 +378,7 @@ class EventFeed {
 			$body = json_encode($body);
 		}
 		if (is_string($body)) {
-			$body = Safe::jsonDecodeArr($body);
+			$body = Safe::jsonDecode($body, Type\dict(Type\string(), Type\mixed()));
 		}
 
 		$handlers = $this->roomHandlers[$package->room] ?? [];

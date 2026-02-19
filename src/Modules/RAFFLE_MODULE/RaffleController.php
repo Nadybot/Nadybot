@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace Nadybot\Modules\RAFFLE_MODULE;
 
@@ -63,7 +65,16 @@ class RaffleController extends ModuleInstance {
 
 	/** How much time between each raffle announcement */
 	#[NCA\Setting\Time(options: [
-		'10s', '20s', '30s', '45s', '1m', '2m', '3m', '4m', '5m', '10m',
+		'10s',
+		'20s',
+		'30s',
+		'45s',
+		'1m',
+		'2m',
+		'3m',
+		'4m',
+		'5m',
+		'10m',
 	])]
 	public int $raffleAnnounceFrequency = 30;
 
@@ -124,16 +135,16 @@ class RaffleController extends ModuleInstance {
 	private KeyedMutex $mutex;
 
 	public function getRaffleAdminPage(string $sender): string {
-		$blob = "<header2>Join / Leave<end>\n".
-			'<tab>' . Text::makeChatcmd('Join the raffle', '/tell <myname> raffle join') . "\n".
-			'<tab>' . Text::makeChatcmd('Leave the raffle', '/tell <myname> raffle leave') . "\n\n".
-			"<header2>Announce<end>\n".
-			'<tab>' . Text::makeChatcmd('Announce raffle', '/tell <myname> raffle announce') . "\n".
-			'<tab>' . Text::makeChatcmd('Announce raffle closing soon', "/tell <myname> raffle announce {$sender}'s raffle will be closing soon") . "\n".
-			'<tab>' . Text::makeChatcmd('Announce raffle still open', "/tell <myname> raffle announce {$sender}'s raffle is still running") . "\n\n".
-			"<header2>End the raffle<end>\n".
-			'<tab>' . Text::makeChatcmd('Cancel the raffle', '/tell <myname> raffle cancel') . "\n".
-			'<tab>' . Text::makeChatcmd('Show winners', '/tell <myname> raffle end') . "\n".
+		$blob = "<header2>Join / Leave<end>\n" .
+			'<tab>' . Text::makeChatcmd('Join the raffle', '/tell <myname> raffle join') . "\n" .
+			'<tab>' . Text::makeChatcmd('Leave the raffle', '/tell <myname> raffle leave') . "\n\n" .
+			"<header2>Announce<end>\n" .
+			'<tab>' . Text::makeChatcmd('Announce raffle', '/tell <myname> raffle announce') . "\n" .
+			'<tab>' . Text::makeChatcmd('Announce raffle closing soon', "/tell <myname> raffle announce {$sender}'s raffle will be closing soon") . "\n" .
+			'<tab>' . Text::makeChatcmd('Announce raffle still open', "/tell <myname> raffle announce {$sender}'s raffle is still running") . "\n\n" .
+			"<header2>End the raffle<end>\n" .
+			'<tab>' . Text::makeChatcmd('Cancel the raffle', '/tell <myname> raffle cancel') . "\n" .
+			'<tab>' . Text::makeChatcmd('Show winners', '/tell <myname> raffle end') . "\n" .
 			'<tab>Set a timer:';
 		foreach (['20s', '30s', '40s', '1m', '2m'] as $time) {
 			$blob .= ' [' . Text::makeChatcmd($time, "/tell <myname> raffle timer {$time}") . ']';
@@ -199,7 +210,7 @@ class RaffleController extends ModuleInstance {
 		$this->eventManager->dispatch($event);
 
 		$this->announceRaffleStart($raffle);
-		$adminMsg = 'You can control the raffle via the '.
+		$adminMsg = 'You can control the raffle via the ' .
 			Text::makeBlob(
 				'Raffle Admin Menu',
 				$this->getRaffleAdminPage($context->char->name)
@@ -228,7 +239,7 @@ class RaffleController extends ModuleInstance {
 		#[Str('add')] string $action,
 		string $raffleString
 	): void {
-		$newRaffle = !isset($this->raffle);
+		$currentRaffle = $this->raffle;
 		$duration = null;
 		if ($this->raffleEndsAutomatically) {
 			$duration = $this->defaultraffletime;
@@ -254,28 +265,12 @@ class RaffleController extends ModuleInstance {
 				$this->config->main->character
 			);
 		}
-		if ($newRaffle) {
+		if (!isset($currentRaffle)) {
 			$this->raffle = $raffle;
 			$event = new RaffleStartEvent(raffle: $raffle);
-		} else {
-			if (!isset($this->raffle)) {
-				return;
-			}
-			foreach ($raffle->slots as $slot) {
-				$oldSlot = $this->getMatchingSlot($slot);
-				if (isset($oldSlot)) {
-					$oldSlot->amount += $slot->amount;
-				} else {
-					$this->raffle->slots []= $slot;
-				}
-			}
-			$event = new RaffleAddEvent(raffle: $raffle);
-		}
-		$this->eventManager->dispatch($event);
-
-		if ($newRaffle) {
-			$this->announceRaffleStart($this->raffle);
-			$adminMsg = 'You can control the raffle via the '.
+			$this->eventManager->dispatch($event);
+			$this->announceRaffleStart($raffle);
+			$adminMsg = 'You can control the raffle via the ' .
 				Text::makeBlob(
 					'Raffle Admin Menu',
 					$this->getRaffleAdminPage($context->char->name)
@@ -283,41 +278,31 @@ class RaffleController extends ModuleInstance {
 			$this->chatBot->sendTell($adminMsg, $context->char->name, SendPriority::High);
 			return;
 		}
-		$this->announceRaffleAdd($raffle);
+		foreach ($raffle->slots as $slot) {
+			$oldSlot = $currentRaffle->getMatchingSlot($slot);
+			if (isset($oldSlot)) {
+				$oldSlot->amount += $slot->amount;
+			} else {
+				$currentRaffle->slots[] = $slot;
+			}
+		}
+		$event = new RaffleAddEvent(raffle: $raffle);
+		$this->eventManager->dispatch($event);
+		$this->announceRaffleAdd($currentRaffle, $raffle);
 	}
 
 	public function announceRaffleStart(Raffle $raffle): void {
-		$msg = "\n<yellow>:::<end> <red>{$raffle->raffler} has started a raffle<end> <yellow>:::<end>\n".
+		$msg = "\n<yellow>:::<end> <red>{$raffle->raffler} has started a raffle<end> <yellow>:::<end>\n" .
 			$this->fancyFrame($raffle->toString('<tab>'));
 		$blob = $this->getJoinLeaveBlob();
 		if (isset($raffle->end) && $raffle->end > 0) {
 			$endTime = Util::unixtimeToReadable($raffle->end - $raffle->start);
-			$msg .= "The raffle will end in <highlight>{$endTime}<end> :: [".
+			$msg .= "The raffle will end in <highlight>{$endTime}<end> :: [" .
 				Text::makeBlob('Join', $blob, 'Raffle actions') . ']';
 		} else {
 			$msg .= Text::makeBlob('Join the raffle', $blob, 'Raffle actions');
 		}
 		$raffle->sendto->reply($msg);
-	}
-
-	public function announceRaffleAdd(Raffle $raffle): void {
-		$oldRaffle = $this->raffle;
-		if (!isset($oldRaffle)) {
-			return;
-		}
-		$count = count($raffle->slots);
-		$items = Text::pluralize('item', $count);
-		$msg = "\n<yellow>:::<end> <red>{$raffle->raffler} has added {$count} {$items} to the raffle<end> <yellow>:::<end>\n".
-			$this->fancyFrame($raffle->toString('<tab>'));
-		$blob = $this->getJoinLeaveBlob();
-		if (isset($oldRaffle->end) && $oldRaffle->end > 0) {
-			$endTime = Util::unixtimeToReadable($oldRaffle->end - time());
-			$msg .= "The raffle will end in <highlight>{$endTime}<end> :: [".
-				Text::makeBlob('Join', $blob, 'Raffle actions') . ']';
-		} else {
-			$msg .= Text::makeBlob('Join the raffle', $blob, 'Raffle actions');
-		}
-		$oldRaffle->sendto->reply($msg);
 	}
 
 	/** Cancel the running raffle immediately, no one wins */
@@ -400,8 +385,8 @@ class RaffleController extends ModuleInstance {
 		$this->raffle->end = time() + $time;
 
 		$this->raffle->sendto->reply(
-			"<highlight>{$context->char->name}<end> has started a raffle timer for ".
-			'<highlight>' . Util::unixtimeToReadable($time) . '<end>.'
+			"<highlight>{$context->char->name}<end> has started a raffle timer for " .
+				'<highlight>' . Util::unixtimeToReadable($time) . '<end>.'
 		);
 		$this->announceRaffle();
 	}
@@ -485,32 +470,32 @@ class RaffleController extends ModuleInstance {
 				$sameChar = $participant === $context->char->name;
 				$sameMain = $myMain === $this->altsController->getMainOf($participant);
 				if ($sameChar && !$sameSlot && !$raffle->allowMultiJoin) {
-					$msg = 'You are already in the raffle for '.
-						$raffle->slots[$slotNum]->toString() . ' and '.
+					$msg = 'You are already in the raffle for ' .
+						$raffle->slots[$slotNum]->toString() . ' and ' .
 						'not allowed to join on multiple items.';
 					$context->reply($msg);
 					return;
 				} elseif ($sameMain && !$sameSlot && !$raffle->allowMultiJoin) {
-					$msg = 'You are already in the raffle for '.
-						$raffle->slots[$slotNum]->toString() . ' with '.
+					$msg = 'You are already in the raffle for ' .
+						$raffle->slots[$slotNum]->toString() . ' with ' .
 						"{$participant} and not allowed to join on multiple items.";
 					$context->reply($msg);
 					return;
 				} elseif ($sameChar && $sameSlot) {
-					$msg = 'You are already in the raffle for '.
+					$msg = 'You are already in the raffle for ' .
 						$raffle->slots[$slot]->toString() . '.';
 					$context->reply($msg);
 					return;
 				} elseif ($sameMain && $sameSlot) {
-					$msg = 'You are already in the raffle for '.
-						$raffle->slots[$slot]->toString() . ' with '.
+					$msg = 'You are already in the raffle for ' .
+						$raffle->slots[$slot]->toString() . ' with ' .
 						$participant . '.';
 					$context->reply($msg);
 					return;
 				}
 			}
 		}
-		$raffle->slots[$slot]->participants []= $context->char->name;
+		$raffle->slots[$slot]->participants[] = $context->char->name;
 		$event = new RaffleEnterEvent(raffle: $raffle, player: $context->char->name);
 		$this->eventManager->dispatch($event);
 
@@ -524,8 +509,8 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 		$this->chatBot->sendMassTell(
-			'You <on>joined<end> the raffle for <highlight>'.
-			$raffle->slots[$slot]->toString() . '<end>.',
+			'You <on>joined<end> the raffle for <highlight>' .
+				$raffle->slots[$slot]->toString() . '<end>.',
 			$context->char->name
 		);
 	}
@@ -572,7 +557,7 @@ class RaffleController extends ModuleInstance {
 		}
 
 		if (!$raffle->slots[$slot]->removeParticipant($context->char->name)) {
-			$msg = 'You were not in the raffle for '.
+			$msg = 'You were not in the raffle for ' .
 				$raffle->slots[$slot]->toString() . '.';
 			$context->reply($msg);
 			return;
@@ -590,8 +575,8 @@ class RaffleController extends ModuleInstance {
 			return;
 		}
 		$this->chatBot->sendMassTell(
-			'You <off>left<end> the raffle for <highlight>'.
-			$raffle->slots[$slot]->toString() . '<end>.',
+			'You <off>left<end> the raffle for <highlight>' .
+				$raffle->slots[$slot]->toString() . '<end>.',
 			$context->char->name
 		);
 	}
@@ -691,11 +676,11 @@ class RaffleController extends ModuleInstance {
 		$showBonus = $bonusPoints > 0;
 		$blob = '';
 		if ($bonusPoints > 0) {
-			$blob .= "This raffle used the bonus points system.\n".
-				'Winners got their bonus points set to <highlight>0<end>, '.
-				"losers gained <highlight>{$bonusPoints}<end> ".
-				"bonus points for all upcoming raffles until they won.\n".
-				'The raffled points, including added bonus points, are '.
+			$blob .= "This raffle used the bonus points system.\n" .
+				'Winners got their bonus points set to <highlight>0<end>, ' .
+				"losers gained <highlight>{$bonusPoints}<end> " .
+				"bonus points for all upcoming raffles until they won.\n" .
+				'The raffled points, including added bonus points, are ' .
 				"in brackets, followed by the bonus points participants had for this raffle.\n\n";
 		}
 		$blob .= "These are the raffle results.\n\n";
@@ -706,11 +691,11 @@ class RaffleController extends ModuleInstance {
 				continue;
 			}
 			foreach ($slot->result as $player) {
-				$blob .= '<tab>- '.
-					($player->won ? '<green>' : '<red>').
-					"{$player->player}<end> (".
-					$player->points.
-					($showBonus ? ":{$player->bonus_points}" : '').
+				$blob .= '<tab>- ' .
+					($player->won ? '<green>' : '<red>') .
+					"{$player->player}<end> (" .
+					$player->points .
+					($showBonus ? ":{$player->bonus_points}" : '') .
 					")\n";
 			}
 			$blob .= "\n";
@@ -732,21 +717,21 @@ class RaffleController extends ModuleInstance {
 		$winners = $raffle->slots[0]->getWinnerNames();
 		if ($raffle->slots[0]->amount === 1 || count($winners) === 1) {
 			$winner = $winners[0];
-			$msg = 'The winner of <highlight>' . $raffle->slots[0]->toString() . '<end>'.
+			$msg = 'The winner of <highlight>' . $raffle->slots[0]->toString() . '<end>' .
 				" is: <highlight>{$winner}<end> :: [{$blobMsg}]";
 		} else {
-			$msg = 'The winners of <highlight>' . $raffle->slots[0]->toString().
-				"<end> are :: [{$blobMsg}]:\n".
-				'<tab>- <highlight>'.
-				implode("<end>\n<tab>- <highlight>", $winners).
+			$msg = 'The winners of <highlight>' . $raffle->slots[0]->toString() .
+				"<end> are :: [{$blobMsg}]:\n" .
+				'<tab>- <highlight>' .
+				implode("<end>\n<tab>- <highlight>", $winners) .
 				'<end>';
 		}
 		$raffle->sendto->reply($msg);
 	}
 
 	protected function fancyFrame(string $text): string {
-		return '<yellow>' . str_repeat('-', 70) . "<end>\n".
-			trim($text) . "\n".
+		return '<yellow>' . str_repeat('-', 70) . "<end>\n" .
+			trim($text) . "\n" .
 			'<yellow>' . str_repeat('-', 70) . "<end>\n";
 	}
 
@@ -758,9 +743,9 @@ class RaffleController extends ModuleInstance {
 		$result = [];
 		$items = $this->raffle->toList();
 		for ($i = 0; $i < count($items); $i++) {
-			$joinLink = Text::makeChatcmd('Join', '/tell <myname> raffle join ' . ($i+1));
-			$leaveLink = Text::makeChatcmd('Leave', '/tell <myname> raffle leave ' . ($i+1));
-			$result []= ((count($items) > 1) ? 'Item ' . ($i + 1) . ': ' : '') . "[{$joinLink}] [{$leaveLink}] - <highlight>{$items[$i]}<end>";
+			$joinLink = Text::makeChatcmd('Join', '/tell <myname> raffle join ' . ($i + 1));
+			$leaveLink = Text::makeChatcmd('Leave', '/tell <myname> raffle leave ' . ($i + 1));
+			$result[] = ((count($items) > 1) ? 'Item ' . ($i + 1) . ': ' : '') . "[{$joinLink}] [{$leaveLink}] - <highlight>{$items[$i]}<end>";
 		}
 		return $result;
 	}
@@ -769,16 +754,16 @@ class RaffleController extends ModuleInstance {
 		$bonusPerLoss = $this->raffleBonusPerLoss;
 		$blob = '';
 		if ($bonusPerLoss > 0) {
-			$blob = "This raffle uses the bonus points system.\n".
-				'Winners of any items will get their bonus points set '.
-				"to <highlight>0<end>.\n".
-				'Losers will get their bonus points increased by '.
-				"<highlight>{$bonusPerLoss}<end> points for all upcoming ".
+			$blob = "This raffle uses the bonus points system.\n" .
+				'Winners of any items will get their bonus points set ' .
+				"to <highlight>0<end>.\n" .
+				'Losers will get their bonus points increased by ' .
+				"<highlight>{$bonusPerLoss}<end> points for all upcoming " .
 				"raffles until they won.\n\n";
 		}
-		$blob .= '[' . Text::makeChatcmd('Leave All', '/tell <myname> raffle leave') . ']'.
-			" Leave raffle for all items\n\n".
-			"<header2>Item(s) for raffle<end>\n".
+		$blob .= '[' . Text::makeChatcmd('Leave All', '/tell <myname> raffle leave') . ']' .
+			" Leave raffle for all items\n\n" .
+			"<header2>Item(s) for raffle<end>\n" .
 			'<tab>' . implode("\n<tab>", $this->getJoinLeaveLinks()) . "\n";
 		return $blob;
 	}
@@ -847,7 +832,7 @@ class RaffleController extends ModuleInstance {
 		foreach ($slot->participants as $player) {
 			$playerResult = new RaffleResultItem($player);
 			$playerResult->bonus_points = $this->getBonusPoints($player);
-			$result []= $playerResult;
+			$result[] = $playerResult;
 		}
 		$numParticipants = count($slot->participants);
 		$iteration = 0;
@@ -882,15 +867,19 @@ class RaffleController extends ModuleInstance {
 		));
 	}
 
-	private function getMatchingSlot(RaffleSlot $check): ?RaffleSlot {
-		if (!isset($this->raffle)) {
-			return null;
+	private function announceRaffleAdd(Raffle $currentRaffle, Raffle $addedItems): void {
+		$count = count($addedItems->slots);
+		$items = Text::pluralize('item', $count);
+		$msg = "\n<yellow>:::<end> <red>{$addedItems->raffler} has added {$count} {$items} to the raffle<end> <yellow>:::<end>\n" .
+			$this->fancyFrame($addedItems->toString('<tab>'));
+		$blob = $this->getJoinLeaveBlob();
+		if (isset($currentRaffle->end) && $currentRaffle->end > 0) {
+			$endTime = Util::unixtimeToReadable($currentRaffle->end - time());
+			$msg .= "The raffle will end in <highlight>{$endTime}<end> :: [" .
+				Text::makeBlob('Join', $blob, 'Raffle actions') . ']';
+		} else {
+			$msg .= Text::makeBlob('Join the raffle', $blob, 'Raffle actions');
 		}
-		foreach ($this->raffle->slots as $slot) {
-			if ($slot->isSameAs($check)) {
-				return $slot;
-			}
-		}
-		return null;
+		$currentRaffle->sendto->reply($msg);
 	}
 }
