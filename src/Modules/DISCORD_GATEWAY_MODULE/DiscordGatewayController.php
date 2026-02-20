@@ -2172,9 +2172,9 @@ class DiscordGatewayController extends ModuleInstance {
 						$this->sessionId = null;
 					}
 					$this->client = null;
+					unset($e);
 					$this->logger->notice('Reconnecting to Discord gateway in {delay}s.', [
 						'delay' => $this->reconnectDelay,
-						'exception' => $e,
 					]);
 					delay($this->reconnectDelay);
 					$this->reconnectDelay = max($this->reconnectDelay * 2, 5);
