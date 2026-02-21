@@ -358,8 +358,7 @@ class Safe {
 	 * @throws JsonException on wrong format
 	 */
 	public static function jsonDecodeObj(string $json, int $depth=512, int $flags=0): stdClass {
-		$data = json_decode($json, true, $depth, $flags);
-		// @phpstan-ignore instanceof.alwaysFalse
+		$data = json_decode($json, false, $depth, $flags);
 		if ($data instanceof stdClass) {
 			return $data;
 		}

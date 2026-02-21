@@ -342,7 +342,6 @@ class DiscordGatewayController extends ModuleInstance {
 	}
 
 	public function processWebsocketMessage(string $message): void {
-		$this->logger->debug('Received discord message', ['message' => $message]);
 		try {
 			$payload = Hydrator::hydrateString(Payload::class, $message);
 		} catch (UnableToHydrateObject $e) {
@@ -2133,6 +2132,9 @@ class DiscordGatewayController extends ModuleInstance {
 				->build();
 			$client = new Rfc6455Connector(httpClient: $httpClient);
 			try {
+				$this->logger->notice('Connecting to Discord gateway {url}', [
+					'url' => $handshake->getUri(),
+				]);
 				$connection = $client->connect($handshake, null);
 				$this->client = $connection;
 				$handleId = EventLoop::repeat(10, $this->countOutgoingPackets(...));
@@ -2173,6 +2175,9 @@ class DiscordGatewayController extends ModuleInstance {
 					}
 					$this->client = null;
 					unset($e);
+					if (!$this->mustReconnect) {
+						continue;
+					}
 					$this->logger->notice('Reconnecting to Discord gateway in {delay}s.', [
 						'delay' => $this->reconnectDelay,
 					]);

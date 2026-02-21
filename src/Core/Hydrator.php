@@ -25,14 +25,19 @@ class Hydrator {
 	 *
 	 * @var array<string,true>
 	 */
-	private static array $badSerializers = [];
+	private static array $badSerializers = [
+		\Nadybot\Modules\DISCORD_GATEWAY_MODULE\Model\Payload::class => true,
+	];
 
 	/**
 	 * Hydrators that throw exceptions, and can't be cached
 	 *
 	 * @var array<string,true>
 	 */
-	private static array $badHydrators = [];
+	private static array $badHydrators = [
+		\Nadybot\Core\Modules\DISCORD\ApplicationCommand::class => true,
+		\Nadybot\Core\Modules\DISCORD\ApplicationCommandOption::class => true,
+	];
 	private static ?DefinitionProvider $defaultDefinitionProvider = null;
 
 	/**

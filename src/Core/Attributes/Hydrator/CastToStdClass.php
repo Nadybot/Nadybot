@@ -10,7 +10,6 @@ use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster};
 use Exception;
 use Nadybot\Core\Safe;
-use Nadylib\Type;
 use stdClass;
 
 /** Cast the associative array to a stdClass() object */
@@ -21,6 +20,6 @@ final class CastToStdClass implements PropertyCaster {
 			throw new Exception('Can only recode arrays or objects');
 		}
 
-		return Safe::jsonDecode(json_encode($value), Type\instanceOfType(stdClass::class));
+		return Safe::jsonDecodeObj(json_encode($value));
 	}
 }
