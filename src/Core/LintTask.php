@@ -21,6 +21,7 @@ class LintTask implements Task {
 
 	/** {@inheritDoc} */
 	public function run(Channel $channel, Cancellation $cancellation): bool {
+		require_once __DIR__ . '/../../vendor/autoload.php';
 		include $this->filename;
 		return true;
 	}

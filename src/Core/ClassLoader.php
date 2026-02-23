@@ -394,7 +394,12 @@ class ClassLoader {
 		$execution = $worker->submit($task);
 		try {
 			$execution->await(new TimeoutCancellation(5));
-		} catch (TaskFailureError) {
+		} catch (TaskFailureError $e) {
+			$this->logger->error('Error loading file {file}: {error}', [
+				'file' => $fileName,
+				'error' => $e->getMessage(),
+				'exception' => $e,
+			]);
 			return false;
 		} finally {
 			// $worker->shutdown();
