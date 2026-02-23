@@ -38,6 +38,7 @@ class ClassLoader {
 		'GAUNTLET_MODULE',
 		'IMPQL_MODULE',
 		'EXPORT_MODULE',
+		'TRANSLATE_MODULE',
 	];
 
 	/**
@@ -239,6 +240,9 @@ class ClassLoader {
 			if (substr($fileName, strlen($path), 9) === \DIRECTORY_SEPARATOR . 'Modules' . \DIRECTORY_SEPARATOR) {
 				continue;
 			}
+			if (substr($fileName, strlen($path), 8) === \DIRECTORY_SEPARATOR . 'vendor' . \DIRECTORY_SEPARATOR) {
+				continue;
+			}
 			if ($checkCode && !$this->checkFileLoads($fileName)) {
 				throw new InvalidCodeException($fileName);
 			}
@@ -389,6 +393,9 @@ class ClassLoader {
 	 * @return bool `true` if the file can be loaded, `false` on any compile or linter errors
 	 */
 	private function checkFileLoads(string $fileName): bool {
+		$this->logger->debug('Loading {file}', [
+			'file' => $fileName,
+		]);
 		$task = new LintTask($fileName);
 		$worker = \Amp\Parallel\Worker\getWorker();
 		$execution = $worker->submit($task);
@@ -402,6 +409,9 @@ class ClassLoader {
 			]);
 			return false;
 		} finally {
+			$this->logger->info('Successfully loaded {file}', [
+				'file' => $fileName,
+			]);
 			// $worker->shutdown();
 		}
 		return true;
