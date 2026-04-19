@@ -401,7 +401,7 @@ class BuffPerksController extends ModuleInstance {
 				$maxLevel = max($levels);
 			}
 			foreach ($perk->actions as $action) {
-				if (!isset($action->perk_level) || !isset($action->aodb)) {
+				if (!isset($action->aodb)) {
 					continue;
 				}
 				$blob .= sprintf(

@@ -227,7 +227,7 @@ class OrglistJob {
 			return;
 		}
 		while (($oldestUid = array_shift($this->procQueue[$event->packet->worker])) !== $package->charId) {
-			$resolver = $this->addQueue[$oldestUid] ?? null;
+			$resolver = isset($oldestUid) ? ($this->addQueue[$oldestUid] ?? null) : null;
 			if (isset($resolver)) {
 				$this->logger->debug('UID {uid} inactive', ['uid' => $oldestUid]);
 				EventLoop::queue($resolver->complete(...), null);

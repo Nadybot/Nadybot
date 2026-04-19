@@ -565,6 +565,7 @@ class DiscordSlashCommandController extends ModuleInstance {
 			}
 			$type = max($type, $paramType);
 		}
+		// @mago-ignore analysis:invalid-return-statement
 		return $type;
 	}
 

@@ -132,6 +132,7 @@ class Chunker implements RelayLayerInterface {
 			$data = '';
 			for ($i = 1; $i <= $chunk->count; $i++) {
 				$block = $this->queue[$chunk->id][$i]->data ?? null;
+				// @mago-ignore analysis:impossible-condition
 				if (!isset($block)) {
 					unset($this->queue[$chunk->id]);
 					$this->logger->error('Invalid data received.');

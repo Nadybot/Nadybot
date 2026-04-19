@@ -153,6 +153,7 @@ class ArulSabaController extends ModuleInstance {
 		#[NCA\Parameter\StrChoice('left', 'right')] string $side
 	): void {
 		$type = ucfirst(strtolower($type));
+		$result = null;
 
 		/** @var int<1,max> */
 		$reqGems = max(1, $numGems);
@@ -375,10 +376,6 @@ class ArulSabaController extends ModuleInstance {
 			$result->ql = $result->lowql;
 			$blob .= $this->renderStep($circuitry, $target, $result, [self::ME => '*4', self::EE => '*4.2']);
 			$target = $result;
-		}
-		if (!isset($result)) {
-			$context->reply('You managed to break the module. Great.');
-			return;
 		}
 
 		/** @var AODBItem $result */

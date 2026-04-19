@@ -153,8 +153,7 @@ class PackageController extends ModuleInstance {
 			if (in_array($package->name, ClassLoader::INTEGRATED_MODULES, true)) {
 				$installLink = '<i>Included in Nadybot now</i>';
 			} elseif (isset($pGroup->highest_supported) && $package->state !== static::BUILT_INT) {
-				// @phpstan-ignore-next-line
-				if ($pGroup->highest_supported !== null && isset($installedVersion) && $installedVersion !== '') {
+				if (isset($installedVersion) && $installedVersion !== '') {
 					if (SemanticVersion::compareUsing($installedVersion, $pGroup->highest_supported->version, '<')) {
 						$installLink = '[' . Text::makeChatcmd(
 							'update',

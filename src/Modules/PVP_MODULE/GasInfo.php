@@ -57,6 +57,8 @@ class GasInfo {
 				$bestGas = $ts;
 			}
 		}
+
+		/** @var int $latestGas */
 		$bestGas ??= $latestGas;
 		assert(isset($timing[$bestGas]));
 		return new Gas($timing[$bestGas]);

@@ -198,6 +198,7 @@ class ApiSpecGenerator {
 			} elseif (is_array($nameAndType[1])) {
 				$nameAndType[1] = array_values(array_diff($nameAndType[1], ['null']));
 				$newResult['properties'][$nameAndType[0]] = [
+					// @mago-ignore analysis:invalid-argument
 					'oneOf' => array_map(fn (string $class): array => $this->getClassRef($class, $refProp), $nameAndType[1]),
 				];
 			} else {
@@ -269,7 +270,6 @@ class ApiSpecGenerator {
 
 				/** @mago-ignore analysis:undefined-int-array-index */
 				if (isset($newResult['allOf'][1])) {
-					/** @mago-ignore analysis:possibly-undefined-string-array-index */
 					unset($newResult['allOf'][1]['description']);
 				}
 			}

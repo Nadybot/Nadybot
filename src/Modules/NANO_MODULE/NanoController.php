@@ -154,7 +154,7 @@ class NanoController extends ModuleInstance {
 			$gmiLink = ($this->nanoAddGMI && isset($row->crystal_id))
 				? ' [' . Text::makeChatcmd('GMI', "/tell <myname> gmi {$row->crystal_id}") . ']'
 				: '';
-			$idLink = ($this->nanoAddID && isset($row->nano_id))
+			$idLink = $this->nanoAddID
 				? ' ID ' . Text::alignNumber($row->nano_id, 6)
 				: '';
 			$crystalLink = $row->getCrystalLink() ?? 'Crystal';

@@ -108,7 +108,7 @@ class DiscordSlashCommandReply implements CommandReply {
 			new Character($this->config->main->character, $this->chatBot->char?->id)
 		);
 		$guilds = $this->gw->getGuilds();
-		$guild = $guilds[$channel->guild_id] ?? null;
+		$guild = isset($channel->guild_id) ? ($guilds[$channel->guild_id] ?? null) : null;
 		$rMessage->prependPath(new Source(
 			Source::DISCORD_PRIV,
 			$channel->name ?? $channel->id,

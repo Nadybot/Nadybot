@@ -110,7 +110,6 @@ class Raffle {
 			$this->slots
 		);
 
-		// @mago-ignore analysis:invalid-return-statement
 		return array_merge(...$winners);
 	}
 

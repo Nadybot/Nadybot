@@ -76,10 +76,6 @@ class WhoisOrgController extends ModuleInstance {
 				'was too slow to respond.';
 			return $msg;
 		}
-		if (!isset($org->orgname)) {
-			$msg = 'This is an illegal org id.';
-			return $msg;
-		}
 
 		$countProfs = [];
 		$minLevel = 220;

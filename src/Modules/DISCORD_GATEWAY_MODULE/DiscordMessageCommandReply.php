@@ -107,7 +107,7 @@ class DiscordMessageCommandReply implements CommandReply, MessageEmitter {
 			new Character($this->config->main->character, $this->chatBot->char?->id)
 		);
 		$guilds = $this->discordGatewayController->getGuilds();
-		$guild = $guilds[$channel->guild_id] ?? null;
+		$guild = isset($channel->guild_id) ? ($guilds[$channel->guild_id] ?? null) : null;
 		$rMessage->prependPath(new Source(
 			Source::DISCORD_PRIV,
 			$channel->name ?? $channel->id,

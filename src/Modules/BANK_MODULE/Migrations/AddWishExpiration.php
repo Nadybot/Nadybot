@@ -3,12 +3,15 @@
 namespace Nadybot\Modules\BANK_MODULE\Migrations;
 
 use Illuminate\Database\Schema\Blueprint;
-use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{DB, Types\SchemaMigration};
+use Nadybot\Core\{
+	Attributes as NCA,
+	DB,
+	Types\SchemaMigration
+};
 use Nadybot\Modules\BANK_MODULE\Wish;
 use Psr\Log\LoggerInterface;
 
-#[NCA\Migration(order: 2023_08_25_07_52_11)]
+#[NCA\Migration(order: 2023_08_25_07_52_11, shared: true)]
 class AddWishExpiration implements SchemaMigration {
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$table = Wish::getTable();

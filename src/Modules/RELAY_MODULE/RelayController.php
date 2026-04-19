@@ -1503,7 +1503,7 @@ class RelayController extends ModuleInstance implements AccessLevelProvider {
 		/** @var list<RelayLayerInterface> $stack */
 		$stack = [];
 		$transport = array_shift($conf->layers);
-		// @mago-ignore analysis:possibly-null-argument
+		// @mago-ignore analysis:possibly-null-argument,possibly-null-property-access
 		$spec = $this->transports[strtolower($transport->layer)] ?? null;
 		if (!isset($spec)) {
 			throw new Exception(

@@ -223,6 +223,7 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 				return;
 			}
 		}
+		// @mago-ignore analysis:redundant-logical-operation
 		$mode = (isset($timer->mode) && strlen($timer->mode)) ? explode(',', $timer->mode) : [];
 		$sent = false;
 		foreach ($mode as $sendMode) {

@@ -443,7 +443,7 @@ class AuctionController extends ModuleInstance {
 		];
 		$quickSearch = $shortcuts[strtolower($search)] ?? [];
 		$query = $this->db->table(DBAuction::getTable());
-		if (count($quickSearch)) {
+		if (count($quickSearch) > 0) {
 			foreach ($quickSearch as $searchTerm) {
 				$query->orWhereIlike('item', $searchTerm);
 			}
@@ -607,7 +607,7 @@ class AuctionController extends ModuleInstance {
 		$this->auction = null;
 		$event = new AuctionEndEvent(auction: $auction, sender: $sender);
 		$this->recordAuctionInDB($auction);
-		if (isset($auction->bid) && $auction->bid > 0 && isset($auction->top_bidder)) {
+		if ($auction->bid > 0 && isset($auction->top_bidder)) {
 			$this->raidPointsController->modifyRaidPoints(
 				$auction->top_bidder,
 				$auction->bid * -1,

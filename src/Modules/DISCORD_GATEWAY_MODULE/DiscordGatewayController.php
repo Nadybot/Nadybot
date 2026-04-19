@@ -1735,7 +1735,7 @@ class DiscordGatewayController extends ModuleInstance {
 				$guildId = $channel->guild_id;
 			}
 		}
-		if (!isset($guildId) || !isset($voiceState->user_id)) {
+		if (!isset($guildId)) {
 			return;
 		}
 		$member = $this->discordAPIClient->getGuildMember($guildId, $voiceState->user_id);

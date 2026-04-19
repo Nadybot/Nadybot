@@ -560,6 +560,7 @@ class MobController extends ModuleInstance {
 					return '<unknown>UNKNOWN<end>';
 				}
 				// Otherwise, the mob is out of range
+				// @mago-ignore analysis:impossible-condition
 			case $mob::STATUS_OUT_OF_RANGE:
 				$status = '<yellow>OUT OF RANGE<end>';
 				if (!isset($mob->last_seen)) {

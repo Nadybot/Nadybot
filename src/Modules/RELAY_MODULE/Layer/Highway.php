@@ -241,18 +241,6 @@ class Highway implements RelayLayerInterface, StatusProvider {
 				$data = null;
 				continue;
 			}
-			if (!isset($package->body)) {
-				$this->status = new RelayStatus(
-					RelayStatusType::INIT,
-					'Received highway message without body'
-				);
-				$this->logger->error('Received highway message without body on {relay}', [
-					'relay' => $this->relay->getName(),
-					'message' => $package,
-				]);
-				$data = null;
-				continue;
-			}
 			$data = $package->body;
 			$msg->sender = $package->user;
 		}

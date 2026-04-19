@@ -245,7 +245,7 @@ class LootController extends ModuleInstance {
 				$line .= " {$item->amount}x";
 			}
 			$line .= " <highlight>{$item->display}<end>";
-			if (isset($item->comment) && strlen($item->comment) && !str_contains($item->display, $item->comment)) {
+			if (strlen($item->comment) && !str_contains($item->display, $item->comment)) {
 				$line .= " {$item->comment}";
 			}
 			$line .= "\n<tab>" . $this->getWinners(...$item->winners);
@@ -297,7 +297,7 @@ class LootController extends ModuleInstance {
 				$line .= " 1/{$item->amount}";
 			}
 			$line .= " {$item->display}";
-			if (isset($item->comment) && strlen($item->comment) && !str_contains($item->display, $item->comment)) {
+			if (strlen($item->comment) && !str_contains($item->display, $item->comment)) {
 				$line .= " {$item->comment}";
 			}
 			$line .= " - rolled by {$item->rolled_by}";
@@ -355,7 +355,7 @@ class LootController extends ModuleInstance {
 				$line .= " {$item->amount}x";
 			}
 			$line .= " <highlight>{$item->display}<end>";
-			if (isset($item->comment) && strlen($item->comment) && !str_contains($item->display, $item->comment)) {
+			if (strlen($item->comment) && !str_contains($item->display, $item->comment)) {
 				$line .= " {$item->comment}";
 			}
 			$line .= " - rolled by {$item->rolled_by}\n".
@@ -674,7 +674,7 @@ class LootController extends ModuleInstance {
 			$numItems += $item->multiloot;
 
 			$list .= "<header2>Slot #{$key}:<end> {$ml}<highlight>{$item->display}<end>";
-			if (isset($item->comment) && strlen($item->comment) && !str_contains($item->display, $item->comment)) {
+			if (strlen($item->comment) && !str_contains($item->display, $item->comment)) {
 				$list .= " ({$item->comment})";
 			}
 		}
@@ -861,7 +861,7 @@ class LootController extends ModuleInstance {
 		}
 
 		$player = $this->playerManager->byName($context->char->name);
-		if (!isset($player) || !isset($player->gender) || $player->gender === 'Neuter') {
+		if (!isset($player) || $player->gender === 'Neuter') {
 			$privMsg = "{$context->char->name} removed themselves from all rolls.";
 		} elseif ($player->gender === 'Female') {
 			$privMsg = "{$context->char->name} removed herself from all rolls.";
@@ -904,7 +904,7 @@ class LootController extends ModuleInstance {
 			}
 
 			$list .= "<header2>Slot #{$key}:<end> {$ml}<highlight>{$item->display}<end>";
-			if (isset($item->comment) && strlen($item->comment) && !str_contains($item->display, $item->comment)) {
+			if (strlen($item->comment) && !str_contains($item->display, $item->comment)) {
 				$list .= " ({$item->comment})";
 			}
 			$list .= " - [{$add}] [{$rem}]";

@@ -208,6 +208,7 @@ class ImplantController extends ModuleInstance {
 		$foundMinQL = 0;
 		$foundMaxQL = 300;
 		$ql = 1;
+		$statBonus = 0;
 		for (; $ql <= 300; $ql++) {
 			$statBonus = Implant::getBuff($type, $grade, $ql);
 			if ($statBonus > $bonus) {
@@ -219,7 +220,7 @@ class ImplantController extends ModuleInstance {
 				}
 			}
 		}
-		if (isset($statBonus) && $statBonus === $bonus) {
+		if ($statBonus === $bonus) {
 			return new MinMax(min: $foundMinQL, max: $foundMaxQL);
 		}
 		return null;
