@@ -9,14 +9,16 @@ namespace Nadybot\Modules\AI_MODULE;
 use function Safe\json_encode;
 use Amp\{CancelledException, TimeoutCancellation};
 use Amp\Http\Client\{BufferedContent, HttpClientBuilder, Request, TimeoutException};
+use BackedEnum;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
-use Nadybot\Core\{Attributes as NCA, CmdContext, Hydrator, ModuleInstance, Text};
+use Nadybot\Core\{Attributes as NCA, CmdContext, Hydrator, ModuleInstance, Registry, Safe, Text};
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Exceptions\UserException;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Types\AccessLevel;
-use Nadybot\Modules\AI_MODULE\Models\Role;
+use Nadybot\Modules\AI_MODULE\Models\{FunctionCall, Role, ToolCallChoice, ToolResultMessage};
+use Nadylib\Type;
 use Nadylib\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
 use Safe\Exceptions\JsonException;
@@ -76,6 +78,32 @@ class AIController extends ModuleInstance {
 
 	/** @var array<string,list<Models\Message>> */
 	private array $conversationHistory = [];
+
+	/**
+	 * @var array<int,Models\ToolFunction>
+	 *
+	 * @psalm-var list<Models\ToolFunction>
+	 */
+	private array $tools = [];
+
+	/** @var array<string,ExposedFunction> */
+	private array $toolFunctions = [];
+
+	#[NCA\Setup]
+	public function setup(): void {
+		$instances = Registry::getAllInstances();
+		foreach ($instances as $instance) {
+			$class = new \ReflectionClass($instance);
+			foreach ($class->getMethods(\ReflectionMethod::IS_PUBLIC) as $method) {
+				$exposedAttrs = $method->getAttributes(NCA\ExposeToAI::class);
+				if (!count($exposedAttrs)) {
+					continue;
+				}
+				$attrObj = $exposedAttrs[0]->newInstance();
+				$this->registerAiFunction($instance, $method, $attrObj->name);
+			}
+		}
+	}
 
 	#[NCA\SettingChangeHandler(setting: 'ai_api_url')]
 	public function resetLLM(string $setting, string $old, string $new): void {
@@ -162,15 +190,32 @@ class AIController extends ModuleInstance {
 		if (strlen($command->model) < 1) {
 			throw new UserException('No language model has been configured yet.');
 		}
+		if (!count($command->tools)) {
+			$command = $this->addTools($command);
+		}
 		$request->addHeader('Authorization', "Bearer {$this->aiApiToken}");
 		$this->logger->debug('Sending command {command}', ['command' => $command]);
-		$json = json_encode(Hydrator::serialize($command));
+		$compact = Hydrator::serialize($command);
+		for ($i = 0; $i < count($command->messages); $i++) {
+			if ($command->messages[$i] instanceof \stdClass) {
+				$compact['messages'][$i] = $command->messages[$i];
+			}
+		}
+		for ($i = 0; $i < count($command->tools); $i++) {
+			$tool = $command->tools[$i];
+			if ($tool instanceof Models\ToolFunction) {
+				if (count($tool->function->parameters->properties) === 0) {
+					$compact['tools'][$i]['function']['parameters']['properties'] = new \stdClass();
+				}
+			}
+		}
+		$json = json_encode($compact);
 		$request->setBody(BufferedContent::fromString($json, 'application/json; charset=utf-8'));
 		$request->setTransferTimeout(120);
 		$request->setInactivityTimeout(60);
 		try {
 			$response = $client->request($request, new TimeoutCancellation(120));
-			$this->logger->info('Translation HTTP-code is {code}', ['code' => $response->getStatus()]);
+			$this->logger->info('AI-Api HTTP-code is {code}', ['code' => $response->getStatus()]);
 			$body = $response->getBody()->buffer(new TimeoutCancellation(60));
 		} catch (CancelledException | TimeoutException $e) {
 			throw new UserException('AI-Api timed out after 60s.', previous: $e);
@@ -183,8 +228,13 @@ class AIController extends ModuleInstance {
 			]);
 			throw new UserException('Error sending request to the AI-Api. Please check your logs.', previous: $e);
 		}
-		$this->logger->debug('Translation result is {body}', ['body' => $body]);
+		$this->logger->debug('AI-Api result is {body}', ['body' => $body]);
 		if ($response->getStatus() === 401) {
+			$this->logger->error('Error sending request to {url}: {status} ({body})', [
+				'url' => $this->aiApiUrl,
+				'status' => $response->getStatus(),
+				'body' => $body,
+			]);
 			throw new UserException('Error sending request to the AI-Api. Please check your logs.');
 		}
 		if ($response->getStatus() === 400 && $body !== '') {
@@ -194,7 +244,12 @@ class AIController extends ModuleInstance {
 					'url' => $this->aiApiUrl,
 					'error' => $error->error->message,
 				]);
-			} catch (Throwable) {
+			} catch (Throwable $e) {
+				$this->logger->error('Unparseable answer from {url}: {body}', [
+					'url' => $this->aiApiUrl,
+					'body' => $body,
+					'exception' => $e,
+				]);
 			}
 			throw new UserException('Error sending request to the AI-Api. Please check your logs.');
 		}
@@ -220,11 +275,186 @@ class AIController extends ModuleInstance {
 		}
 		try {
 			$completion = Hydrator::hydrateString(Models\ChatCompletion::class, $body);
-			$this->logger->info('Translation result is {completion}', ['completion' => $completion]);
+			$this->logger->info('AI response is {completion}', ['completion' => $completion]);
 		} catch (AssertException | JsonException | UnableToHydrateObject $e) {
 			throw new UserException("Invalid response received from the AI-Api: {$e->getMessage()}", previous: $e);
 		}
+		if ($completion->choices[0] instanceof ToolCallChoice) {
+			$messages = $command->messages;
+			$messages []= Safe::jsonDecodeObj($body)->choices[0]->message;
+			foreach ($this->processToolCallChoice($completion->choices[0]) as $result) {
+				$messages []= $result;
+			}
+			$newCommand = new Models\CompletionCommand(
+				model: $command->model,
+				temperature: $command->temperature,
+				messages: $messages
+			);
+			return $this->sendCommand($newCommand, $apiURL);
+		}
 		return $completion->choices[0]->message->content;
+	}
+
+	private function registerAiFunction(object $instance, \ReflectionMethod $method, string $name): void {
+		$comment = $method->getDocComment();
+		if ($comment === false) {
+			$this->logger->warning('Cannot add {function} as AI function, because it lacks a doc block', [
+				'function' => $name,
+			]);
+			return;
+		}
+		$cleanComment = trim(Safe::pregReplace("|^/\*\*(.*)\*/|s", '$1', $comment));
+		$cleanComment = Safe::pregReplace("/^[ \t]*\*[ \t]*/m", '', $cleanComment);
+		$functionDescripton = trim(Safe::pregReplace('/\n@.*/s', '', $cleanComment));
+
+		$params = $method->getParameters();
+		$required = [];
+
+		/** @var array<string,int> */
+		$paramOrder = [];
+
+		/** @var array<string, Models\FunctionProperty> */
+		$functionProperties = [];
+
+		$i = 0;
+		foreach ($params as $param) {
+			$paramDescription =  'no documentation available for this parameter';
+			$paramOrder[$param->name] = $i;
+			$i++;
+			$matches = Safe::pregMatch('/@param[^$]+\$' . preg_quote($param->name, '/') . '\s+(.+)/s', $cleanComment);
+			if (count($matches) !== 2) {
+				continue;
+			}
+			$lines = explode("\n", $matches[1]);
+			for ($l = 1; $l < count($lines); $l++) {
+				if (substr($lines[$l], 0, 1) === '@' || $lines[$l] === '') {
+					break;
+				}
+				$lines[0] .= ' ' . trim($lines[$l]);
+			}
+			$paramDescription = $lines[0];
+			$functionProperties[$param->name] = $this->guessParamType($param, $paramDescription);
+			if (!$param->isOptional()) {
+				$required []= $param->name;
+			}
+		}
+		$this->tools []= new Models\ToolFunction(
+			function: new Models\FunctionSignature(
+				name: $name,
+				description: $functionDescripton,
+				parameters: new Models\FunctionParameters(
+					properties: $functionProperties,
+					required: $required,
+				)
+			)
+		);
+		$this->toolFunctions[$name] = new ExposedFunction(
+			name: $name,
+			function: $method->getClosure($instance),
+			paramOrder: $paramOrder
+		);
+	}
+
+	private function guessParamType(\ReflectionParameter $param, string $description): Models\FunctionProperty {
+		$type = $param->getType();
+		if (!($type instanceof \ReflectionNamedType)) {
+			throw new \Exception(
+				'AI interfaces only support distinct parameter types, invalid type for '.
+					$param->getDeclaringClass()->name . '::' . $param->getDeclaringFunction()->name.
+					'($' . $param->name . ')'
+			);
+		}
+		$typeName = $type->getName();
+		if (!$type->isBuiltin() && is_a($typeName, BackedEnum::class, true)) {
+			if (is_int($typeName::cases()[0]->value)) {
+				return new Models\FunctionPropertyIntEnum(
+					description: $description,
+					enum: array_column($typeName::cases(), 'value')
+				);
+			}
+			return new Models\FunctionPropertyStringEnum(
+				description: $description,
+				enum: array_column($typeName::cases(), 'value')
+			);
+		}
+		switch ($typeName) {
+			case 'bool': return new Models\FunctionPropertyBoolean(description: $description);
+			case 'float': return new Models\FunctionPropertyFloat(description: $description);
+			case 'string': return new Models\FunctionPropertyString(description: $description);
+			case 'int': return new Models\FunctionPropertyInt(description: $description);
+			default: throw new \Exception(
+				"AI interfaces only support specific parameter types, invalid type '{$typeName}' for ".
+					$param->getDeclaringClass()->name . '::' . $param->getDeclaringFunction()->name.
+					'($' . $param->name . ')'
+			);
+		}
+	}
+
+	/**
+	 * @return ToolResultMessage[]
+	 *
+	 * @psalm-return list<ToolResultMessage>
+	 */
+	private function processToolCallChoice(ToolCallChoice $choice): array {
+		$result = [];
+		$calls = $choice->message->tool_calls;
+		foreach ($calls as $call) {
+			$result []= new ToolResultMessage(
+				tool_call_id: $call->id,
+				content: $this->processFunctionCall($call->function),
+			);
+		}
+		return $result;
+	}
+
+	private function processFunctionCall(FunctionCall $call): string {
+		$arguments = Safe::jsonDecode($call->arguments, Type\dict(Type\string(), Type\mixed()));
+		if (!array_key_exists($call->name, $this->toolFunctions)) {
+			return "Unknown function \"{$call->name}\"";
+		}
+		$functionSpec = $this->toolFunctions[$call->name];
+		foreach ($arguments as $name => $value) {
+			if (!array_key_exists($name, $functionSpec->paramOrder)) {
+				return "Unknown parameter \"{$name}\" to function {$call->name}";
+			}
+		}
+		$this->logger->info('Calling {function} with arguments {arguments}', [
+			'function' => $functionSpec->name,
+			'arguments' => $arguments,
+		]);
+		$result = call_user_func($functionSpec->function, ...$arguments);
+		return json_encode(Hydrator::serialize($result), \JSON_UNESCAPED_SLASHES);
+		return json_encode(
+			match ($call->name) {
+				'whois' => Hydrator::serialize($this->playerManager->byName($arguments['name'], $arguments['dimension'] ?? null)),
+				default => "Unknown function \"{$call->name}\""
+			},
+			\JSON_UNESCAPED_SLASHES,
+		);
+	}
+
+	private function addTools(Models\CompletionCommand $command): Models\CompletionCommand {
+		$result = clone $command;
+		$result->tools = $this->tools;
+		// 	new Models\ToolFunction(
+		// 		function: new Models\FunctionSignature(
+		// 			name: 'whois',
+		// 			description: 'Get information about a character in the game',
+		// 			parameters: new Models\FunctionParameters(
+		// 				properties: [
+		// 					'name' => new Models\FunctionPropertyString(
+		// 						description: 'The name of the character',
+		// 					),
+		// 					'dimension' => new Models\FunctionPropertyInt(
+		// 						description: 'The AnarchyOnline-dimension for this character, if not the current one',
+		// 					),
+		// 				],
+		// 				required: ['name'],
+		// 			),
+		// 		),
+		// 	),
+		// ];
+		return $result;
 	}
 
 	/** Get the conversation key in the history to allow or prevent shared history */

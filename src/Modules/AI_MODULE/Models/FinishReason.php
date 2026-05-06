@@ -14,4 +14,7 @@ enum FinishReason: string {
 
 	/** Content was omitted due to a flag from the content filters */
 	case ContentFilter = 'content_filter';
+
+	/** The model called one or more tools. */
+	case ToolCalls = 'tool_calls';
 }

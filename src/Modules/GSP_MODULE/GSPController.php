@@ -22,6 +22,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\MessageEmitter,
 };
+use Nadybot\Core\Attributes\ExposeToAI;
 use Safe\DateTimeImmutable;
 use Throwable;
 
@@ -312,6 +313,35 @@ class GSPController extends ModuleInstance implements MessageEmitter {
 			$showInfos = "\n<tab>" . implode("\n<tab>", explode("\n", $showInfos));
 		}
 		return "{$blob}{$currentlyPlaying}{$showInfos}";
+	}
+
+	/**
+	 * Get what's currently playing on GridStreamProductions (GSP), the Anarchy Online radio
+	 *
+	 * @return string|Show Either an error message, or detail information about the current show
+	 */
+	#[ExposeToAI('get_gsp_show')]
+	public function getShow(): string|Show {
+		$client = $this->builder->build();
+
+		$response = $client->request(new Request(self::GSP_URL));
+		if ($response->getStatus() !== 200) {
+			return 'GSP seems to have problems with their service. Please try again later.';
+		}
+		$body = $response->getBody()->buffer();
+		if ($body === '') {
+			return 'GSP seems to have problems with their service. Please try again later.';
+		}
+		try {
+			$show = Hydrator::hydrateString(Show::class, $body);
+		} catch (\Throwable $e) {
+			return 'GSP seems to have problems with their service. Please try again later.';
+		}
+		if (!count($show->history)) {
+			return 'GSP is currently not playing any music.';
+		}
+
+		return $show;
 	}
 
 	/** Test if all needed data for the current show is present and valid */

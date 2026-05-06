@@ -1,0 +1,22 @@
+{
+  "edit_predictions": {
+    "ollama": {
+      "model": "qwen3-coder-next:cloud"
+    }
+  },
+  "semantic_tokens": "combined",
+  "languages": {
+    "PHP": {
+      "document_folding_ranges": "on",
+      "document_symbols": "on",
+      "inlay_hints": {
+        "show_parameter_hints": true,
+        "show_other_hints": true,
+        "show_value_hints": true,
+        "show_type_hints": true,
+        "show_background": true,
+        "enabled": false
+      }
+    }
+  }
+}

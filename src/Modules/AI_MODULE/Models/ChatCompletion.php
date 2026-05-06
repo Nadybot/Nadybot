@@ -3,8 +3,8 @@
 namespace Nadybot\Modules\AI_MODULE\Models;
 
 use DateTimeInterface;
-use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 use Nadybot\Core\StringableTrait;
+use Nadybot\Modules\AI_MODULE\Models\Attributes\CastToChoices;
 
 /**
  * Represents a chat completion response returned by model, based on
@@ -32,7 +32,7 @@ class ChatCompletion {
 		public readonly string $id,
 		public readonly DateTimeInterface $created,
 		public readonly string $model,
-		#[CastListToType(Choice::class)] public readonly array $choices,
+		#[CastToChoices('finish_reason', ['tool_calls' => ToolCallChoice::class, '*' => Choice::class])] public readonly array $choices,
 		public readonly string $object='chat.completion',
 		public readonly ?string $system_fingerprint=null,
 	) {

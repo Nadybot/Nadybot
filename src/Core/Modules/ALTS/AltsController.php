@@ -31,6 +31,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\CommandReply,
 };
+use Nadybot\Core\Attributes\ExposeToAI;
 
 /**
  * @author Tyrence (RK2)
@@ -125,11 +126,25 @@ class AltsController extends ModuleInstance {
 		$this->cacheAlts();
 	}
 
+	/**
+	 * Get the name of the main character of a given character.
+	 * If the given character already is the main character, return that name
+	 *
+	 * @param string $char Any character name
+	 */
+	#[ExposeToAI(name: 'get_main')]
 	public function getMainOf(string $char): string {
 		return $this->alts[$char] ?? $char;
 	}
 
-	/** @return list<string> */
+	/**
+	 * Get the names of the registered alts of a given character
+	 *
+	 * @param string $char Any character name
+	 *
+	 * @return list<string>
+	 */
+	#[ExposeToAI(name: 'get_alts')]
 	public function getAltsOf(string $char): array {
 		$alts = [$char];
 		foreach ($this->alts as $alt => $main) {
@@ -501,12 +516,14 @@ class AltsController extends ModuleInstance {
 	}
 
 	/**
-	 * Get information about the mains and alts of a player
+	 * Get detailed information about the mains and alts of a player
 	 *
-	 * @param string $player The name of either the main or one of their alts
+	 * @param string $player         The name of either the main character or one of their alts
+	 * @param bool   $includePending Whether to include alts who haven't been validated yet. Defaults to false
 	 *
 	 * @return AltInfo Information about the main and the alts
 	 */
+	#[ExposeToAI(name: 'get_alts_info')]
 	public function getAltInfo(string $player, bool $includePending=false): AltInfo {
 		$player = Utils::normalizeCharacter($player);
 

@@ -27,6 +27,7 @@ use Nadybot\Core\{
 	Safe,
 	Types\Status,
 };
+use Nadybot\Core\Attributes\ExposeToAI;
 use Psr\Log\LoggerInterface;
 use Psr\SimpleCache\CacheInterface;
 use Revolt\EventLoop;
@@ -94,6 +95,17 @@ class PlayerManager extends ModuleInstance {
 		});
 	}
 
+	/**
+	 * Get information about a character in the game
+	 *
+	 * @param string   $name        Name of the character to look up
+	 * @param null|int $dimension   The server (dimension) to look the character up on.
+	 *                              Defaults to the current one
+	 * @param bool     $forceUpdate Force loading data from the Anarchy Online server and ignore cached data
+	 *
+	 * @return null|Player null if the character doesn't exist, otherwise a player object
+	 */
+	#[ExposeToAI(name: 'whois')]
 	public function byName(string $name, ?int $dimension=null, bool $forceUpdate=false): ?Player {
 		$dimension ??= $this->config->main->dimension;
 
