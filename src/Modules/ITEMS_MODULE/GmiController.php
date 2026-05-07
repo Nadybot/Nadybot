@@ -110,6 +110,7 @@ class GmiController extends ModuleInstance {
 		if (count($perfectMatches) === 1) {
 			$matches = [array_shift($perfectMatches)];
 		} else {
+			/** @var array<int,bool> */
 			$usedIds = [];
 			$matches = array_values(
 				array_filter(

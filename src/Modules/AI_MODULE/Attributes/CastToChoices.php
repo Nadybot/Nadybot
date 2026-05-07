@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace Nadybot\Modules\AI_MODULE\Models\Attributes;
+namespace Nadybot\Modules\AI_MODULE\Attributes;
 
 use Attribute;
 use EventSauce\ObjectHydrator\{ObjectMapper, PropertyCaster};
@@ -16,7 +16,8 @@ final class CastToChoices implements PropertyCaster {
 	) {
 	}
 
-	public function cast(mixed $value, ObjectMapper $hydrator): mixed {
+	/** @return list<object> */
+	public function cast(mixed $value, ObjectMapper $hydrator): array {
 		assert(is_array($value), 'value is expected to be an array');
 		assert(array_is_list($value), 'value is not expected to be a list');
 
@@ -27,7 +28,7 @@ final class CastToChoices implements PropertyCaster {
 			}
 			$key = $value[$i][$this->key];
 			$targetClass = null;
-			if (array_key_exists($key, $this->mapping)) {
+			if (is_string($key) &&array_key_exists($key, $this->mapping)) {
 				$targetClass = $this->mapping[$key];
 			} elseif (array_key_exists('*', $this->mapping)) {
 				$targetClass = $this->mapping['*'];
@@ -36,6 +37,8 @@ final class CastToChoices implements PropertyCaster {
 			}
 			$value[$i] = $hydrator->hydrateObject($targetClass, $value[$i]);
 		}
+
+		/** @var list<object> $value */
 		return $value;
 	}
 }

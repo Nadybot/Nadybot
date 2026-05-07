@@ -760,7 +760,7 @@ class AttacksController extends ModuleInstance {
 		if (isset($attack)) {
 			return $this->nwCtrl->state[$attack->playfield->value][$attack->site_id] ?? null;
 		}
-		$sites = (new Collection($this->nwCtrl->getEnabledSites()))
+		$sites = $this->nwCtrl->getEnabledSites()
 			->where('playfield_id', $pf->value)
 			->where('org_id', $this->config->orgId);
 		// Actually, this can only happen with gas 5% or 25%, but if it's 1 site only
@@ -978,14 +978,18 @@ class AttacksController extends ModuleInstance {
 			}
 		}
 
-		$grouped = (new Collection($attacks))->groupByString(
+		$grouped = $attacks->groupByString(
 			static function (DBTowerAttack $attack) use ($lookup): string {
 				$key = "{$attack->def_org}:{$attack->playfield->value}:{$attack->site_id}";
 				return $key . ':' . $lookup["{$key}:{$attack->timestamp}"];
 			}
 		);
 
-		/** @psalm-suppress InvalidReturnStatement */
+		/**
+		 * @psalm-suppress InvalidReturnStatement
+		 *
+		 * @mago-ignore analysis:less-specific-return-statement
+		 */
 		return $grouped;
 	}
 

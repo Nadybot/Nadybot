@@ -121,7 +121,9 @@ class NewsController extends ModuleInstance {
 		$msg = '';
 		$blob = '';
 		$sticky = '';
+
 		foreach ($news as $item) {
+			/** @var INews $item */
 			if ($item->time > $latestNews->time) {
 				$latestNews = $item;
 			}

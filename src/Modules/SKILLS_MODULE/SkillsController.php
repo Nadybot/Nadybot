@@ -683,6 +683,8 @@ class SkillsController extends ModuleInstance {
 		#[NCA\Parameter\NonNumberStr] string $search
 	): void {
 		$data = $this->itemsController->findItemsFromLocal($search, $ql);
+
+		/** @var array<int,bool> */
 		$kept = [];
 		$data = array_values(
 			array_filter(

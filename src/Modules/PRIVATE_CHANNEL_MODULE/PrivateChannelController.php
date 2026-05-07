@@ -424,7 +424,6 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				$member->main = $this->altsController->getMainOf($member->name);
 			})
 			->keyByString('main');
-		// @mago-ignore analysis:invalid-argument
 		$lastOnline = $lastOnline->filter(function (LastOnline $member, string $main): bool {
 			return $this->accessManager->checkSingleAccess($main, AccessLevel::Member);
 		});
@@ -788,20 +787,15 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		/** @var Collection<string,Collection<int,OnlinePlayer>> */
 		$byOrg = $online->groupByString('guild');
 
-		/**
-		 * @var Collection<int,OrgCount>
-		 *
-		 * @mago-ignore analysis:docblock-type-mismatch
-		 *
-		 * @phpstan-ignore-next-line
-		 */
+		/** @var Collection<string,OrgCount> */
 		$orgStats = $byOrg->map(static function (Collection $chars, string $orgName): OrgCount {
 			return new OrgCount(
 				avgLevel: $chars->avg('level') ?? 0,
 				numPlayers: $chars->count(),
 				orgName: strlen($orgName) ? $orgName : null,
 			);
-		})->flatten()->sortByDesc('avgLevel')->sortByDesc('numPlayers');
+		});
+		$orgStats = $orgStats->flatten()->sortByDesc('avgLevel')->sortByDesc('numPlayers');
 
 		$lines = $orgStats->map(static function (OrgCount $org) use ($online): string {
 			$guild = $org->orgName ?? '(none)';
@@ -853,6 +847,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		$msg = "<highlight>{$numOnline}<end> {$prof->value}:";
 
 		foreach ($data as $row) {
+			/** @var OnlinePlayer $row */
 			if ($row->afk !== '') {
 				$afk = ' <red>*AFK*<end>';
 			} else {

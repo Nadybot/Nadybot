@@ -198,6 +198,11 @@ class AIController extends ModuleInstance {
 		$compact = Hydrator::serialize($command);
 		for ($i = 0; $i < count($command->messages); $i++) {
 			if ($command->messages[$i] instanceof \stdClass) {
+				/**
+				 * @psalm-suppress MixedArrayAssignment
+				 *
+				 * @mago-expect analysis:mixed-array-assignment
+				 */
 				$compact['messages'][$i] = $command->messages[$i];
 			}
 		}
@@ -205,6 +210,11 @@ class AIController extends ModuleInstance {
 			$tool = $command->tools[$i];
 			if ($tool instanceof Models\ToolFunction) {
 				if (count($tool->function->parameters->properties) === 0) {
+					/**
+					 * @psalm-suppress MixedArrayAssignment
+					 *
+					 * @mago-expect analysis:mixed-array-assignment,mixed-array-assignment,mixed-array-assignment,mixed-array-assignment
+					 */
 					$compact['tools'][$i]['function']['parameters']['properties'] = new \stdClass();
 				}
 			}
@@ -281,7 +291,16 @@ class AIController extends ModuleInstance {
 		}
 		if ($completion->choices[0] instanceof ToolCallChoice) {
 			$messages = $command->messages;
-			$messages []= Safe::jsonDecodeObj($body)->choices[0]->message;
+
+			/**
+			 * @psalm-suppress MixedPropertyFetch
+			 *
+			 * @mago-expect analysis:mixed-array-access,mixed-property-access
+			 */
+			$llmToolCall = Safe::jsonDecodeObj($body)->choices[0]->message;
+
+			/** @var \stdClass $llmToolCall */
+			$messages []= $llmToolCall;
 			foreach ($this->processToolCallChoice($completion->choices[0]) as $result) {
 				$messages []= $result;
 			}
@@ -360,33 +379,52 @@ class AIController extends ModuleInstance {
 		if (!($type instanceof \ReflectionNamedType)) {
 			throw new \Exception(
 				'AI interfaces only support distinct parameter types, invalid type for '.
-					$param->getDeclaringClass()->name . '::' . $param->getDeclaringFunction()->name.
+					($param->getDeclaringClass()->name ?? '') . '::' . $param->getDeclaringFunction()->name.
 					'($' . $param->name . ')'
 			);
 		}
 		$typeName = $type->getName();
 		if (!$type->isBuiltin() && is_a($typeName, BackedEnum::class, true)) {
-			if (is_int($typeName::cases()[0]->value)) {
-				return new Models\FunctionPropertyIntEnum(
-					description: $description,
-					enum: array_column($typeName::cases(), 'value')
+			// @mago-expect analysis:possibly-static-access-on-interface
+			$cases = $typeName::cases();
+			if (count($cases) === 0) {
+				throw new \Exception(
+					"AI interfaces only support enums with cases, enum {$typeName} has no cases for ".
+						($param->getDeclaringClass()->name ?? '') . '::' . $param->getDeclaringFunction()->name.
+						'($' . $param->name . ')'
 				);
 			}
+			if (is_int($cases[0]->value)) {
+				/** @var non-empty-list<int> */
+				$values = array_column($cases, 'value');
+				return new Models\FunctionPropertyIntEnum(
+					description: $description,
+					enum: $values,
+				);
+			}
+
+			/** @var non-empty-list<string> */
+			$values = array_column($cases, 'value');
 			return new Models\FunctionPropertyStringEnum(
 				description: $description,
-				enum: array_column($typeName::cases(), 'value')
+				enum: $values,
 			);
 		}
 		switch ($typeName) {
-			case 'bool': return new Models\FunctionPropertyBoolean(description: $description);
-			case 'float': return new Models\FunctionPropertyFloat(description: $description);
-			case 'string': return new Models\FunctionPropertyString(description: $description);
-			case 'int': return new Models\FunctionPropertyInt(description: $description);
-			default: throw new \Exception(
-				"AI interfaces only support specific parameter types, invalid type '{$typeName}' for ".
-					$param->getDeclaringClass()->name . '::' . $param->getDeclaringFunction()->name.
-					'($' . $param->name . ')'
-			);
+			case 'bool':
+				return new Models\FunctionPropertyBoolean(description: $description);
+			case 'float':
+				return new Models\FunctionPropertyFloat(description: $description);
+			case 'string':
+				return new Models\FunctionPropertyString(description: $description);
+			case 'int':
+				return new Models\FunctionPropertyInt(description: $description);
+			default:
+				throw new \Exception(
+					"AI interfaces only support specific parameter types, invalid type '{$typeName}' for ".
+						($param->getDeclaringClass()->name ?? '') . '::' . $param->getDeclaringFunction()->name.
+						'($' . $param->name . ')'
+				);
 		}
 	}
 
@@ -423,37 +461,15 @@ class AIController extends ModuleInstance {
 			'arguments' => $arguments,
 		]);
 		$result = call_user_func($functionSpec->function, ...$arguments);
-		return json_encode(Hydrator::serialize($result), \JSON_UNESCAPED_SLASHES);
-		return json_encode(
-			match ($call->name) {
-				'whois' => Hydrator::serialize($this->playerManager->byName($arguments['name'], $arguments['dimension'] ?? null)),
-				default => "Unknown function \"{$call->name}\""
-			},
-			\JSON_UNESCAPED_SLASHES,
-		);
+		if (is_object($result)) {
+			return json_encode(Hydrator::serialize($result), \JSON_UNESCAPED_SLASHES);
+		}
+		return json_encode($result, \JSON_UNESCAPED_SLASHES);
 	}
 
 	private function addTools(Models\CompletionCommand $command): Models\CompletionCommand {
 		$result = clone $command;
 		$result->tools = $this->tools;
-		// 	new Models\ToolFunction(
-		// 		function: new Models\FunctionSignature(
-		// 			name: 'whois',
-		// 			description: 'Get information about a character in the game',
-		// 			parameters: new Models\FunctionParameters(
-		// 				properties: [
-		// 					'name' => new Models\FunctionPropertyString(
-		// 						description: 'The name of the character',
-		// 					),
-		// 					'dimension' => new Models\FunctionPropertyInt(
-		// 						description: 'The AnarchyOnline-dimension for this character, if not the current one',
-		// 					),
-		// 				],
-		// 				required: ['name'],
-		// 			),
-		// 		),
-		// 	),
-		// ];
 		return $result;
 	}
 

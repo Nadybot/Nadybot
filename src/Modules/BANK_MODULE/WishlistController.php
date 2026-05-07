@@ -341,7 +341,11 @@ class WishlistController extends ModuleInstance {
 			return;
 		}
 
-		/** @psalm-suppress InvalidArgument */
+		/**
+		 * @psalm-suppress InvalidArgument
+		 *
+		 * @mago-ignore analyzer:less-specific-argument
+		 */
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = Text::makeBlob(
 			"{$char}'s wishlists ({$render->numItems})",
@@ -377,7 +381,11 @@ class WishlistController extends ModuleInstance {
 			return;
 		}
 
-		/** @psalm-suppress InvalidArgument */
+		/**
+		 * @psalm-suppress InvalidArgument
+		 *
+		 * @mago-ignore analyzer:less-specific-argument
+		 */
 		$render = $this->renderCheckWishlist($wishlistGrouped, $context->char->name);
 		$msg = Text::makeBlob(
 			"Others' wishlists with '{$what}' ({$render->numItems})",

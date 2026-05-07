@@ -4,7 +4,7 @@ namespace Nadybot\Modules\AI_MODULE\Models;
 
 use DateTimeInterface;
 use Nadybot\Core\StringableTrait;
-use Nadybot\Modules\AI_MODULE\Models\Attributes\CastToChoices;
+use Nadybot\Modules\AI_MODULE\Attributes\CastToChoices;
 
 /**
  * Represents a chat completion response returned by model, based on
@@ -26,7 +26,7 @@ class ChatCompletion {
 	 *                                              understand when backend changes have been made that might impact
 	 *                                              determinism.
 	 *
-	 * @psalm-param non-empty-list<Choice> $choices
+	 * @psalm-param non-empty-list<Choice|ToolCallChoice> $choices
 	 */
 	public function __construct(
 		public readonly string $id,

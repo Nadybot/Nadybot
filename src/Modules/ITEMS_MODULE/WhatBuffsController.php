@@ -105,8 +105,6 @@ class WhatBuffsController extends ModuleInstance {
 		/**
 		 * @var Collection<int,Skill>
 		 *
-		 * @mago-ignore analysis:docblock-type-mismatch
-		 *
 		 * @phpstan-ignore varTag.type
 		 */
 		$skills = $this->db->table(ItemBuff::getTable())

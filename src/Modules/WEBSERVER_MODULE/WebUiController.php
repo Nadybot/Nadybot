@@ -303,7 +303,11 @@ class WebUiController extends ModuleInstance {
 			}
 			if (isset($extractor)) {
 				try {
-					/** @var bool */
+					/**
+					 * @mago-ignore analysis:invalid-argument
+					 *
+					 * @var bool
+					 */
 					$result = Safe::exceptionWrapper($extractor->close(...));
 				} catch (ErrorException) {
 				}
