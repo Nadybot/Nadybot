@@ -229,6 +229,7 @@ class ImplantDesignerController extends ModuleInstance {
 		#[ClusterGradeStr] #[Str('symbiant', 'symb')] string $grade,
 		string $cluster
 	): void {
+		$grade = strtolower($grade);
 		$design = $this->getDesign($context->char->name);
 		$slotObj = $design->setSlotIfUnset($slot, new SlotConfig());
 
