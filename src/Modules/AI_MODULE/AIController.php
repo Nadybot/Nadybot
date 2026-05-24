@@ -13,6 +13,7 @@ use BackedEnum;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\{Attributes as NCA, CmdContext, Hydrator, ModuleInstance, Registry, Safe, Text};
+use Nadybot\Core\Attributes\ExposeToAI;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Exceptions\UserException;
 use Nadybot\Core\Routing\Source;
@@ -21,6 +22,7 @@ use Nadybot\Modules\AI_MODULE\Models\{FunctionCall, Role, ToolCallChoice, ToolRe
 use Nadylib\Type;
 use Nadylib\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
+use Safe\DateTimeImmutable;
 use Safe\Exceptions\JsonException;
 use Throwable;
 
@@ -66,6 +68,10 @@ class AIController extends ModuleInstance {
 	/** Share AI history between all public channels */
 	#[NCA\Setting\Boolean]
 	public bool $sharedAiHistory = true;
+
+	/** Allow the AI to call bot functions (with no rights checking) */
+	#[NCA\Setting\Boolean]
+	public bool $allowAiFunctionCalls = true;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $http;
@@ -314,6 +320,103 @@ class AIController extends ModuleInstance {
 		return $completion->choices[0]->message->content;
 	}
 
+	/**
+	 * Get an ISO 8601 representation of the current date and time
+	 *
+	 * @return string the current date and time in ISO 8601 format
+	 */
+	#[ExposeToAI(name: 'get_date_time')]
+	public function getCurrentTime(): string {
+		$dateTime = new DateTimeImmutable('now');
+		return $dateTime->format(\DateTime::ISO8601);
+	}
+
+	/**
+	 * Do a websearch for a given search term, and give back a JSON structure with the results.
+	 * The structure should be an array of objects with "title", "url" and "content" properties.
+	 * In case of an error, the return value will be a string with the error message.
+	 *
+	 * @param string $query The search term to look up
+	 *
+	 * @return string|list<\stdClass> Either a JSON structure with results, or an error message
+	 */
+	#[ExposeToAI(name: 'web_search')]
+	public function webSearch(string $query): string|array {
+		$client = $this->http->build();
+		$request = new Request(
+			uri: 'http://127.0.0.1:8888/?' . http_build_query(['q' => $query, 'format' =>'json']),
+			method: 'GET'
+		);
+		$request->setTransferTimeout(120);
+		$request->setInactivityTimeout(60);
+		try {
+			$response = $client->request($request, new TimeoutCancellation(120));
+			if ($response->getStatus() < 200 || $response->getStatus() >= 300) {
+				return "Error fetching search results for {$query}: HTTP {$response->getStatus()}";
+			}
+			$body = $response->getBody()->buffer(new TimeoutCancellation(60));
+			$result = Safe::jsonDecodeObj($body);
+
+			/** @var list<\stdClass> */
+			$cleanResult = [];
+			if (!isset($result->results) || !is_array($result->results)) {
+				return "Invalid response format for search results for {$query}.";
+			}
+			foreach ($result->results as $item) {
+				assert($item instanceof \stdClass);
+				$cleanItem = new \stdClass();
+				$cleanItem->title = $item->title ?? '';
+				$cleanItem->url = $item->url ?? '';
+				$cleanItem->content = $item->content ?? '';
+				$cleanResult []= $cleanItem;
+			}
+			return $cleanResult;
+		} catch (CancelledException | TimeoutException) {
+			return "Fetching search results for {$query} timed out.";
+		} catch (Throwable $e) {
+			$this->logger->error('Error fetching search results for {query}: {error} ({class})', [
+				'query' => $query,
+				'error' => $e->getMessage(),
+				'class' => $e::class,
+				'exception' => $e,
+			]);
+			return 'Error fetching search  results. Please check your logs.';
+		}
+	}
+
+	/**
+	 * Fetch the content of a website and return the content as pure HTML.
+	 * In case of an error, the return value will be the error message.
+	 *
+	 * @param string $url The URL to retrieve
+	 *
+	 * @return string The website content or an error message
+	 */
+	#[ExposeToAI(name: 'fetch_url')]
+	public function fetchURL(string $url): string {
+		$client = $this->http->build();
+		$request = new Request(uri: $url, method: 'GET');
+		$request->setTransferTimeout(120);
+		$request->setInactivityTimeout(60);
+		try {
+			$response = $client->request($request, new TimeoutCancellation(120));
+			if ($response->getStatus() !== 200) {
+				return "Error fetching URL {$url}: HTTP {$response->getStatus()}";
+			}
+			return $response->getBody()->buffer(new TimeoutCancellation(60));
+		} catch (CancelledException | TimeoutException) {
+			return "Fetching URL {$url} timed out.";
+		} catch (Throwable $e) {
+			$this->logger->error('Error fetching URL {url}: {error} ({class})', [
+				'url' => $url,
+				'error' => $e->getMessage(),
+				'class' => $e::class,
+				'exception' => $e,
+			]);
+			return "Error fetching URL {$url}. Please check your logs.";
+		}
+	}
+
 	private function registerAiFunction(object $instance, \ReflectionMethod $method, string $name): void {
 		$comment = $method->getDocComment();
 		if ($comment === false) {
@@ -461,13 +564,16 @@ class AIController extends ModuleInstance {
 			'arguments' => $arguments,
 		]);
 		$result = call_user_func($functionSpec->function, ...$arguments);
-		if (is_object($result)) {
+		if (is_object($result) && !($result instanceof \stdClass)) {
 			return json_encode(Hydrator::serialize($result), \JSON_UNESCAPED_SLASHES);
 		}
 		return json_encode($result, \JSON_UNESCAPED_SLASHES);
 	}
 
 	private function addTools(Models\CompletionCommand $command): Models\CompletionCommand {
+		if (!$this->allowAiFunctionCalls) {
+			return $command;
+		}
 		$result = clone $command;
 		$result->tools = $this->tools;
 		return $result;

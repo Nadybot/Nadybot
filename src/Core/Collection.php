@@ -187,4 +187,137 @@ class Collection extends \Illuminate\Support\Collection {
 	public function shift($count=1): mixed {
 		return parent::shift($count);
 	}
+
+	/**
+	 * Filter items by the given key value pair.
+	 *
+	 * @param callable|string $key
+	 *
+	 * @return static<TKey, TValue>
+	 *
+	 * @psalm-suppress MissingParamType
+	 */
+	public function where($key, $operator=null, $value=null): static {
+		// @phpstan-ignore-next-line
+		return parent::where($key, $operator, $value);
+	}
+
+	/**
+	 * Sort through each item with a callback.
+	 *
+	 * @param null|(callable(TValue, TValue): int)|int $callback
+	 *
+	 * @return static<TKey, TValue>
+	 */
+	public function sort(mixed $callback=null): static {
+		return parent::sort($callback); // @phpstan-ignore-line
+	}
+
+	/**
+	 * Sort the collection using the given callback.
+	 *
+	 * @param array<array-key, (callable(TValue, TValue): mixed)|(callable(TValue, TKey): mixed)|string|array{string, string}>|(callable(TValue, TKey): mixed)|string $callback
+	 * @param int                                                                                                                                                     $options
+	 * @param bool                                                                                                                                                    $descending
+	 *
+	 * @return static<TKey, TValue>
+	 */
+	public function sortBy(mixed $callback, mixed $options=\SORT_REGULAR, mixed $descending=false): static {
+		return parent::sortBy($callback, $options, $descending); // @phpstan-ignore-line
+	}
+
+	/**
+	 * Sort the collection in descending order using the given callback.
+	 *
+	 * @param array<array-key, (callable(TValue, TValue): mixed)|(callable(TValue, TKey): mixed)|string|array{string, string}>|(callable(TValue, TKey): mixed)|string $callback
+	 * @param int                                                                                                                                                     $options
+	 *
+	 * @return static<TKey, TValue>
+	 */
+	public function sortByDesc(mixed $callback, mixed $options=\SORT_REGULAR): static {
+		return parent::sortByDesc($callback, $options); // @phpstan-ignore-line
+	}
+
+	/**
+	 * Filter items where the value for the given key is null.
+	 *
+	 * @param null|string $key
+	 *
+	 * @return static<TKey, TValue>
+	 */
+	public function whereNull(mixed $key=null): static {
+		return parent::whereNull($key); // @phpstan-ignore-line
+	}
+
+	/**
+	 * Filter items by the given key value pair.
+	 *
+	 * @param string                                           $key
+	 * @param \Illuminate\Contracts\Support\Arrayable|iterable $values
+	 * @param bool                                             $strict
+	 *
+	 * @return static<TKey, TValue>
+	 *
+	 * @phpstan-ignore-next-line
+	 */
+	public function whereIn(mixed $key, mixed $values, mixed $strict=false): static {
+		return parent::whereIn($key, $values, $strict); // @phpstan-ignore-line
+	}
+
+	/**
+	 * Filter items by the given key value pair using strict comparison.
+	 *
+	 * @param string $key
+	 *
+	 * @return static<TKey, TValue>
+	 */
+	public function whereStrict($key, mixed $value): static {
+		return parent::whereStrict($key, $value); // @phpstan-ignore-line
+	}
+
+	/**
+	 * Run a filter over each of the items.
+	 *
+	 * @param null|(callable(TValue, TKey): bool) $callback
+	 *
+	 * @return static<TKey, TValue>
+	 *
+	 * @phpstan-ignore-next-line
+	 */
+	public function filter(?callable $callback=null): static {
+		return parent::filter($callback); // @phpstan-ignore-line
+	}
+
+	/**
+	 * Return only unique items from the collection array.
+	 *
+	 * @param null|(callable(TValue, TKey): mixed)|string $key
+	 * @param bool                                        $strict
+	 *
+	 * @return static<TKey, TValue>
+	 */
+	public function unique(mixed $key=null, mixed $strict=false): static {
+		return parent::unique($key, $strict); // @phpstan-ignore-line
+	}
+
+	/**
+	 * Reverse items order.
+	 *
+	 * @return static<TKey, TValue>
+	 */
+	public function reverse(): static {
+		return parent::reverse(); // @phpstan-ignore-line
+	}
+
+	/**
+	 * Sort the collection keys.
+	 *
+	 * @param int  $options
+	 * @param bool $descending
+	 *
+	 * @return static<TKey, TValue>
+	 */
+	public function sortKeys(mixed $options=\SORT_REGULAR, mixed $descending=false): static {
+		return parent::sortKeys($options, $descending); // @phpstan-ignore-line
+	}
 }

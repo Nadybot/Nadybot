@@ -417,6 +417,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		$colors = $this->msgHub::$colors;
 
 		/**
+		 * @mago-expect analysis:docblock-type-mismatch
+		 *
 		 * @var list<UuidInterface>
 		 *
 		 * @phpstan-ignore-next-line
@@ -426,6 +428,8 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 		})->pluck('id')->toList();
 
 		/**
+		 * @mago-expect analysis:docblock-type-mismatch
+		 *
 		 * @var list<UuidInterface>
 		 *
 		 * @phpstan-ignore-next-line

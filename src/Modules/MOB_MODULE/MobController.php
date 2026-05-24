@@ -274,7 +274,11 @@ class MobController extends ModuleInstance {
 		CmdContext $context,
 		#[NCA\Parameter\StrChoice('clan', 'omni')] ?string $type
 	): void {
-		/** @var Collection<string,Collection<int,Mob>> */
+		/**
+		 * @var Collection<string,Collection<int,Mob>>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_HAG]??[])))
 			->sortBy('name')
 			->groupByString(static function (Mob $mob): string {
@@ -326,7 +330,11 @@ class MobController extends ModuleInstance {
 			'cthunder' => 'clan',
 		];
 
-		/** @var Collection<string,Collection<int,Mob>> */
+		/**
+		 * @var Collection<string,Collection<int,Mob>>
+		 *
+		 * @phpstan-ignore-next-line
+		 */
 		$factions = (new Collection(array_values($this->mobs[Mob::T_DREAD]??[])))
 			->sortBy('name')
 			->groupByString(static function (Mob $mob) use ($sides): string {
