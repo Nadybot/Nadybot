@@ -205,9 +205,13 @@ class TradebotController extends ModuleInstance {
 	/** Join tradebot private channels */
 	#[NCA\HandlesEvent]
 	public function tradebotOnlineEvent(LogonEvent $eventObj): void {
-		if ($this->isTradebot($eventObj->sender)) {
-			$this->joinPrivateChannel($eventObj->sender);
+		if (!$this->isTradebot($eventObj->sender)) {
+			return;
 		}
+		if ($this->chatBot->isInPrivateChannel($eventObj->sender)) {
+			return;
+		}
+		$this->joinPrivateChannel($eventObj->sender);
 	}
 
 	/** Check if the given name is one of the configured tradebots */
