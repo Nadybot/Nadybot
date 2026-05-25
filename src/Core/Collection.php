@@ -54,10 +54,14 @@ class Collection extends \Illuminate\Support\Collection {
 	 * @throws \Illuminate\Support\ItemNotFoundException if the item does not exist
 	 */
 	public function lastOrFail(): mixed {
-		$result = $this->last();
-		if (!isset($result)) {
+		$notFound = new class () {
+		};
+		$result = $this->last(default: $notFound);
+		if ($result === $notFound) {
 			throw new \Illuminate\Support\ItemNotFoundException();
 		}
+
+		/** @var TValue $result */
 		return $result;
 	}
 
@@ -195,11 +199,11 @@ class Collection extends \Illuminate\Support\Collection {
 	 *
 	 * @return static<TKey, TValue>
 	 *
-	 * @psalm-suppress MissingParamType
+	 * @psalm-suppress MixedArgument
 	 */
-	public function where($key, $operator=null, $value=null): static {
+	public function where($key, mixed $operator=null, mixed $value=null): static {
 		// @phpstan-ignore-next-line
-		return parent::where($key, $operator, $value);
+		return parent::where(...func_get_args());
 	}
 
 	/**
