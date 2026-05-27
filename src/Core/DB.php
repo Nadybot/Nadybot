@@ -603,10 +603,17 @@ class DB {
 		 *
 		 * @phpstan-ignore-next-line
 		 */
-		$missingMigs = $groupedMigs->map(function (Collection $migs, string $module): Collection {
-			return $this->filterAppliedMigrations($module, $migs);
-		})->flatten();
-		$missingMigs = $missingMigs->sort(static function (CoreMigration $f1, CoreMigration $f2): int {
+		$missingMigs = $groupedMigs->map(
+			/**
+			 * @param Collection<int,CoreMigration> $migs
+			 *
+			 * @return Collection<int,CoreMigration>
+			 */
+			function (Collection $migs, string $module): Collection {
+				return $this->filterAppliedMigrations($module, $migs);
+			}
+		)->flatten();
+		$missingMigs = $missingMigs->uasort(static function (CoreMigration $f1, CoreMigration $f2): int {
 			return $f1->order <=> $f2->order;
 		});
 

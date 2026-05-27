@@ -266,7 +266,7 @@ class BankController extends ModuleInstance {
 	/** @param iterable<array-key,string> $lines */
 	private function bankUpdate(iterable $lines): void {
 		// remove the header line
-		$lines = (new Collection($lines))->skip(1);
+		$lines = (new Collection($lines))->slice(1);
 
 		$this->db->awaitBeginTransaction();
 		$this->db->table(Bank::getTable())->truncate();

@@ -102,18 +102,13 @@ class WhatBuffsController extends ModuleInstance {
 		$suffix = $froobFriendly ? 'Froob' : '';
 		$blob = "<header2>Choose a skill<end>\n";
 
-		/**
-		 * @var Collection<int,Skill>
-		 *
-		 * @phpstan-ignore varTag.type
-		 */
 		$skills = $this->db->table(ItemBuff::getTable())
 			->select('attribute_id')
 			->distinct()
 			->pluckInts('attribute_id')
 			->map(Skill::tryFrom(...))
-			->filter();
-		$skills = $skills->sortBy(static fn (Skill $s1): string => $s1->fullName());
+			->keepOnly(Skill::class);
+		$skills = $skills->sortUsing(static fn (Skill $s1): string => $s1->fullName());
 		foreach ($skills as $skill) {
 			$blob .= '<tab>' . Text::makeChatcmd($skill->fullName(), "/tell <myname> {$command} {$skill->value}") . "\n";
 		}
@@ -230,7 +225,7 @@ class WhatBuffsController extends ModuleInstance {
 		}
 
 		/** @var Collection<array-key,SkillBuffItemCount> */
-		$sorted = $data->sortBy(static fn (SkillBuffItemCount $b): ?string => $b->skill?->fullName());
+		$sorted = $data->sortUsing(static fn (SkillBuffItemCount $b): ?string => $b->skill?->fullName());
 
 		$blob = "<header2>Choose the skill to buff<end>\n";
 		foreach ($sorted as $row) {
@@ -562,7 +557,7 @@ class WhatBuffsController extends ModuleInstance {
 		if ($skill->negativeIsGood()) {
 			$multiplier = -1;
 		}
-		$items = $items->sort(
+		$items = $items->uasort(
 			static function (ItemBuffSearchResult $a, ItemBuffSearchResult $b) use ($multiplier): int {
 				return ($b->amount <=> $a->amount) * $multiplier;
 			}
@@ -782,7 +777,7 @@ class WhatBuffsController extends ModuleInstance {
 				$newData->push($obj);
 			}
 		}
-		return $newData->sort(
+		return $newData->uasort(
 			static function (PerkBuffSearchResult $p1, PerkBuffSearchResult $p2): int {
 				if ($p2->amount === $p1->amount) {
 					return strcmp($p1->name??'', $p2->name??'');

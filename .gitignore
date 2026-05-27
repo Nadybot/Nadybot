@@ -8,10 +8,13 @@
 !/conf/config.template.toml
 /data/*
 /phpstan.neon
+/coverage-html
+/cov.xml
 *.log
 *.DS_Store
 *.xcuserdata
 *.xcworkspace
+.phpunit.cache
 /extras
 /extras.old
 /res/icons/orig

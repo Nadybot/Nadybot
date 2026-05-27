@@ -416,24 +416,12 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	): void {
 		$colors = $this->msgHub::$colors;
 
-		/**
-		 * @mago-expect analysis:docblock-type-mismatch
-		 *
-		 * @var list<UuidInterface>
-		 *
-		 * @phpstan-ignore-next-line
-		 */
+		/** @var list<UuidInterface> */
 		$colorIds = $colors->filter(static function (RouteHopColor $color): bool {
 			return strncasecmp($color->hop, 'highnet', 7) === 0;
 		})->pluck('id')->toList();
 
-		/**
-		 * @mago-expect analysis:docblock-type-mismatch
-		 *
-		 * @var list<UuidInterface>
-		 *
-		 * @phpstan-ignore-next-line
-		 */
+		/** @var list<UuidInterface> */
 		$formatIds = Source::$format->filter(static function (RouteHopFormat $format): bool {
 			return strncasecmp($format->hop, 'highnet', 7) === 0;
 		})->pluck('id')->toList();

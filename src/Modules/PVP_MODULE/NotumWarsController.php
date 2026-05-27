@@ -1422,7 +1422,7 @@ class NotumWarsController extends ModuleInstance {
 			throw new Exception('Invalid grouping found');
 		}
 
-		$grouped = $grouped->sortKeys();
+		$grouped = $grouped->ksort();
 
 		$blob = $grouped->map(
 			/** @param Collection<int,FeedMessage\SiteUpdate> $hotSites */

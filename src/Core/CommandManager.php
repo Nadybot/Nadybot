@@ -1041,7 +1041,7 @@ class CommandManager implements MessageEmitter {
 		$methods = $methods->filter(function (ReflectionMethod $m) use ($context): bool {
 			return $this->canViewHelp($context, $m);
 		});
-		$grouped = $this->groupRefMethods($methods->filter());
+		$grouped = $this->groupRefMethods($methods->filterNull());
 		$groupedByCmd = $this->groupBySubcmd($grouped);
 		$showRights = $this->helpController->helpShowAL
 			&& $this->accessManager->checkSingleAccess($context->char->name, AccessLevel::Mod);
@@ -1749,7 +1749,7 @@ class CommandManager implements MessageEmitter {
 		 * @param list<ReflectionMethod> $refMethods1
 		 * @param list<ReflectionMethod> $refMethods2
 		 */
-		$sList = $list->sort(static function (array $refMethods1, array $refMethods2): int {
+		$sList = $list->uasort(static function (array $refMethods1, array $refMethods2): int {
 			$n1 = $refMethods1[0]->getDeclaringClass()->getShortName();
 			$n2 = $refMethods2[0]->getDeclaringClass()->getShortName();
 			$firstCmp = strcmp($n1, $n2);

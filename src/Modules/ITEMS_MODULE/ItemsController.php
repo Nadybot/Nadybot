@@ -320,7 +320,7 @@ class ItemsController extends ModuleInstance {
 		$result = new Collection();
 		while (count($result) < $this->maxitems && $data->count() > 0) {
 			/** @var ItemSearchResult */
-			$nextItem = $data->shift(1);
+			$nextItem = $data->shift();
 			$groupId = $nextItem->group_id;
 			if (!isset($groupId) || !isset($groupsProcessed[$groupId])) {
 				if (isset($groupId)) {
@@ -342,7 +342,7 @@ class ItemsController extends ModuleInstance {
 		$data = new Collection($data);
 		$numItems = count($data);
 		$groups = $data->map(static fn (ItemSearchResult $row): ?int => $row->group_id)
-			->filter()->unique()->count()
+			->filterNull()->unique()->count()
 			+
 			$data->whereNull('group_id')->count();
 

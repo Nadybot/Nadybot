@@ -153,9 +153,13 @@ class BosslootController extends ModuleInstance {
 			$blob .= '<tab>Location: ' . $locations->join(', ') . "\n";
 		}
 		$blob .= '<tab>Loot: ';
-		$lootItems = $data->map(static function (BossLootdb $loot): ?string {
-			return isset($loot->item) ? $loot->item->getLink($loot->item->highql) : null;
-		})->filter();
+		$lootItems = $data->filter(static fn (BossLootdb $loot): bool => isset($loot->item))
+		->map(static function (BossLootdb $loot): string {
+			if (isset($loot->item)) {
+				return $loot->item->getLink($loot->item->highql);
+			}
+			throw new \RuntimeException('Missing item in AODB: ' . $loot->itemname);
+		});
 		if (isset($search)) {
 			$blob .= $lootItems->join("\n<tab><black>Loot: <end>") . "\n\n";
 		} else {

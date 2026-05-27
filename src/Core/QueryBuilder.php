@@ -363,7 +363,9 @@ class QueryBuilder extends Builder {
 	 *
 	 * @return Collection<int,mixed>
 	 *
-	 * @psalm-suppress MixedReturnTypeCoercion
+	 * @psalm-suppress MixedReturnTypeCoercion,ImplementedReturnTypeMismatch
+	 *
+	 * @phpstan-ignore-next-line
 	 */
 	public function get($columns=['*']): Collection {
 		/** @psalm-suppress MixedArgument */

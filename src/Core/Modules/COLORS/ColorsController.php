@@ -174,7 +174,7 @@ class ColorsController extends ModuleInstance {
 		$context->reply("Theme changed to <highlight>{$themeName}<end>.");
 	}
 
-	/** @return Collection<array-key,Theme> */
+	/** @return Collection<int,Theme> */
 	public function getThemeList(): Collection {
 		$paths = explode(':', $this->themePath);
 
@@ -193,8 +193,8 @@ class ColorsController extends ModuleInstance {
 			}
 		}
 
-		/** @var Collection<array-key,Theme> $themes */
-		$themes = $themes->filter()->sortBy('name')->values();
+		/** @var Collection<int,Theme> $themes */
+		$themes = $themes->sortBy('name')->values();
 		return $themes;
 	}
 

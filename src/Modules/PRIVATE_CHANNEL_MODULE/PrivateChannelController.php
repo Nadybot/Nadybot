@@ -428,7 +428,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			return $this->accessManager->checkSingleAccess($main, AccessLevel::Member);
 		});
 
-		$groupedMembers = $members->keyByString(function (Member $member): string {
+		$groupedMembers = $members->keyByUsing(function (Member $member): string {
 			return $this->altsController->getMainOf($member->name);
 		});
 
@@ -442,7 +442,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 			}
 		)->filter(static function (InactiveMember $member) use ($time): bool {
 			return (int)$member->last_online?->dt < $time;
-		})->sortKeys()
+		})->ksort()
 		->values();
 
 		if ($inactiveMembers->isEmpty()) {
@@ -728,12 +728,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 		}
 		$chars = new Collection($chars);
 
-		/**
-		 * @var array<string,int>
-		 *
-		 * @phpstan-ignore-next-line
-		 */
-		$online = $chars->countBy(
+		$online = $chars->countByUsing(
 			static function (OnlinePlayer $player): string {
 				return $player->profession->value ?? '';
 			}
@@ -1301,7 +1296,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 				return "<highlight>{$info->name}<end> is currently <on>online<end>";
 			}
 			return "<highlight>{$info->name}<end> last seen at " . Util::date($info->dt);
-		})->sort(static function (string $line1, string $line2): int {
+		})->uasort(static function (string $line1, string $line2): int {
 			$oneHas = str_contains($line1, '<on>');
 			$twoHas = str_contains($line2, '<on>');
 			if ($oneHas === $twoHas) {

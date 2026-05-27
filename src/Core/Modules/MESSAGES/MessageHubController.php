@@ -1156,7 +1156,7 @@ class MessageHubController extends ModuleInstance {
 	public function renderEmitterGroup(Collection $values, string $group): string {
 		if ($group === Source::LOG) {
 			// Log group is sorted by severity, descending
-			$values = $values->sort(static function (MessageEmitter $e1, MessageEmitter $e2): int {
+			$values = $values->uasort(static function (MessageEmitter $e1, MessageEmitter $e2): int {
 				$l1 = 0;
 				if (count($matches = Safe::pregMatch("/\((.+)\)$/", $e1->getChannelName()))) {
 					try {

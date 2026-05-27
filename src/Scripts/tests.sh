@@ -92,6 +92,14 @@ codespellCheck() {
   fi
 }
 
+phpUnitCheck() {
+  OUTPUT=$(XDEBUG_MODE=coverage "$BINDIR/phpunit" 2>&1)
+  if [ $? -ne 0 ]; then
+    echo "$OUTPUT"
+    exit 1
+  fi
+}
+
 export XDEBUG_MODE=off
 
 export CHANGED_FILES=$(git diff --cached --name-only --diff-filter=ACMRTUXB | grep -v var_dump.yml | grep -v tests.sh)
@@ -107,9 +115,11 @@ fi
 export VENDOR=$(composer config vendor-dir)
 export BINDIR=$(composer config bin-dir)
 
+
 declare -a tasks
 declare -a results
 
+tasks+=( phpUnitCheck )
 tasks+=( psalmCheck )
 tasks+=( phpStanCheck )
 tasks+=( phpCsCheck )

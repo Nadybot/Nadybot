@@ -267,7 +267,7 @@ class BuffPerksController extends ModuleInstance {
 		$skill = null;
 		if ($search !== null) {
 			$skills = (new Collection(Skill::getMatching($search)))
-				->sortBy(static fn (Skill $s): string => $s->fullName());
+				->sortUsing(static fn (Skill $s): string => $s->fullName());
 			$count = count($skills);
 			if ($count === 0) {
 				$sendto->reply("No skill <highlight>{$search}<end> found.");
@@ -729,7 +729,7 @@ class BuffPerksController extends ModuleInstance {
 				amount: $amount,
 			);
 		}
-		return $result->sortBy(static fn (ExtBuff $b1): string => $b1->skill->fullName());
+		return $result->sortUsing(static fn (ExtBuff $b1): string => $b1->skill->fullName());
 	}
 
 	/**
@@ -750,7 +750,7 @@ class BuffPerksController extends ModuleInstance {
 				amount: $amount,
 			);
 		}
-		return $result->sort(static function (ExtResistance $b1, ExtResistance $b2): int {
+		return $result->uasort(static function (ExtResistance $b1, ExtResistance $b2): int {
 			return strnatcmp($b1->nanoline->name, $b2->nanoline->name);
 		});
 	}

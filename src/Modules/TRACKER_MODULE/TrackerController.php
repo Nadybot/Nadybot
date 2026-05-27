@@ -237,7 +237,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->each(function (LastLogin $row) use (&$users): void {
 				$age = time() - $row->dt;
 				$this->untrackIfTooOld($row->uid, $age);
-				$users->forget($row->uid);
+				$users->remove($row->uid);
 			});
 		$users->each(function (TrackedUser $user): void {
 			$age = time() - $user->added_dt;
@@ -737,7 +737,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			->keyByInt('id');
 		$orgs = $orgs->each(static function (TrackingOrg $o) use ($orgsByID): void {
 			$o->org = $orgsByID->get($o->org_id);
-		})->sort(static function (TrackingOrg $o1, TrackingOrg $o2): int {
+		})->uasort(static function (TrackingOrg $o1, TrackingOrg $o2): int {
 			return strcasecmp($o1->org->name??'', $o2->org->name??'');
 		});
 
@@ -749,7 +749,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			return "<tab>{$o->org->name} ({$o->org->faction->inColor()}) - ".
 				"<highlight>{$o->org->num_members}<end> members, added by <highlight>{$o->added_by}<end> ".
 				"[{$delLink}]";
-		})->filter();
+		})->filterNull();
 		if ($lines->isEmpty()) {
 			$context->reply('There are currently no orgs being tracked.');
 			return;
@@ -969,7 +969,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 	 * @return string The blob for this group
 	 */
 	public function renderPlayerGroup(iterable $players, int $groupBy, bool $edit): string {
-		$players = (new Collection($players))->sort(
+		$players = (new Collection($players))->uasort(
 			static function (OnlineTrackedUser $p1, OnlineTrackedUser $p2): int {
 				return strnatcmp($p1->name, $p2->name);
 			}
@@ -1242,14 +1242,14 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 			foreach ($org->members as $member) {
 				$oldMember = $oldMembers->get($member->charid);
 				if (isset($oldMember) && $oldMember->name === $member->name) {
-					$oldMembers->forget((string)$oldMember->uid);
+					$oldMembers->remove((string)$oldMember->uid);
 					continue;
 				}
 				if (isset($oldMember)) {
 					$this->db->table(TrackingOrgMember::getTable())
 						->where('uid', $oldMember->uid)
 						->update(['name' => $member->name]);
-					$oldMembers->forget((string)$oldMember->uid);
+					$oldMembers->remove((string)$oldMember->uid);
 				} else {
 					$toInsert []= [
 						'org_id' => $org->guild_id,

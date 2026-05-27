@@ -153,7 +153,7 @@ class SubcommandManager {
 			->filter(static function (CmdCfg $cfg): bool {
 				return count($cfg->permissions) > 0;
 			})
-			->sort(static function (CmdCfg $row1, CmdCfg $row2): int {
+			->uasort(static function (CmdCfg $row1, CmdCfg $row2): int {
 				$len1 = strlen($row1->cmd);
 				$len2 = strlen($row2->cmd);
 				$has1 = (!str_contains($row1->cmd, '.')) ? 0 : 1;

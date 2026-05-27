@@ -92,7 +92,7 @@ class CommandSearchController extends ModuleInstance {
 			similar_text($row->cmd, $search, $row->similarity_percent);
 		})->filter(static function (CommandSearchResult $row): bool {
 			return $row->similarity_percent >= 66;
-		})->sort(static function (CommandSearchResult $row1, CommandSearchResult $row2): int {
+		})->uasort(static function (CommandSearchResult $row1, CommandSearchResult $row2): int {
 			return $row2->similarity_percent <=> $row1->similarity_percent;
 		});
 	}

@@ -94,8 +94,7 @@ class FunController extends ModuleInstance {
 			->asObj(Fun::class);
 		if ($number === null) {
 			try {
-				/** @var Fun */
-				$row = $data->random();
+				$row = $data->pickRandom();
 			} catch (InvalidArgumentException) {
 				$row = null;
 			}
