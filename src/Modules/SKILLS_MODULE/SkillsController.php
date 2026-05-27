@@ -573,7 +573,7 @@ class SkillsController extends ModuleInstance {
 		$row = $this->itemsController->getByIDs($highid)
 			->where('lowql', '<=', $ql)
 			->where('highql', '>=', $ql)
-			->sort(static function (AODBEntry $i1, AODBEntry $i2) use ($highid): int {
+			->uasort(static function (AODBEntry $i1, AODBEntry $i2) use ($highid): int {
 				return ($i1->highid === $highid) ? 1 : 2;
 			})->first();
 

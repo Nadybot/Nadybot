@@ -69,7 +69,8 @@
 	"autoload": {
 		"psr-4": {
 			"Nadybot\\User\\Modules\\": "extras/",
-			"Nadybot\\": "src/"
+			"Nadybot\\": "src/",
+			"Nadybot\\Tests\\": "tests/"
 		}
 	},
 	"config": {
@@ -92,7 +93,8 @@
 		"phpstan/phpstan-strict-rules": "^2.0",
 		"shipmonk/phpstan-rules": "^2|^3|^4",
 		"php-standard-library/phpstan-extension": "^2.0",
-		"php-standard-library/psalm-plugin": "^2.3"
+		"php-standard-library/psalm-plugin": "^2.3",
+		"phpunit/phpunit": "^10"
 	},
 	"scripts": {
 		"post-package-install": [

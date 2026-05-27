@@ -123,8 +123,12 @@ class WishlistController extends ModuleInstance {
 		$charGroups = [];
 		$numItems = 0;
 		foreach ($wishlistGrouped as $char => $wishes) {
+			/** @var Collection<string,Wish> */
+			$emptyWishlist = new Collection();
+
 			// Because we group by main, we need to reduce duplicated wishes to a
 			// single one with a higher amount
+			/** @var Collection<string,Wish> */
 			$wishlist = $wishes->reduce(
 				/**
 				 * @param Collection<string,Wish> $items
@@ -144,8 +148,8 @@ class WishlistController extends ModuleInstance {
 					}
 					return $items;
 				},
-				new Collection()
-			)->sortBy(static function (Wish $wish): int {
+				$emptyWishlist
+			)->sortUsing(static function (Wish $wish): int {
 				return $wish->created_on;
 			});
 			$lines = [];
@@ -214,7 +218,7 @@ class WishlistController extends ModuleInstance {
 		$numItems = 0;
 		foreach ($wishlistGrouped as $char => $charsWishlist) {
 			$lines = [];
-			$charsWishlist = $charsWishlist->sortBy(static function (Wish $wish): int {
+			$charsWishlist = $charsWishlist->sortUsing(static function (Wish $wish): int {
 				if ($wish->fulfilled) {
 					return \PHP_INT_MAX;
 				}
@@ -327,7 +331,7 @@ class WishlistController extends ModuleInstance {
 			})
 			->filter(static fn (Wish $w): bool => $w->amount > 0)
 			->groupByString('created_by');
-		$wishlistGrouped = $wishlistGrouped->sortBy(
+		$wishlistGrouped = $wishlistGrouped->sortUsing(
 			/** @param Collection<int,Wish> $wishes */
 			static function (Collection $wishes, string $name) use ($char): string {
 				if ($char() === $name) {

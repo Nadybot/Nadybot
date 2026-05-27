@@ -661,7 +661,7 @@ class ConfigController extends ModuleInstance {
 		if ($data->isNotEmpty()) {
 			$found = true;
 			$blob .= "\n<header2>Commands<end>\n";
-			$data = $data->sort(static function (CmdCfg $a, CmdCfg $b): int {
+			$data = $data->uasort(static function (CmdCfg $a, CmdCfg $b): int {
 				return strcmp($a->cmd, $b->cmd);
 			});
 		}

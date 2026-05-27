@@ -143,7 +143,7 @@ class PermissionSetMappingController extends ModuleInstance {
 		#[Str('list')] string $action,
 		#[Str('src', 'source', 'sources')] string $subAction,
 	): void {
-		$sources = (new Collection($this->cmdManager->getSources()))->sort();
+		$sources = (new Collection($this->cmdManager->getSources()))->asort();
 		$blob = "<header2>Registered sources<end>\n".
 			'<tab>' . $sources->join("\n<tab>");
 		$context->reply(

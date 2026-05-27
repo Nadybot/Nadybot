@@ -54,7 +54,7 @@ class WhatLocksController extends ModuleInstance {
 				['skill_id AS skill', $query->raw($query->rawFunc('COUNT', '*', 'amount'))]
 			)->whereNotNull('skill_id')
 			->asObj(SkillCount::class)
-			->sortBy(static fn (SkillCount $s): string => $s->skill->fullName())
+			->sortUsing(static fn (SkillCount $s): string => $s->skill->fullName())
 			->map(static function (SkillCount $row): string {
 				return Text::alignNumber($row->amount, 4).
 					' - '.
@@ -137,7 +137,7 @@ class WhatLocksController extends ModuleInstance {
 				' - ' .
 				$item->item->getLink($item->item->lowql);
 		});
-		$blob = $lines->filter()->join("\n<pagebreak>");
+		$blob = $lines->filterNull()->join("\n<pagebreak>");
 		$pages = Text::makeBlob(
 			count($lines) . ' items',
 			$blob,

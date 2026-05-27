@@ -147,7 +147,7 @@ class HelpbotController extends ModuleInstance {
 		/** @var Collection<string,Collection<int,DynaDB>> */
 		$data = $data
 			->groupByString(static fn (DynaDB $search): string => $search->playfield->long())
-			->sortKeys();
+			->ksort();
 
 		foreach ($data as $pfName => $rows) {
 			$blob .= "\n<pagebreak><header2>{$pfName}<end>\n";

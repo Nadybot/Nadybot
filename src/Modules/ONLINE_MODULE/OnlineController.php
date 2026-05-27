@@ -439,7 +439,7 @@ class OnlineController extends ModuleInstance {
 			}
 		}
 		$players = $players->sortBy('name')
-			->sortBy(static function (OnlinePlayer $op, int $index): string {
+			->sortUsing(static function (OnlinePlayer $op, int $index): string {
 				return strtolower($op->nick ?? $op->pmain);
 			});
 
@@ -1064,7 +1064,7 @@ class OnlineController extends ModuleInstance {
 
 		$groupBy = $this->onlineGroupBy;
 		if ($groupBy === static::GROUP_BY_PLAYER) {
-			$op = $op->sortBy(static function (OnlinePlayer $op, int $index): string {
+			$op = $op->sortUsing(static function (OnlinePlayer $op, int $index): string {
 				return strtolower($op->nick ?? $op->pmain);
 			});
 		} elseif ($groupBy === static::GROUP_BY_PROFESSION) {

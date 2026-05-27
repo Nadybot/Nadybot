@@ -370,7 +370,7 @@ class MobController extends ModuleInstance {
 		/** @var Collection<int,string> */
 		$blobs = (new Collection(array_values($this->mobs[Mob::T_LEGCHOPPER]??[])))
 			->sortBy('name')
-			->sort(static function (Mob $a, Mob $b): int {
+			->uasort(static function (Mob $a, Mob $b): int {
 				return $a->key === 'jack'
 					? -1
 					: ($b->key === 'jack' ? 1 : 0);
@@ -439,7 +439,7 @@ class MobController extends ModuleInstance {
 			return;
 		}
 
-		$mobs = $mobs->keyByString(static fn (Mob $mob): string => $mob->key)->toArray();
+		$mobs = $mobs->keyByUsing(static fn (Mob $mob): string => $mob->key)->toArray();
 
 		$state = $this->getHiStatus($mobs);
 		$blob = '<header2>Hollow Island<end> ['.

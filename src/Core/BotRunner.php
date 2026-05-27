@@ -209,7 +209,7 @@ class BotRunner {
 			->map(static function (string $tag): SemanticVersion {
 				return new SemanticVersion($tag);
 			})
-			->sort(static function (SemanticVersion $v1, SemanticVersion $v2): int {
+			->uasort(static function (SemanticVersion $v1, SemanticVersion $v2): int {
 				return $v1->cmp($v2);
 			})->last()?->getOrigVersion();
 		return self::$latestTag = $tagString;

@@ -59,7 +59,7 @@ class InactiveMemberController extends ModuleInstance {
 				);
 			})
 			->groupByString('main')
-			->sortKeys();
+			->ksort();
 		if (count($members) === 0) {
 			$context->reply('There are no members in the org roster.');
 			return;
