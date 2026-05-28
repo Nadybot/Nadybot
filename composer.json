@@ -94,7 +94,8 @@
 		"shipmonk/phpstan-rules": "^2|^3|^4",
 		"php-standard-library/phpstan-extension": "^2.0",
 		"php-standard-library/psalm-plugin": "^2.3",
-		"phpunit/phpunit": "^10"
+		"phpunit/phpunit": "^10",
+		"carthage-software/mago": "1.29"
 	},
 	"scripts": {
 		"post-package-install": [

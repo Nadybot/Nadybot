@@ -52,12 +52,10 @@ phpCsCheck() {
 }
 
 magoCheck() {
-  if command -v mago &> /dev/null; then
-    OUTPUT=$(mago self-update --no-confirm 2>&1 && mago lint --reporting-format=short 2>&1 && mago analyze --reporting-format=short --minimum-fail-level=note 2>&1)
-    if [ $? -ne 0 ]; then
-      echo "$OUTPUT"
-      exit 1
-    fi
+  OUTPUT=$("$BINDIR"/mago lint --reporting-format=short 2>&1 && "$BINDIR"/mago analyze --reporting-format=short --minimum-fail-level=note 2>&1)
+  if [ $? -ne 0 ]; then
+    echo "$OUTPUT"
+    exit 1
   fi
 }
 
