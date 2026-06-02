@@ -18,7 +18,7 @@ use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Exceptions\UserException;
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Types\AccessLevel;
-use Nadybot\Modules\AI_MODULE\Models\{FunctionCall, Role, ToolCallChoice, ToolResultMessage};
+use Nadybot\Modules\AI_MODULE\Models\{FunctionCall, ToolCallChoice};
 use Nadylib\Type;
 use Nadylib\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
@@ -82,8 +82,19 @@ class AIController extends ModuleInstance {
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
-	/** @var array<string,list<Models\Message>> */
+	/**
+	 * Conversation histories per channel/DM key
+	 *
+	 * @var array<string,list<\stdClass>>
+	 */
 	private array $conversationHistory = [];
+
+	/**
+	 * Active request flags per history key to block concurrent queries
+	 *
+	 * @var array<string,true>
+	 */
+	private array $activeKeys = [];
 
 	/**
 	 * @var array<int,Models\ToolFunction>
@@ -119,7 +130,11 @@ class AIController extends ModuleInstance {
 		}
 	}
 
-	/** Chat with an AI */
+	/**
+	 * Chat with an AI
+	 *
+	 * @psalm-suppress PropertyTypeCoercion
+	 */
 	#[NCA\HandlesCommand('ai')]
 	#[NCA\Untestable]
 	public function aiCommand(
@@ -134,48 +149,55 @@ class AIController extends ModuleInstance {
 		if (!isset($this->conversationHistory[$key])) {
 			$this->conversationHistory[$key] = [];
 		}
-		$size = count($this->conversationHistory[$key]);
-		if ($size > 20) {
-			array_splice($this->conversationHistory[$key], 1, $size-20);
+		if (isset($this->activeKeys[$key])) {
+			$context->reply('I can only process one query at a time.');
+			return;
 		}
-		if (count($this->conversationHistory[$key]) === 0 && strlen($this->aiPrompt) > 0) {
-			$this->conversationHistory[$key] []= new Models\Message(
-				role: Role::SYSTEM,
-				content: str_replace($this->aiPrompt, '<myname>', $this->config->main->character),
-			);
-		}
-		$this->conversationHistory[$key] []= new Models\Message(
-			role: Role::USER,
-			content: $text,
-		);
-
-		/** @psalm-suppress InvalidArgument */
-		$command = new Models\CompletionCommand(
-			model: $this->aiModel,
-			messages: $this->conversationHistory[$key],
-		);
+		$this->activeKeys[$key] = true;
 		try {
-			$reply = trim($this->sendCommand($command));
-		} catch (UserException $e) {
-			$context->reply($e->getMessage());
-			return;
-		} catch (Exception $e) {
-			$this->logger->error('Error during AI command execution: {error}', [
-				'error' => $e->getMessage(),
-				'exception' => $e,
-			]);
-			$context->reply('An error occurred while processing your request. Please check the logs for more details.');
-			return;
+			$this->compactHistory($key);
+			if (count($this->conversationHistory[$key]) === 0 && strlen($this->aiPrompt) > 0) {
+				$this->conversationHistory[$key] []= (object)[
+					'role' => 'system',
+					'content' => str_replace(
+						'<myname>',
+						$this->config->main->character,
+						$this->aiPrompt
+					)."\nEvery incoming message to you will be prefixed with the sender's ".
+					'name in the format [Username] Message. Please use this information to '.
+					'track who said what during the conversation, but don\'t add any prefix yourself.',
+				];
+			}
+			$this->conversationHistory[$key] []= (object)[
+				'role' => 'user',
+				'content' => sprintf('[%s] %s', $context->char->name, $text),
+			];
+
+			try {
+				$reply = trim($this->sendCommand($this->aiModel, $key));
+			} catch (UserException $e) {
+				$context->reply($e->getMessage());
+				return;
+			} catch (Exception $e) {
+				$this->logger->error('Error during AI command execution: {error}', [
+					'error' => $e->getMessage(),
+					'exception' => $e,
+				]);
+				$context->reply('An error occurred while processing your request. Please check the logs for more details.');
+				return;
+			}
+			$this->conversationHistory[$key] []= (object)[
+				'role' => 'assistant',
+				'content' => $reply,
+			];
+			$reply = $this->formatAiReply($reply);
+			if (substr_count($reply, "\n") > 1 || strlen($reply) > 300) {
+				$reply = Text::makeBlob('Reply', $reply, 'AI reply');
+			}
+			$context->reply($reply);
+		} finally {
+			unset($this->activeKeys[$key]);
 		}
-		$this->conversationHistory[$key] []= new Models\Message(
-			role: Role::ASSISTANT,
-			content: $reply,
-		);
-		$reply = $this->formatAiReply($reply);
-		if (substr_count($reply, "\n") > 1 || strlen($reply) > 300) {
-			$reply = Text::makeBlob('Reply', $reply, 'AI reply');
-		}
-		$context->reply($reply);
 	}
 
 	/** Format the AI reply to support some basic markdown */
@@ -184,7 +206,8 @@ class AIController extends ModuleInstance {
 		return trim($formatter->format($reply));
 	}
 
-	public function sendCommand(Models\CompletionCommand $command, ?string $apiURL=null): string {
+	/** Send a command to the AI API */
+	public function sendCommand(string $model, string $historyKey, ?string $apiURL=null): string {
 		$client = $this->http->build();
 		$apiURL ??= $this->aiApiUrl;
 		$uri = sprintf('%s/chat/completions', rtrim($apiURL, '/'));
@@ -193,25 +216,22 @@ class AIController extends ModuleInstance {
 		if (strlen($this->aiApiToken) < 1) {
 			// return 'No GPT-Token has been configured yet.';
 		}
-		if (strlen($command->model) < 1) {
+		if (strlen($model) < 1) {
 			throw new UserException('No language model has been configured yet.');
 		}
+		$messages = $this->conversationHistory[$historyKey];
+		assert(count($messages) > 0);
+		$command = new Models\CompletionCommand(
+			model: $model,
+			messages: $messages,
+		);
 		if (!count($command->tools)) {
 			$command = $this->addTools($command);
 		}
 		$request->addHeader('Authorization', "Bearer {$this->aiApiToken}");
 		$this->logger->debug('Sending command {command}', ['command' => $command]);
 		$compact = Hydrator::serialize($command);
-		for ($i = 0; $i < count($command->messages); $i++) {
-			if ($command->messages[$i] instanceof \stdClass) {
-				/**
-				 * @psalm-suppress MixedArrayAssignment
-				 *
-				 * @mago-expect analysis:mixed-array-assignment
-				 */
-				$compact['messages'][$i] = $command->messages[$i];
-			}
-		}
+		$compact['messages'] = $command->messages;
 		for ($i = 0; $i < count($command->tools); $i++) {
 			$tool = $command->tools[$i];
 			if ($tool instanceof Models\ToolFunction) {
@@ -220,6 +240,8 @@ class AIController extends ModuleInstance {
 					 * @psalm-suppress MixedArrayAssignment
 					 *
 					 * @mago-expect analysis:mixed-array-assignment,mixed-array-assignment,mixed-array-assignment,mixed-array-assignment
+					 *
+					 * @phpstan-ignore-next-line
 					 */
 					$compact['tools'][$i]['function']['parameters']['properties'] = new \stdClass();
 				}
@@ -240,6 +262,7 @@ class AIController extends ModuleInstance {
 				'url' => $this->aiApiUrl,
 				'error' => $e->getMessage(),
 				'class' => $e::class,
+				'sent' => $json,
 				'exception' => $e,
 			]);
 			throw new UserException('Error sending request to the AI-Api. Please check your logs.', previous: $e);
@@ -249,21 +272,35 @@ class AIController extends ModuleInstance {
 			$this->logger->error('Error sending request to {url}: {status} ({body})', [
 				'url' => $this->aiApiUrl,
 				'status' => $response->getStatus(),
+				'sent' => $json,
 				'body' => $body,
 			]);
 			throw new UserException('Error sending request to the AI-Api. Please check your logs.');
 		}
 		if ($response->getStatus() === 400 && $body !== '') {
+			$errors = null;
+			// If the body contains more than one error, we only show the first one
 			try {
-				$error = Hydrator::hydrateString(Models\ErrorResponse::class, $body);
+				$errors = Safe::jsonDecode($body, Type\vec(Type\mixedDict()));
+			} catch (JsonException) {
+			}
+			try {
+				if ($errors !== null) {
+					/** @psalm-suppress PossiblyUndefinedArrayOffset */
+					$error = Hydrator::hydrate(Models\ErrorResponse::class, $errors[0]);
+				} else {
+					$error = Hydrator::hydrateString(Models\ErrorResponse::class, $body);
+				}
 				$this->logger->error('Error from {url}: {error}', [
 					'url' => $this->aiApiUrl,
 					'error' => $error->error->message,
+					'sent' => $json,
 				]);
 			} catch (Throwable $e) {
 				$this->logger->error('Unparseable answer from {url}: {body}', [
 					'url' => $this->aiApiUrl,
 					'body' => $body,
+					'sent' => $json,
 					'exception' => $e,
 				]);
 			}
@@ -284,6 +321,7 @@ class AIController extends ModuleInstance {
 					'url' => $this->aiApiUrl,
 					'code' => $response->getStatus(),
 					'body' => $body,
+					'sent' => $json,
 					'exception' => $e,
 				]);
 			}
@@ -296,26 +334,27 @@ class AIController extends ModuleInstance {
 			throw new UserException("Invalid response received from the AI-Api: {$e->getMessage()}", previous: $e);
 		}
 		if ($completion->choices[0] instanceof ToolCallChoice) {
-			$messages = $command->messages;
-
-			/**
-			 * @psalm-suppress MixedPropertyFetch
-			 *
-			 * @mago-expect analysis:mixed-array-access,mixed-property-access
-			 */
-			$llmToolCall = Safe::jsonDecodeObj($body)->choices[0]->message;
+			$decoded = Safe::jsonDecodeObj($body);
+			if (
+				// @mago-expect analysis:redundant-type-comparison,redundant-type-comparison,redundant-type-comparison,redundant-type-comparison,redundant-type-comparison
+				!property_exists($decoded, 'choices')
+				|| !is_array($decoded->choices)
+				|| count($decoded->choices) === 0
+				|| !is_object($decoded->choices[0])
+				|| !property_exists($decoded->choices[0], 'message')
+				|| !is_object($decoded->choices[0]->message)
+			) {
+				throw new UserException('Invalid tool call response received from the AI-Api.');
+			}
 
 			/** @var \stdClass $llmToolCall */
-			$messages []= $llmToolCall;
+			$llmToolCall = $decoded->choices[0]->message;
+			$this->conversationHistory[$historyKey] []= $llmToolCall;
 			foreach ($this->processToolCallChoice($completion->choices[0]) as $result) {
-				$messages []= $result;
+				/** @var \stdClass $result */
+				$this->conversationHistory[$historyKey] []= $result;
 			}
-			$newCommand = new Models\CompletionCommand(
-				model: $command->model,
-				temperature: $command->temperature,
-				messages: $messages
-			);
-			return $this->sendCommand($newCommand, $apiURL);
+			return $this->sendCommand($model, $historyKey, $apiURL);
 		}
 		return $completion->choices[0]->message->content;
 	}
@@ -532,18 +571,20 @@ class AIController extends ModuleInstance {
 	}
 
 	/**
-	 * @return ToolResultMessage[]
+	 * @return list<\stdClass>
 	 *
-	 * @psalm-return list<ToolResultMessage>
+	 * @psalm-suppress MoreSpecificReturnType
+	 * @psalm-suppress LessSpecificReturnStatement
 	 */
 	private function processToolCallChoice(ToolCallChoice $choice): array {
 		$result = [];
 		$calls = $choice->message->tool_calls;
 		foreach ($calls as $call) {
-			$result []= new ToolResultMessage(
-				tool_call_id: $call->id,
-				content: $this->processFunctionCall($call->function),
-			);
+			$result []= (object)[
+				'role' => 'tool',
+				'tool_call_id' => $call->id,
+				'content' => $this->processFunctionCall($call->function),
+			];
 		}
 		return $result;
 	}
@@ -577,6 +618,55 @@ class AIController extends ModuleInstance {
 		$result = clone $command;
 		$result->tools = $this->tools;
 		return $result;
+	}
+
+	/**
+	 * Limit the number of stored messages for a conversation key.
+	 *
+	 * Keeping the history short controls token usage and API cost.
+	 */
+	private function compactHistory(string $key): void {
+		while (count($this->conversationHistory[$key]) > 20) {
+			$count = count($this->conversationHistory[$key]);
+
+			// Find the first user message after the system prompt (index 0)
+			$firstUser = 1;
+			while (
+				$firstUser < $count
+				&& (
+					!isset($this->conversationHistory[$key][$firstUser]->role)
+					|| $this->conversationHistory[$key][$firstUser]->role !== 'user'
+				)
+			) {
+				$firstUser++;
+			}
+
+			if ($firstUser >= $count) {
+				// No user message found – should not happen, but stop to avoid an infinite loop
+				break;
+			}
+
+			// Find the next user message after firstUser
+			$secondUser = $firstUser + 1;
+			while (
+				$secondUser < $count
+				&& (
+					!isset($this->conversationHistory[$key][$secondUser]->role)
+					|| $this->conversationHistory[$key][$secondUser]->role !== 'user'
+				)
+			) {
+				$secondUser++;
+			}
+
+			if ($secondUser >= $count) {
+				// firstUser is the last user in the history (current turn).
+				// We cannot remove the active turn, so stop.
+				break;
+			}
+
+			// Remove the complete old turn from firstUser up to (but not including) secondUser
+			array_splice($this->conversationHistory[$key], $firstUser, $secondUser - $firstUser);
+		}
 	}
 
 	/** Get the conversation key in the history to allow or prevent shared history */

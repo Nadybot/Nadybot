@@ -8,10 +8,10 @@ class CompletionCommand {
 	use StringableTrait;
 
 	/**
-	 * @param array<int,Message|ToolCallMessage|\stdClass> $messages,
-	 * @param Tool[]                                       $tools
+	 * @param list<\stdClass> $messages
+	 * @param Tool[]          $tools
 	 *
-	 * @psalm-param non-empty-list<Message|ToolCallMessage|\stdClass> $messages
+	 * @psalm-param non-empty-list<\stdClass> $messages
 	 * @psalm-param list<Tool> $tools
 	 */
 	public function __construct(

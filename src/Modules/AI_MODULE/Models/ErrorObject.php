@@ -11,15 +11,9 @@ use Nadybot\Core\StringableTrait;
 class ErrorObject {
 	use StringableTrait;
 
-	/**
-	 * @param string  $message A human-readable error message.
-	 * @param ?string $code    A machine-readable error code.
-	 */
+	/** @param string  $message A human-readable error message. */
 	public function __construct(
-		public readonly string $type,
 		public readonly string $message,
-		public readonly ?string $code=null,
-		public readonly ?string $param=null,
 	) {
 	}
 }
