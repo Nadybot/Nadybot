@@ -1,0 +1,53 @@
+[global]
+# Default debounce for onChange tools in milliseconds.
+debounce_ms = 500
+# Default process timeout in seconds.
+timeout_seconds = 120
+
+# PHPStan - runs on save because it is typically slow.
+[[tools]]
+name = "phpstan"
+command = "./vendor/bin/phpstan"
+startup_command = "./vendor/bin/phpstan clear-result-cache"
+args = ["--error-format=raw", "--memory-limit=1G", "--no-progress", "analyse"]
+triggers = ["onSave", "onStart"]
+# Override timeout because PHPStan can be slow on large codebases.
+timeout_seconds = 300
+format = "custom"
+lint_format = "%f:%l:%m"
+# PHPStan reads from the file system, not stdin.
+stdin = false
+severity_map = { error = "Error", warning = "Warning", notice = "Information" }
+# PHPStan returns exit code 1 when it finds errors, so we ignore exit codes.
+ignore_exit_code = true
+
+# Mago - fast enough to run on every change.
+[[tools]]
+name = "mago"
+command = "./vendor/bin/mago"
+args = ["--colors=never", "analyze", "--reporting-format=emacs", "--stdin-input", "${INPUT}"]
+triggers = ["onChange"]
+# Faster debounce for interactive editing.
+debounce_ms = 200
+timeout_seconds = 10
+format = "custom"
+# Mago supports reading from stdin.
+stdin = true
+# Mago output format: path:line:column: message
+lint_format = "%f:%l:%c:%m"
+severity_map = { notice = "Information" }
+ignore_exit_code = true
+
+# Mago - fast enough to scan whole workspace on every save
+[[tools]]
+name = "mago-slow"
+command = "./vendor/bin/mago"
+args = ["--colors=never", "analyze", "--reporting-format=emacs"]
+triggers = ["onSave", "onStart"]
+timeout_seconds = 10
+format = "custom"
+stdin = false
+# Mago output format: path:line:column: message
+lint_format = "%f:%l:%c:%m"
+severity_map = { notice = "Information" }
+ignore_exit_code = true
