@@ -24,6 +24,7 @@ use Nadylib\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
 use Safe\DateTimeImmutable;
 use Safe\Exceptions\JsonException;
+use stdClass;
 use Throwable;
 
 #[
@@ -40,6 +41,26 @@ class AIController extends ModuleInstance {
 	private const CHATGPT = 'https://api.openai.com/v1';
 	private const LOCAL = 'http://127.0.0.1:11434/v1';
 	private const GEMINI = 'https://generativelanguage.googleapis.com/v1beta/openai';
+
+	/** Drop old turns when the history exceeds this size */
+	private const MAX_HISTORY_EXPIRE = 20;
+
+	/** Maximum history size before triggering a summary compaction */
+	private const MAX_HISTORY_COMPACT = 25;
+
+	/** Number of recent messages to preserve during compaction */
+	private const COMPACT_KEEP_MESSAGES = 5;
+
+	/** Mode identifier: silently drop old turns */
+	private const HISTORY_MODE_EXPIRE = 'expire';
+
+	/** Mode identifier: replace old turns with a generated summary */
+	private const HISTORY_MODE_COMPACT = 'compact';
+
+	/** Prompt sent to the LLM to produce a conversation summary */
+	private const COMPACT_SUMMARY_PROMPT = 'Summarize our conversation so far. '.
+		'Keep all important facts, decisions, context and open questions. '.
+		'Be concise but complete enough to continue the conversation.';
 
 	/** Which OpenAI-compatible API to use for chatting */
 	#[NCA\Setting\Text(
@@ -73,6 +94,15 @@ class AIController extends ModuleInstance {
 	#[NCA\Setting\Boolean]
 	public bool $allowAiFunctionCalls = true;
 
+	/** How the history is kept short */
+	#[NCA\Setting\Options(
+		options: [
+			'expire old messages' => self::HISTORY_MODE_EXPIRE,
+			'compact with summary' => self::HISTORY_MODE_COMPACT,
+		]
+	)]
+	public string $aiHistoryMode = self::HISTORY_MODE_EXPIRE;
+
 	#[NCA\Inject]
 	private HttpClientBuilder $http;
 
@@ -85,7 +115,7 @@ class AIController extends ModuleInstance {
 	/**
 	 * Conversation histories per channel/DM key
 	 *
-	 * @var array<string,list<\stdClass>>
+	 * @var array<string,list<stdClass>>
 	 */
 	private array $conversationHistory = [];
 
@@ -155,7 +185,9 @@ class AIController extends ModuleInstance {
 		}
 		$this->activeKeys[$key] = true;
 		try {
-			$this->compactHistory($key);
+			if ($this->aiHistoryMode === self::HISTORY_MODE_EXPIRE) {
+				$this->expireHistory($key);
+			}
 			if (count($this->conversationHistory[$key]) === 0 && strlen($this->aiPrompt) > 0) {
 				$this->conversationHistory[$key] []= (object)[
 					'role' => 'system',
@@ -169,7 +201,7 @@ class AIController extends ModuleInstance {
 				];
 			}
 			$this->conversationHistory[$key] []= (object)[
-				'role' => 'user',
+				'role' => Models\Role::USER->value,
 				'content' => sprintf('[%s] %s', $context->char->name, $text),
 			];
 
@@ -187,7 +219,7 @@ class AIController extends ModuleInstance {
 				return;
 			}
 			$this->conversationHistory[$key] []= (object)[
-				'role' => 'assistant',
+				'role' => Models\Role::ASSISTANT->value,
 				'content' => $reply,
 			];
 			$reply = $this->formatAiReply($reply);
@@ -198,6 +230,16 @@ class AIController extends ModuleInstance {
 		} finally {
 			unset($this->activeKeys[$key]);
 		}
+		if ($this->aiHistoryMode === self::HISTORY_MODE_COMPACT) {
+			try {
+				$this->compactWithSummary($key);
+			} catch (Throwable $e) {
+				$this->logger->error('Compacting conversation history failed: {error}', [
+					'error' => $e->getMessage(),
+					'exception' => $e,
+				]);
+			}
+		}
 	}
 
 	/** Format the AI reply to support some basic markdown */
@@ -206,47 +248,170 @@ class AIController extends ModuleInstance {
 		return trim($formatter->format($reply));
 	}
 
-	/** Send a command to the AI API */
+	/**
+	 * Send a command to the AI API and handle tool calls.
+	 *
+	 * Reads the current history for the key, resolves recursive tool calls,
+	 * and returns the final text response.
+	 */
 	public function sendCommand(string $model, string $historyKey, ?string $apiURL=null): string {
+		$messages = $this->conversationHistory[$historyKey];
+		assert(count($messages) > 0);
+		[$body, $completion] = $this->executeRequest($model, $messages, $apiURL);
+		if ($completion->choices[0] instanceof ToolCallChoice) {
+			$decoded = Safe::jsonDecodeObj($body);
+			if (
+				// @mago-expect analysis:redundant-type-comparison,redundant-type-comparison,redundant-type-comparison,redundant-type-comparison,redundant-type-comparison
+				!property_exists($decoded, 'choices')
+				|| !is_array($decoded->choices)
+				|| count($decoded->choices) === 0
+				|| !is_object($decoded->choices[0])
+				|| !property_exists($decoded->choices[0], 'message')
+				|| !is_object($decoded->choices[0]->message)
+			) {
+				throw new UserException('Invalid tool call response received from the AI-Api.');
+			}
+
+			/** @var stdClass $llmToolCall */
+			$llmToolCall = $decoded->choices[0]->message;
+			$this->conversationHistory[$historyKey] []= $llmToolCall;
+			foreach ($this->processToolCallChoice($completion->choices[0]) as $result) {
+				/** @var stdClass $result */
+				$this->conversationHistory[$historyKey] []= $result;
+			}
+			return $this->sendCommand($model, $historyKey, $apiURL);
+		}
+		$content = $completion->getContent();
+		if ($content === null) {
+			throw new UserException('AI response contained no text content.');
+		}
+		return $content;
+	}
+
+	/**
+	 * Get an ISO 8601 representation of the current date and time
+	 *
+	 * @return string the current date and time in ISO 8601 format
+	 */
+	#[ExposeToAI(name: 'get_date_time')]
+	public function getCurrentTime(): string {
+		$dateTime = new DateTimeImmutable('now');
+		return $dateTime->format(\DateTime::ISO8601);
+	}
+
+	/**
+	 * Do a websearch for a given search term, and give back a JSON structure with the results.
+	 * The structure should be an array of objects with "title", "url" and "content" properties.
+	 * In case of an error, the return value will be a string with the error message.
+	 *
+	 * @param string $query The search term to look up
+	 *
+	 * @return string|list<stdClass> Either a JSON structure with results, or an error message
+	 */
+	#[ExposeToAI(name: 'web_search')]
+	public function webSearch(string $query): string|array {
+		$client = $this->http->build();
+		$request = new Request(
+			uri: 'http://127.0.0.1:8888/?' . http_build_query(['q' => $query, 'format' =>'json']),
+			method: 'GET'
+		);
+		$request->setTransferTimeout(120);
+		$request->setInactivityTimeout(60);
+		try {
+			$response = $client->request($request, new TimeoutCancellation(120));
+			if ($response->getStatus() < 200 || $response->getStatus() >= 300) {
+				return "Error fetching search results for {$query}: HTTP {$response->getStatus()}";
+			}
+			$body = $response->getBody()->buffer(new TimeoutCancellation(60));
+			$result = Safe::jsonDecodeObj($body);
+
+			/** @var list<stdClass> */
+			$cleanResult = [];
+			if (!isset($result->results) || !is_array($result->results)) {
+				return "Invalid response format for search results for {$query}.";
+			}
+			foreach ($result->results as $item) {
+				assert($item instanceof stdClass);
+				$cleanItem = new stdClass();
+				$cleanItem->title = $item->title ?? '';
+				$cleanItem->url = $item->url ?? '';
+				$cleanItem->content = $item->content ?? '';
+				$cleanResult []= $cleanItem;
+			}
+			return $cleanResult;
+		} catch (CancelledException | TimeoutException) {
+			return "Fetching search results for {$query} timed out.";
+		} catch (Throwable $e) {
+			$this->logger->error('Error fetching search results for {query}: {error} ({class})', [
+				'query' => $query,
+				'error' => $e->getMessage(),
+				'class' => $e::class,
+				'exception' => $e,
+			]);
+			return 'Error fetching search  results. Please check your logs.';
+		}
+	}
+
+	/**
+	 * Fetch the content of a website and return the content as pure HTML.
+	 * In case of an error, the return value will be the error message.
+	 *
+	 * @param string $url The URL to retrieve
+	 *
+	 * @return string The website content or an error message
+	 */
+	#[ExposeToAI(name: 'fetch_url')]
+	public function fetchURL(string $url): string {
+		$client = $this->http->build();
+		$request = new Request(uri: $url, method: 'GET');
+		$request->setTransferTimeout(120);
+		$request->setInactivityTimeout(60);
+		try {
+			$response = $client->request($request, new TimeoutCancellation(120));
+			if ($response->getStatus() !== 200) {
+				return "Error fetching URL {$url}: HTTP {$response->getStatus()}";
+			}
+			return $response->getBody()->buffer(new TimeoutCancellation(60));
+		} catch (CancelledException | TimeoutException) {
+			return "Fetching URL {$url} timed out.";
+		} catch (Throwable $e) {
+			$this->logger->error('Error fetching URL {url}: {error} ({class})', [
+				'url' => $url,
+				'error' => $e->getMessage(),
+				'class' => $e::class,
+				'exception' => $e,
+			]);
+			return "Error fetching URL {$url}. Please check your logs.";
+		}
+	}
+
+	/**
+	 * Perform a single LLM request and return the raw body plus parsed response.
+	 *
+	 * @param non-empty-list<stdClass> $messages
+	 *
+	 * @return array{0: string, 1: Models\ChatCompletion}
+	 */
+	private function executeRequest(string $model, array $messages, ?string $apiURL=null, bool $forbidTools=false): array {
 		$client = $this->http->build();
 		$apiURL ??= $this->aiApiUrl;
 		$uri = sprintf('%s/chat/completions', rtrim($apiURL, '/'));
 		$this->logger->info('Using URI {uri}', ['uri' => $uri]);
 		$request = new Request(uri: $uri, method: 'POST');
-		if (strlen($this->aiApiToken) < 1) {
-			// return 'No GPT-Token has been configured yet.';
-		}
 		if (strlen($model) < 1) {
 			throw new UserException('No language model has been configured yet.');
 		}
-		$messages = $this->conversationHistory[$historyKey];
-		assert(count($messages) > 0);
 		$command = new Models\CompletionCommand(
 			model: $model,
 			messages: $messages,
 		);
-		if (!count($command->tools)) {
-			$command = $this->addTools($command);
-		}
 		$request->addHeader('Authorization', "Bearer {$this->aiApiToken}");
-		$this->logger->debug('Sending command {command}', ['command' => $command]);
 		$compact = Hydrator::serialize($command);
-		$compact['messages'] = $command->messages;
-		for ($i = 0; $i < count($command->tools); $i++) {
-			$tool = $command->tools[$i];
-			if ($tool instanceof Models\ToolFunction) {
-				if (count($tool->function->parameters->properties) === 0) {
-					/**
-					 * @psalm-suppress MixedArrayAssignment
-					 *
-					 * @mago-expect analysis:mixed-array-assignment,mixed-array-assignment,mixed-array-assignment,mixed-array-assignment
-					 *
-					 * @phpstan-ignore-next-line
-					 */
-					$compact['tools'][$i]['function']['parameters']['properties'] = new \stdClass();
-				}
-			}
+		$compact['messages'] = $messages;
+		if (!$forbidTools && $this->allowAiFunctionCalls && count($this->tools) > 0) {
+			$compact['tools'] = $this->tools;
 		}
+		$this->logger->debug('Sending command {command}', ['command' => $compact]);
 		$json = json_encode($compact);
 		$request->setBody(BufferedContent::fromString($json, 'application/json; charset=utf-8'));
 		$request->setTransferTimeout(120);
@@ -333,127 +498,7 @@ class AIController extends ModuleInstance {
 		} catch (AssertException | JsonException | UnableToHydrateObject $e) {
 			throw new UserException("Invalid response received from the AI-Api: {$e->getMessage()}", previous: $e);
 		}
-		if ($completion->choices[0] instanceof ToolCallChoice) {
-			$decoded = Safe::jsonDecodeObj($body);
-			if (
-				// @mago-expect analysis:redundant-type-comparison,redundant-type-comparison,redundant-type-comparison,redundant-type-comparison,redundant-type-comparison
-				!property_exists($decoded, 'choices')
-				|| !is_array($decoded->choices)
-				|| count($decoded->choices) === 0
-				|| !is_object($decoded->choices[0])
-				|| !property_exists($decoded->choices[0], 'message')
-				|| !is_object($decoded->choices[0]->message)
-			) {
-				throw new UserException('Invalid tool call response received from the AI-Api.');
-			}
-
-			/** @var \stdClass $llmToolCall */
-			$llmToolCall = $decoded->choices[0]->message;
-			$this->conversationHistory[$historyKey] []= $llmToolCall;
-			foreach ($this->processToolCallChoice($completion->choices[0]) as $result) {
-				/** @var \stdClass $result */
-				$this->conversationHistory[$historyKey] []= $result;
-			}
-			return $this->sendCommand($model, $historyKey, $apiURL);
-		}
-		return $completion->choices[0]->message->content;
-	}
-
-	/**
-	 * Get an ISO 8601 representation of the current date and time
-	 *
-	 * @return string the current date and time in ISO 8601 format
-	 */
-	#[ExposeToAI(name: 'get_date_time')]
-	public function getCurrentTime(): string {
-		$dateTime = new DateTimeImmutable('now');
-		return $dateTime->format(\DateTime::ISO8601);
-	}
-
-	/**
-	 * Do a websearch for a given search term, and give back a JSON structure with the results.
-	 * The structure should be an array of objects with "title", "url" and "content" properties.
-	 * In case of an error, the return value will be a string with the error message.
-	 *
-	 * @param string $query The search term to look up
-	 *
-	 * @return string|list<\stdClass> Either a JSON structure with results, or an error message
-	 */
-	#[ExposeToAI(name: 'web_search')]
-	public function webSearch(string $query): string|array {
-		$client = $this->http->build();
-		$request = new Request(
-			uri: 'http://127.0.0.1:8888/?' . http_build_query(['q' => $query, 'format' =>'json']),
-			method: 'GET'
-		);
-		$request->setTransferTimeout(120);
-		$request->setInactivityTimeout(60);
-		try {
-			$response = $client->request($request, new TimeoutCancellation(120));
-			if ($response->getStatus() < 200 || $response->getStatus() >= 300) {
-				return "Error fetching search results for {$query}: HTTP {$response->getStatus()}";
-			}
-			$body = $response->getBody()->buffer(new TimeoutCancellation(60));
-			$result = Safe::jsonDecodeObj($body);
-
-			/** @var list<\stdClass> */
-			$cleanResult = [];
-			if (!isset($result->results) || !is_array($result->results)) {
-				return "Invalid response format for search results for {$query}.";
-			}
-			foreach ($result->results as $item) {
-				assert($item instanceof \stdClass);
-				$cleanItem = new \stdClass();
-				$cleanItem->title = $item->title ?? '';
-				$cleanItem->url = $item->url ?? '';
-				$cleanItem->content = $item->content ?? '';
-				$cleanResult []= $cleanItem;
-			}
-			return $cleanResult;
-		} catch (CancelledException | TimeoutException) {
-			return "Fetching search results for {$query} timed out.";
-		} catch (Throwable $e) {
-			$this->logger->error('Error fetching search results for {query}: {error} ({class})', [
-				'query' => $query,
-				'error' => $e->getMessage(),
-				'class' => $e::class,
-				'exception' => $e,
-			]);
-			return 'Error fetching search  results. Please check your logs.';
-		}
-	}
-
-	/**
-	 * Fetch the content of a website and return the content as pure HTML.
-	 * In case of an error, the return value will be the error message.
-	 *
-	 * @param string $url The URL to retrieve
-	 *
-	 * @return string The website content or an error message
-	 */
-	#[ExposeToAI(name: 'fetch_url')]
-	public function fetchURL(string $url): string {
-		$client = $this->http->build();
-		$request = new Request(uri: $url, method: 'GET');
-		$request->setTransferTimeout(120);
-		$request->setInactivityTimeout(60);
-		try {
-			$response = $client->request($request, new TimeoutCancellation(120));
-			if ($response->getStatus() !== 200) {
-				return "Error fetching URL {$url}: HTTP {$response->getStatus()}";
-			}
-			return $response->getBody()->buffer(new TimeoutCancellation(60));
-		} catch (CancelledException | TimeoutException) {
-			return "Fetching URL {$url} timed out.";
-		} catch (Throwable $e) {
-			$this->logger->error('Error fetching URL {url}: {error} ({class})', [
-				'url' => $url,
-				'error' => $e->getMessage(),
-				'class' => $e::class,
-				'exception' => $e,
-			]);
-			return "Error fetching URL {$url}. Please check your logs.";
-		}
+		return [$body, $completion];
 	}
 
 	private function registerAiFunction(object $instance, \ReflectionMethod $method, string $name): void {
@@ -571,12 +616,13 @@ class AIController extends ModuleInstance {
 	}
 
 	/**
-	 * @return list<\stdClass>
+	 * @return list<stdClass>
 	 *
 	 * @psalm-suppress MoreSpecificReturnType
 	 * @psalm-suppress LessSpecificReturnStatement
 	 */
 	private function processToolCallChoice(ToolCallChoice $choice): array {
+		/** @var list<stdClass> */
 		$result = [];
 		$calls = $choice->message->tool_calls;
 		foreach ($calls as $call) {
@@ -605,68 +651,151 @@ class AIController extends ModuleInstance {
 			'arguments' => $arguments,
 		]);
 		$result = call_user_func($functionSpec->function, ...$arguments);
-		if (is_object($result) && !($result instanceof \stdClass)) {
+		if (is_object($result) && !($result instanceof stdClass)) {
 			return json_encode(Hydrator::serialize($result), \JSON_UNESCAPED_SLASHES);
 		}
 		return json_encode($result, \JSON_UNESCAPED_SLASHES);
 	}
 
-	private function addTools(Models\CompletionCommand $command): Models\CompletionCommand {
-		if (!$this->allowAiFunctionCalls) {
-			return $command;
+	/**
+	 * Find the index of the next message with role "user".
+	 *
+	 * @param list<stdClass> $messages
+	 * @param int            $start    The search position to start from
+	 *
+	 * @return ?int The index, or null if none exists.
+	 */
+	private function searchNextUserMessage(array $messages, int $start): ?int {
+		$count = count($messages);
+		$search = Models\Role::USER->value;
+		for ($i = $start; $i < $count; $i++) {
+			if (isset($messages[$i]->role) && $messages[$i]->role === $search) {
+				return $i;
+			}
 		}
-		$result = clone $command;
-		$result->tools = $this->tools;
-		return $result;
+		return null;
 	}
 
 	/**
-	 * Limit the number of stored messages for a conversation key.
+	 * Find the index of the last message with role "user".
 	 *
-	 * Keeping the history short controls token usage and API cost.
+	 * @param list<stdClass> $messages
+	 * @param ?int           $before   Search no further than this index.
+	 *
+	 * @return ?int The index, or null if none exists.
 	 */
-	private function compactHistory(string $key): void {
-		while (count($this->conversationHistory[$key]) > 20) {
-			$count = count($this->conversationHistory[$key]);
-
-			// Find the first user message after the system prompt (index 0)
-			$firstUser = 1;
-			while (
-				$firstUser < $count
-				&& (
-					!isset($this->conversationHistory[$key][$firstUser]->role)
-					|| $this->conversationHistory[$key][$firstUser]->role !== 'user'
-				)
-			) {
-				$firstUser++;
+	private function searchLastUserMessage(array $messages, ?int $before=null): ?int {
+		$end = $before ?? count($messages) - 1;
+		$search = Models\Role::USER->value;
+		for ($i = $end; $i >= 0; $i--) {
+			if (isset($messages[$i]->role) && $messages[$i]->role === $search) {
+				return $i;
 			}
-
-			if ($firstUser >= $count) {
-				// No user message found – should not happen, but stop to avoid an infinite loop
-				break;
-			}
-
-			// Find the next user message after firstUser
-			$secondUser = $firstUser + 1;
-			while (
-				$secondUser < $count
-				&& (
-					!isset($this->conversationHistory[$key][$secondUser]->role)
-					|| $this->conversationHistory[$key][$secondUser]->role !== 'user'
-				)
-			) {
-				$secondUser++;
-			}
-
-			if ($secondUser >= $count) {
-				// firstUser is the last user in the history (current turn).
-				// We cannot remove the active turn, so stop.
-				break;
-			}
-
-			// Remove the complete old turn from firstUser up to (but not including) secondUser
-			array_splice($this->conversationHistory[$key], $firstUser, $secondUser - $firstUser);
 		}
+		return null;
+	}
+
+	/** Drop the oldest complete turn from the history. */
+	private function deleteOldestHistoryEntry(string $key): bool {
+		$messages = $this->conversationHistory[$key];
+		$firstUser = $this->searchNextUserMessage($messages, 1);
+		if ($firstUser === null) {
+			return false;
+		}
+		$secondUser = $this->searchNextUserMessage($messages, $firstUser + 1);
+		if ($secondUser === null) {
+			// firstUser is the last user in the history (current turn).
+			return false;
+		}
+		array_splice($this->conversationHistory[$key], $firstUser, $secondUser - $firstUser);
+		return true;
+	}
+
+	/** Drop the oldest complete turns to keep the history short. */
+	private function expireHistory(string $key): void {
+		while (count($this->conversationHistory[$key]) > self::MAX_HISTORY_EXPIRE) {
+			if (!$this->deleteOldestHistoryEntry($key)) {
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Replace the oldest complete turns with a generated summary.
+	 *
+	 * The most recent messages are preserved so pronouns and context remain usable.
+	 */
+	private function compactWithSummary(string $key): void {
+		while (count($this->conversationHistory[$key]) > self::MAX_HISTORY_COMPACT) {
+			if (!$this->compactOldestBlock($key)) {
+				break;
+			}
+		}
+	}
+
+	/**
+	 * Summarize the oldest block of the history and replace it with a summary turn.
+	 *
+	 * @return bool Whether a block was compacted.
+	 */
+	private function compactOldestBlock(string $key): bool {
+		$messages = $this->conversationHistory[$key];
+		$count = count($messages);
+
+		/**
+		 * Index of the first message to *keep* (not summarize).
+		 * Everything between index 1 and $splitIndex-1 goes to the summary.
+		 */
+		$splitIndex = $this->searchLastUserMessage($messages, $count - self::COMPACT_KEEP_MESSAGES);
+		if ($splitIndex === null || $splitIndex <= 1) {
+			return false;
+		}
+
+		$summaryMessages = array_slice($messages, 1, $splitIndex - 1);
+		assert(count($summaryMessages) > 0);
+		$summaryMessages []= (object)[
+			'role' => Models\Role::USER->value,
+			'content' => self::COMPACT_SUMMARY_PROMPT,
+		];
+
+		/** @psalm-suppress ArgumentTypeCoercion */
+		[, $completion] = $this->executeRequest($this->aiModel, $summaryMessages, forbidTools: true);
+		$summaryText = $completion->getContent();
+		if ($summaryText === null) {
+			throw new UserException('Summary generation returned no content.');
+		}
+		$this->logger->info('AI history compacted to {compacted}', [
+			'compacted' => $summaryText,
+		]);
+
+		$recentMessages = array_slice($messages, $splitIndex);
+		$this->setHistory($key, $summaryText, $recentMessages);
+		return true;
+	}
+
+	/**
+	 * Replace the history of a key with a system prompt, a summary turn and recent context.
+	 *
+	 * @param list<stdClass> $recentMessages
+	 */
+	private function setHistory(string $key, string $summary, array $recentMessages): void {
+		/** @var list<stdClass> $newHistory */
+		$newHistory = [];
+		$newHistory []= $this->conversationHistory[$key][0];
+		$newHistory []= (object)[
+			'role' => Models\Role::USER->value,
+			'content' => self::COMPACT_SUMMARY_PROMPT,
+		];
+		$newHistory []= (object)[
+			'role' => Models\Role::ASSISTANT->value,
+			'content' => $summary,
+		];
+		foreach ($recentMessages as $msg) {
+			$newHistory []= $msg;
+		}
+
+		/** @psalm-suppress PropertyTypeCoercion */
+		$this->conversationHistory[$key] = $newHistory;
 	}
 
 	/** Get the conversation key in the history to allow or prevent shared history */

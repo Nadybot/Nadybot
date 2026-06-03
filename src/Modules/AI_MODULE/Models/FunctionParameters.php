@@ -4,7 +4,7 @@ namespace Nadybot\Modules\AI_MODULE\Models;
 
 use Nadybot\Core\StringableTrait;
 
-class FunctionParameters {
+class FunctionParameters implements \JsonSerializable {
 	use StringableTrait;
 	public readonly string $type;
 
@@ -19,5 +19,13 @@ class FunctionParameters {
 		public readonly array $required=[],
 	) {
 		$this->type = 'object';
+	}
+
+	public function jsonSerialize(): mixed {
+		return [
+			'type' => 'object',
+			'properties' => (object)$this->properties,
+			'required' => $this->required,
+		];
 	}
 }

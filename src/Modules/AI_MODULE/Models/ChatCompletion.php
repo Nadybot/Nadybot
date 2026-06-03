@@ -37,4 +37,17 @@ class ChatCompletion {
 		public readonly ?string $system_fingerprint=null,
 	) {
 	}
+
+	/**
+	 * Get the text content of the first choice, if available.
+	 *
+	 * @return ?string The content, or null for tool-call responses.
+	 */
+	public function getContent(): ?string {
+		$first = $this->choices[0];
+		if ($first instanceof ToolCallChoice) {
+			return null;
+		}
+		return $first->message->content;
+	}
 }
