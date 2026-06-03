@@ -51,3 +51,17 @@ stdin = false
 lint_format = "%f:%l:%c:%m"
 severity_map = { notice = "Information" }
 ignore_exit_code = true
+
+# phpCs
+[[tools]]
+name = "phpcs"
+command = "./vendor/bin/phpcs"
+args = ["-d", "opcache.enable_cli=1", "--cache", "--ignore=vendor", "--ignore=Stubs", "-q", "--report=emacs", "--stdin-path=${INPUT}", "-"]
+triggers = ["onSave"]
+timeout_seconds = 10
+format = "custom"
+stdin = true
+# Mago output format: path:line:column: message
+lint_format = "%f:%l:%c: %m"
+severity_map = { notice = "Information" }
+ignore_exit_code = true
