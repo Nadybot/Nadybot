@@ -312,17 +312,17 @@ class AIController extends ModuleInstance {
 	public function webSearch(string $query): string|array {
 		$client = $this->http->build();
 		$request = new Request(
-			uri: 'http://127.0.0.1:8888/?' . http_build_query(['q' => $query, 'format' =>'json']),
+			uri: 'https://search.on.nadybot.org/search?' . http_build_query(['q' => $query, 'format' =>'json']),
 			method: 'GET'
 		);
-		$request->setTransferTimeout(120);
-		$request->setInactivityTimeout(60);
+		$request->setTransferTimeout(10);
+		$request->setInactivityTimeout(6);
 		try {
-			$response = $client->request($request, new TimeoutCancellation(120));
+			$response = $client->request($request, new TimeoutCancellation(10));
 			if ($response->getStatus() < 200 || $response->getStatus() >= 300) {
 				return "Error fetching search results for {$query}: HTTP {$response->getStatus()}";
 			}
-			$body = $response->getBody()->buffer(new TimeoutCancellation(60));
+			$body = $response->getBody()->buffer(new TimeoutCancellation(5));
 			$result = Safe::jsonDecodeObj($body);
 
 			/** @var list<stdClass> */
@@ -364,14 +364,14 @@ class AIController extends ModuleInstance {
 	public function fetchURL(string $url): string {
 		$client = $this->http->build();
 		$request = new Request(uri: $url, method: 'GET');
-		$request->setTransferTimeout(120);
-		$request->setInactivityTimeout(60);
+		$request->setTransferTimeout(10);
+		$request->setInactivityTimeout(5);
 		try {
-			$response = $client->request($request, new TimeoutCancellation(120));
+			$response = $client->request($request, new TimeoutCancellation(10));
 			if ($response->getStatus() !== 200) {
 				return "Error fetching URL {$url}: HTTP {$response->getStatus()}";
 			}
-			return $response->getBody()->buffer(new TimeoutCancellation(60));
+			return $response->getBody()->buffer(new TimeoutCancellation(5));
 		} catch (CancelledException | TimeoutException) {
 			return "Fetching URL {$url} timed out.";
 		} catch (Throwable $e) {
