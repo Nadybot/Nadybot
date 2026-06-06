@@ -22,21 +22,21 @@ severity_map = { error = "Error", warning = "Warning", notice = "Information" }
 ignore_exit_code = true
 
 # Mago - fast enough to run on every change.
-[[tools]]
-name = "mago"
-command = "./vendor/bin/mago"
-args = ["--colors=never", "analyze", "--reporting-format=emacs", "--stdin-input", "${INPUT}"]
-triggers = ["onChange"]
-# Faster debounce for interactive editing.
-debounce_ms = 200
-timeout_seconds = 10
-format = "custom"
-# Mago supports reading from stdin.
-stdin = true
-# Mago output format: path:line:column: message
-lint_format = "%f:%l:%c:%m"
-severity_map = { notice = "Information" }
-ignore_exit_code = true
+#[[tools]]
+#name = "mago"
+#command = "./vendor/bin/mago"
+#args = ["--colors=never", "analyze", "--reporting-format=emacs", "--stdin-input", "${INPUT}"]
+#triggers = ["onChange"]
+## Faster debounce for interactive editing.
+#debounce_ms = 200
+#timeout_seconds = 10
+#format = "custom"
+## Mago supports reading from stdin.
+#stdin = true
+## Mago output format: path:line:column: message
+#lint_format = "%f:%l:%c:%m"
+#severity_map = { notice = "Information" }
+#ignore_exit_code = true
 
 # Mago - fast enough to scan whole workspace on every save
 [[tools]]
