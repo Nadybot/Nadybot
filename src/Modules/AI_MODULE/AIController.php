@@ -22,6 +22,7 @@ use Nadybot\Modules\AI_MODULE\Models\{FunctionCall, ToolCallChoice};
 use Nadylib\Type;
 use Nadylib\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
+use ReflectionNamedType;
 use Safe\DateTimeImmutable;
 use Safe\Exceptions\JsonException;
 use stdClass;
@@ -206,7 +207,7 @@ class AIController extends ModuleInstance {
 			];
 
 			try {
-				$reply = trim($this->sendCommand($this->aiModel, $key));
+				$reply = trim($this->sendCommand($context, $this->aiModel, $key));
 			} catch (UserException $e) {
 				$context->reply($e->getMessage());
 				return;
@@ -254,7 +255,7 @@ class AIController extends ModuleInstance {
 	 * Reads the current history for the key, resolves recursive tool calls,
 	 * and returns the final text response.
 	 */
-	public function sendCommand(string $model, string $historyKey, ?string $apiURL=null): string {
+	public function sendCommand(CmdContext $context, string $model, string $historyKey, ?string $apiURL=null): string {
 		$messages = $this->conversationHistory[$historyKey];
 		assert(count($messages) > 0);
 		[$body, $completion] = $this->executeRequest($model, $messages, $apiURL);
@@ -275,11 +276,11 @@ class AIController extends ModuleInstance {
 			/** @var stdClass $llmToolCall */
 			$llmToolCall = $decoded->choices[0]->message;
 			$this->conversationHistory[$historyKey] []= $llmToolCall;
-			foreach ($this->processToolCallChoice($completion->choices[0]) as $result) {
+			foreach ($this->processToolCallChoice($context, $completion->choices[0]) as $result) {
 				/** @var stdClass $result */
 				$this->conversationHistory[$historyKey] []= $result;
 			}
-			return $this->sendCommand($model, $historyKey, $apiURL);
+			return $this->sendCommand($context, $model, $historyKey, $apiURL);
 		}
 		$content = $completion->getContent();
 		if ($content === null) {
@@ -524,6 +525,11 @@ class AIController extends ModuleInstance {
 
 		$i = 0;
 		foreach ($params as $param) {
+			$type = $param->getType();
+			// Skip CmdContext parameters as these will automatically be filled out when calling
+			if ($type instanceof ReflectionNamedType && $type->getName() === CmdContext::class) {
+				continue;
+			}
 			$paramDescription =  'no documentation available for this parameter';
 			$paramOrder[$param->name] = $i;
 			$i++;
@@ -616,12 +622,16 @@ class AIController extends ModuleInstance {
 	}
 
 	/**
+	 * This function is used to process the tool call choices from the OpenAI API response.
+	 *
+	 * @param ToolCallChoice $choice The choice object containing the tool call message.
+	 *
 	 * @return list<stdClass>
 	 *
 	 * @psalm-suppress MoreSpecificReturnType
 	 * @psalm-suppress LessSpecificReturnStatement
 	 */
-	private function processToolCallChoice(ToolCallChoice $choice): array {
+	private function processToolCallChoice(CmdContext $context, ToolCallChoice $choice): array {
 		/** @var list<stdClass> */
 		$result = [];
 		$calls = $choice->message->tool_calls;
@@ -629,13 +639,13 @@ class AIController extends ModuleInstance {
 			$result []= (object)[
 				'role' => 'tool',
 				'tool_call_id' => $call->id,
-				'content' => $this->processFunctionCall($call->function),
+				'content' => $this->processFunctionCall($context, $call->function),
 			];
 		}
 		return $result;
 	}
 
-	private function processFunctionCall(FunctionCall $call): string {
+	private function processFunctionCall(CmdContext $context, FunctionCall $call): string {
 		$arguments = Safe::jsonDecode($call->arguments, Type\dict(Type\string(), Type\mixed()));
 		if (!array_key_exists($call->name, $this->toolFunctions)) {
 			return "Unknown function \"{$call->name}\"";
@@ -650,6 +660,14 @@ class AIController extends ModuleInstance {
 			'function' => $functionSpec->name,
 			'arguments' => $arguments,
 		]);
+		$refFunc = new \ReflectionFunction($functionSpec->function);
+		$params = $refFunc->getParameters();
+		for ($i = 0; $i < count($params); $i++) {
+			$type = $params[$i]->getType();
+			if ($type instanceof ReflectionNamedType && $type->getName() === CmdContext::class) {
+				array_splice($arguments, $i, 0, [$context]);
+			}
+		}
 		$result = call_user_func($functionSpec->function, ...$arguments);
 		if (is_object($result) && !($result instanceof stdClass)) {
 			return json_encode(Hydrator::serialize($result), \JSON_UNESCAPED_SLASHES);
