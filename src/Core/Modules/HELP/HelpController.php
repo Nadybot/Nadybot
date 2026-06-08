@@ -4,6 +4,7 @@ namespace Nadybot\Core\Modules\HELP;
 
 use Nadybot\Core\{
 	Attributes as NCA,
+	Attributes\ExposeToAI,
 	Attributes\Parameter\Str,
 	BotRunner,
 	ClassLoader,
@@ -12,6 +13,7 @@ use Nadybot\Core\{
 	CommandAlias,
 	CommandManager,
 	DB,
+	DBSchema\HelpTopic,
 	Filesystem,
 	HelpManager,
 	ModuleInstance,
@@ -22,6 +24,7 @@ use Nadybot\Core\{
 	Types\AccessLevel,
 	Types\Status,
 };
+use Psr\Log\LoggerInterface;
 
 /**
  * @author Tyrence (RK2)
@@ -72,6 +75,9 @@ class HelpController extends ModuleInstance {
 	#[NCA\Inject]
 	private Filesystem $fs;
 
+	#[NCA\Logger]
+	private LoggerInterface $logger;
+
 	#[NCA\Setup]
 	public function setup(): void {
 		$this->helpManager->register(
@@ -91,6 +97,25 @@ class HelpController extends ModuleInstance {
 		$version = BotRunner::getVersion();
 		$data = str_replace('<version>', $version, $data);
 		return Text::makeBlob("About Nadybot {$version}", $data);
+	}
+
+	/**
+	 * Get a list of all commands defined on the bot
+	 *
+	 * @return list<array{"name":string, "description":string, "module": string}>
+	 */
+	#[ExposeToAI('help_topics')]
+	public function aiGetAllHelp(CmdContext $context): array {
+		$this->logger->notice('AI Getting list of help topics');
+		return Collection::make($this->helpManager->getAllHelpTopics($context))
+			/** @return array{"name":string, "description":string, "module": string} */
+			->map(static function (HelpTopic $topic): array {
+				return [
+					'name' => $topic->name,
+					'description' => $topic->description,
+					'module' => $topic->module,
+				];
+			})->toList();
 	}
 
 	/** Get a list of all help topics */
@@ -242,5 +267,32 @@ class HelpController extends ModuleInstance {
 		$topic = ucfirst($topic);
 		$msg = Text::makeBlob("Help ({$topic})", $blob);
 		$context->reply($msg);
+	}
+
+	/**
+	 * Get help for a given topic/command
+	 *
+	 * The topic can be a module name, a command or a topic like 'budatime'
+	 *
+	 * @param string $topic The topic/command to get help for
+	 */
+	#[ExposeToAI('help')]
+	public function aiGetHelp(CmdContext $context, string $topic): string {
+		$topic = strtolower($topic);
+
+		$this->logger->notice("AI Getting help for '{topic}'", ['topic' => $topic]);
+
+		// check for alias
+		$row = $this->commandAlias->get($topic);
+		if ($row !== null && $row->status === Status::Enabled) {
+			$topic = explode(' ', $row->cmd)[0];
+		}
+
+		$blob = $this->helpManager->find($topic, $context->char->name);
+		if ($blob === null) {
+			return $this->commandManager->getCmdHelpFromCode($topic, $context);
+		}
+		$topic = ucfirst($topic);
+		return Text::makeBlob("Help ({$topic})", $blob);
 	}
 }

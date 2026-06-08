@@ -37,6 +37,7 @@ use Nadybot\Core\{
 	Types\Profession,
 	Util,
 };
+use Nadybot\Core\Attributes\ExposeToAI;
 use Nadybot\Modules\{
 	DISCORD_GATEWAY_MODULE\DiscordGatewayController,
 	RAID_MODULE\RaidController,
@@ -1042,7 +1043,11 @@ class OnlineController extends ModuleInstance {
 		return $list;
 	}
 
-	/** @return list<OnlinePlayer> */
+	/**
+	 * Get a list of all online players in a channel
+	 *
+	 * @return list<OnlinePlayer>
+	 */
 	public function getPlayers(string $channelType, ?string $limitToBot=null): array {
 		$query = $this->db->table(Online::getTable(), 'o')
 			->where('o.channel_type', $channelType);
@@ -1090,6 +1095,15 @@ class OnlineController extends ModuleInstance {
 			private_channel: $this->getPlayers('priv'),
 		);
 		return ApiResponse::create($result);
+	}
+
+	/** Get a list of all people online in all linked channels */
+	#[ExposeToAI('online_list')]
+	public function llmOnlineEndpoint(): OnlinePlayers {
+		return new OnlinePlayers(
+			org: $this->getPlayers('guild'),
+			private_channel: $this->getPlayers('priv'),
+		);
 	}
 
 	/**

@@ -29,6 +29,7 @@ use Nadybot\Core\{
 	Types\MessageEmitter,
 	Util,
 };
+use Nadybot\Core\Attributes\ExposeToAI;
 use Psr\Log\LoggerInterface;
 use Ramsey\Uuid\{Uuid, UuidInterface};
 use ReflectionClass;
@@ -581,9 +582,50 @@ class TimerController extends ModuleInstance implements MessageEmitter {
 		return null;
 	}
 
-	/** @return array<string,Timer> */
+	/**
+	 * Get a list of all timers and alarms currently running
+	 *
+	 * @return array<string,Timer>
+	 */
+	#[ExposeToAI('list_alarms')]
 	public function getAllTimers(): array {
 		return $this->timers;
+	}
+
+	/**
+	 * Remove a timer/alarm
+	 *
+	 * @param string $name Nameof the timer/alarm
+	 *
+	 * @return string Success message
+	 */
+	#[ExposeToAI('remove_alarm')]
+	public function removeAlarm(string $name): string {
+		$this->remove($name);
+		return "Timer {$name} removed.";
+	}
+
+	/**
+	 * Create a new timer/alarm
+	 *
+	 * @param string $name     Name of the timer/alarm
+	 * @param int    $duration In how many seconds should the timer go off?
+	 *
+	 * @return string Success message
+	 */
+	#[ExposeToAI('create_alarm')]
+	public function createNewTimer(CmdContext $context, string $name, int $duration): string {
+		$alertChannel = $this->getTimerAlertChannel($context);
+
+		$sendto = $context->sendto;
+		$origin = ($sendto instanceof MessageEmitter) ? $sendto->getChannelName() : null;
+		return $this->addTimer(
+			sender: $context->char->name,
+			name: $name,
+			runTime: $duration,
+			channel: $alertChannel,
+			origin: $origin,
+		);
 	}
 
 	/** Sync external timers to local timers */

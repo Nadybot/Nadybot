@@ -33,7 +33,7 @@ use Safe\Exceptions\JsonException;
 	NCA\DefineCommand(
 		command: 'prisoners',
 		alias: ['pris'],
-		description: 'Get the status of all prisoners',
+		description: 'Get the status of all escaped prisoners',
 		accessLevel: AccessLevel::Guest,
 	),
 	NCA\DefineCommand(

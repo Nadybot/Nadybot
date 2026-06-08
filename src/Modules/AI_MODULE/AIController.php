@@ -12,13 +12,13 @@ use Amp\Http\Client\{BufferedContent, HttpClientBuilder, Request, TimeoutExcepti
 use BackedEnum;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
-use Nadybot\Core\{Attributes as NCA, CmdContext, Hydrator, ModuleInstance, Registry, Safe, Text};
+use Nadybot\Core\{Attributes as NCA, CmdContext, CommandManager, Hydrator, ModuleInstance, Registry, Safe, Text};
 use Nadybot\Core\Attributes\ExposeToAI;
 use Nadybot\Core\Config\BotConfig;
-use Nadybot\Core\Exceptions\UserException;
+use Nadybot\Core\Exceptions\{StopExecutionException, UserException};
 use Nadybot\Core\Routing\Source;
-use Nadybot\Core\Types\AccessLevel;
-use Nadybot\Modules\AI_MODULE\Models\{FunctionCall, ToolCallChoice};
+use Nadybot\Core\Types\{AccessLevel, CommandReply};
+use Nadybot\Modules\AI_MODULE\Models\{FunctionCall, ReplyFormat, ToolCallChoice};
 use Nadylib\Type;
 use Nadylib\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
@@ -62,6 +62,40 @@ class AIController extends ModuleInstance {
 	private const COMPACT_SUMMARY_PROMPT = 'Summarize our conversation so far. '.
 		'Keep all important facts, decisions, context and open questions. '.
 		'Be concise but complete enough to continue the conversation.';
+
+	/** Special LLM response that forwards the result of the last tool call */
+	private const FORWARD_LAST_TOOL_OUTPUT = 'FORWARD_LAST_TOOL_OUTPUT';
+
+	private const ADDED_SYSTEM_PROMPT = 'Every incoming message to you will be prefixed '.
+		"with the sender's name in the format [Username] Message. ".
+		'Please use this information to track who said what during the conversation, '.
+		'but don\'t add any prefix yourself. '.
+		'You are an assistant for the game Anarchy Online. '.
+		'Your training data about this game is likely incomplete or outdated. '.
+		"\n\n".
+		'Before answering any question about game-specific content — such as spawns, '.
+		'locations, NPCs, items, quests, or mechanics — ask yourself: '.
+		'"Could help_topics have relevant or more accurate information about this?" '.
+		'If so, you MUST call the help_topics tool instead of answering from your own knowledge. '.
+		'If there is **any reasonable chance** it does, call the tool first. '.
+		'Only skip the tool if the question is clearly unrelated to game content.'.
+		"\n\n".
+		'When replying with more than 3 lines of text, add a new line in front '.
+		'that summarizes the content with maximum 40 characters (surrounded with [[ and ]]), so it can be used '.
+		"as a teaser to the user.\n\n".
+		'The results of your \'run_command\'-calls are **NOT** visible to the user. '.
+		"You must decide:\n".
+		'- If the result of the \'run_command\'-call is sufficient and self-explanatory: reply with only '.
+		self::FORWARD_LAST_TOOL_OUTPUT.' '.
+		"as the sole word of your reply, and ignore all other rules\n".
+		'- If multiple calls to \'run_command\' were made, and the answer to the question asked is '.
+		"spread over several calls, summarize the combined results.\n".
+		"- If the 'run_command'-result needs context or clarification, add it before or after\n".
+		'- If referring to items or spells from the original result, keep the surrounding '.
+		'anchor-links, because these work in-game';
+		// 'When the \'run_command\'-tool returns output, that output is already visible to the user. '.
+		// 'If you have nothing meaningful to add beyond what \'run_command\' returned, '.
+		// 'reply with exactly: DONE.';
 
 	/** Which OpenAI-compatible API to use for chatting */
 	#[NCA\Setting\Text(
@@ -110,6 +144,9 @@ class AIController extends ModuleInstance {
 	#[NCA\Inject]
 	private BotConfig $config;
 
+	#[NCA\Inject]
+	private CommandManager $commandManager;
+
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
@@ -138,6 +175,10 @@ class AIController extends ModuleInstance {
 	private array $toolFunctions = [];
 
 	#[NCA\Setup]
+	/**
+	 * Scan all registered module instances for methods annotated with #[ExposeToAI]
+	 * and register them as callable AI functions.
+	 */
 	public function setup(): void {
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
@@ -153,6 +194,7 @@ class AIController extends ModuleInstance {
 		}
 	}
 
+	/** Reset the LLM authentication token and model when the API URL changes. */
 	#[NCA\SettingChangeHandler(setting: 'ai_api_url')]
 	public function resetLLM(string $setting, string $old, string $new): void {
 		if ($new !== $old) {
@@ -196,9 +238,7 @@ class AIController extends ModuleInstance {
 						'<myname>',
 						$this->config->main->character,
 						$this->aiPrompt
-					)."\nEvery incoming message to you will be prefixed with the sender's ".
-					'name in the format [Username] Message. Please use this information to '.
-					'track who said what during the conversation, but don\'t add any prefix yourself.',
+					)."\n" . self::ADDED_SYSTEM_PROMPT,
 				];
 			}
 			$this->conversationHistory[$key] []= (object)[
@@ -207,7 +247,9 @@ class AIController extends ModuleInstance {
 			];
 
 			try {
-				$reply = trim($this->sendCommand($context, $this->aiModel, $key));
+				$result = $this->sendCommand($context, $this->aiModel, $key);
+				$result = $this->addCommandsFooter($result);
+				$result = $this->formatContentForBot($result);
 			} catch (UserException $e) {
 				$context->reply($e->getMessage());
 				return;
@@ -221,13 +263,9 @@ class AIController extends ModuleInstance {
 			}
 			$this->conversationHistory[$key] []= (object)[
 				'role' => Models\Role::ASSISTANT->value,
-				'content' => $reply,
+				'content' => $result->content,
 			];
-			$reply = $this->formatAiReply($reply);
-			if (substr_count($reply, "\n") > 1 || strlen($reply) > 300) {
-				$reply = Text::makeBlob('Reply', $reply, 'AI reply');
-			}
-			$context->reply($reply);
+			$context->reply($result->content);
 		} finally {
 			unset($this->activeKeys[$key]);
 		}
@@ -255,7 +293,7 @@ class AIController extends ModuleInstance {
 	 * Reads the current history for the key, resolves recursive tool calls,
 	 * and returns the final text response.
 	 */
-	public function sendCommand(CmdContext $context, string $model, string $historyKey, ?string $apiURL=null): string {
+	public function sendCommand(CmdContext $context, string $model, string $historyKey, ?string $apiURL=null): Models\SendCommandResult {
 		$messages = $this->conversationHistory[$historyKey];
 		assert(count($messages) > 0);
 		[$body, $completion] = $this->executeRequest($model, $messages, $apiURL);
@@ -276,17 +314,43 @@ class AIController extends ModuleInstance {
 			/** @var stdClass $llmToolCall */
 			$llmToolCall = $decoded->choices[0]->message;
 			$this->conversationHistory[$historyKey] []= $llmToolCall;
-			foreach ($this->processToolCallChoice($context, $completion->choices[0]) as $result) {
+
+			/** @var list<string> */
+			$commandsUsed = [];
+
+			/** @var ToolCallChoice $toolCallChoice */
+			$toolCallChoice = $completion->choices[0];
+			foreach ($toolCallChoice->message->tool_calls as $call) {
+				if ($call->function->name !== 'run_command') {
+					continue;
+				}
+				$commandsUsed []= $this->formatToolCallDisplay($call->function);
+			}
+			foreach ($this->processToolCallChoice($context, $toolCallChoice) as $result) {
 				/** @var stdClass $result */
 				$this->conversationHistory[$historyKey] []= $result;
 			}
-			return $this->sendCommand($context, $model, $historyKey, $apiURL);
+			$nextResult = $this->sendCommand($context, $model, $historyKey, $apiURL);
+			return new Models\SendCommandResult(
+				$nextResult->content,
+				$nextResult->format,
+				array_merge($commandsUsed, $nextResult->commandsUsed),
+			);
 		}
 		$content = $completion->getContent();
 		if ($content === null) {
 			throw new UserException('AI response contained no text content.');
 		}
-		return $content;
+		if ($content === self::FORWARD_LAST_TOOL_OUTPUT) {
+			$lastToolResult = $this->getLastToolResult($historyKey);
+			if ($lastToolResult !== null) {
+				return new Models\SendCommandResult($lastToolResult, Models\ReplyFormat::AOML);
+			}
+		}
+		if (count(Safe::pregMatch('/<a href=[\'"]?text:\/\//s', $content))) {
+			return new Models\SendCommandResult($content, ReplyFormat::AOML);
+		}
+		return new Models\SendCommandResult($content);
 	}
 
 	/**
@@ -384,6 +448,84 @@ class AIController extends ModuleInstance {
 			]);
 			return "Error fetching URL {$url}. Please check your logs.";
 		}
+	}
+
+	/**
+	 * Execute a command as if a user had typed it
+	 *
+	 * @param string $command The command and all its parameters as string
+	 *
+	 * @return string The command output
+	 *
+	 * @throws StopExecutionException
+	 */
+	#[ExposeToAI('run_command')]
+	public function executeCommand(CmdContext $context, string $command): string {
+		$newContext = clone $context;
+		$newContext->message = $command;
+		$this->logger->notice('LLM runs !{command}', ['command' => $command]);
+		$sendTo = new class ($context->sendto) implements CommandReply {
+			public string $output = '';
+
+			public function __construct(private ?CommandReply $orig) {
+			}
+
+			/** @param string|list<string> $msg */
+			public function reply(string|array $msg): void {
+				if (isset($this->orig)) {
+					// $this->orig->reply($msg);
+				}
+				foreach ((array)$msg as $chunk) {
+					$this->output .= $chunk . "\n";
+				}
+			}
+		};
+		$newContext->sendto = $sendTo;
+		$this->commandManager->syncProcessCmd($newContext);
+		return $sendTo->output;
+	}
+
+	/**
+	 * Append a footer listing all commands used during tool calls.
+	 *
+	 * Only affects MARKDOWN results; AOML results are returned unchanged.
+	 */
+	private function addCommandsFooter(Models\SendCommandResult $result): Models\SendCommandResult {
+		if ($result->format !== Models\ReplyFormat::MARKDOWN || count($result->commandsUsed) === 0) {
+			return $result;
+		}
+		$commands = array_map(
+			static fn (string $command): string => Text::makeChatcmd("<symbol>{$command}", "/tell <myname> {$command}"),
+			$result->commandsUsed
+		);
+		$footer = "\n\nCommands used: " . implode(', ', $commands);
+		return new Models\SendCommandResult(
+			$result->content . $footer,
+			$result->format,
+			$result->commandsUsed,
+		);
+	}
+
+	/** Convert a SendCommandResult to bot-ready AOML format. */
+	private function formatContentForBot(Models\SendCommandResult $result): Models\SendCommandResult {
+		return match ($result->format) {
+			Models\ReplyFormat::AOML => $result,
+			Models\ReplyFormat::MARKDOWN => $this->formatMarkdownForBot($result),
+		};
+	}
+
+	/** Run the full markdown-to-AOML formatting pipeline. */
+	private function formatMarkdownForBot(Models\SendCommandResult $result): Models\SendCommandResult {
+		$formatted = $this->formatAiReply($result->content);
+		$summaries = Safe::pregMatch('/^\[\[(.*?)\]\]\s*/s', $formatted);
+		if (count($summaries) > 0) {
+			$formatted = substr($formatted, strlen($summaries[0]));
+		}
+		if (substr_count($formatted, "\n") > 1 || strlen($formatted) > 300) {
+			$summary = count($summaries) > 0 ? $summaries[1] : 'AI reply';
+			$formatted = Text::makeBlob($summary, $formatted);
+		}
+		return new Models\SendCommandResult($formatted, Models\ReplyFormat::AOML);
 	}
 
 	/**
@@ -502,6 +644,15 @@ class AIController extends ModuleInstance {
 		return [$body, $completion];
 	}
 
+	/**
+	 * Register a reflected PHP method as an AI-callable function.
+	 *
+	 * Generates the JSON Schema signature from the method's doc block and parameter types.
+	 *
+	 * @param object            $instance The module instance that owns the method.
+	 * @param \ReflectionMethod $method   The method to expose to the AI.
+	 * @param string            $name     The function name seen by the AI.
+	 */
 	private function registerAiFunction(object $instance, \ReflectionMethod $method, string $name): void {
 		$comment = $method->getDocComment();
 		if ($comment === false) {
@@ -567,10 +718,22 @@ class AIController extends ModuleInstance {
 		);
 	}
 
+	/**
+	 * Map a PHP reflection parameter to the corresponding JSON Schema property type.
+	 *
+	 * Supports backed enums, bool, float, string and int. Throws for unsupported types.
+	 *
+	 * @param \ReflectionParameter $param       The parameter to inspect.
+	 * @param string               $description The parameter description extracted from the doc block.
+	 *
+	 * @return Models\FunctionProperty A FunctionProperty subclass representing the JSON Schema type.
+	 *
+	 * @throws UnsupportedTypeException If the parameter type is unsupported or the enum has no cases.
+	 */
 	private function guessParamType(\ReflectionParameter $param, string $description): Models\FunctionProperty {
 		$type = $param->getType();
 		if (!($type instanceof \ReflectionNamedType)) {
-			throw new \Exception(
+			throw new UnsupportedTypeException(
 				'AI interfaces only support distinct parameter types, invalid type for '.
 					($param->getDeclaringClass()->name ?? '') . '::' . $param->getDeclaringFunction()->name.
 					'($' . $param->name . ')'
@@ -581,7 +744,7 @@ class AIController extends ModuleInstance {
 			// @mago-expect analysis:possibly-static-access-on-interface
 			$cases = $typeName::cases();
 			if (count($cases) === 0) {
-				throw new \Exception(
+				throw new UnsupportedTypeException(
 					"AI interfaces only support enums with cases, enum {$typeName} has no cases for ".
 						($param->getDeclaringClass()->name ?? '') . '::' . $param->getDeclaringFunction()->name.
 						'($' . $param->name . ')'
@@ -613,7 +776,7 @@ class AIController extends ModuleInstance {
 			case 'int':
 				return new Models\FunctionPropertyInt(description: $description);
 			default:
-				throw new \Exception(
+				throw new UnsupportedTypeException(
 					"AI interfaces only support specific parameter types, invalid type '{$typeName}' for ".
 						($param->getDeclaringClass()->name ?? '') . '::' . $param->getDeclaringFunction()->name.
 						'($' . $param->name . ')'
@@ -637,7 +800,7 @@ class AIController extends ModuleInstance {
 		$calls = $choice->message->tool_calls;
 		foreach ($calls as $call) {
 			$result []= (object)[
-				'role' => 'tool',
+				'role' => Models\Role::TOOL->value,
 				'tool_call_id' => $call->id,
 				'content' => $this->processFunctionCall($context, $call->function),
 			];
@@ -645,6 +808,17 @@ class AIController extends ModuleInstance {
 		return $result;
 	}
 
+	/**
+	 * Execute a single AI-requested function call and JSON-serialize the result.
+	 *
+	 * Looks up the registered function, injects the CmdContext if required,
+	 * and encodes the return value (objects are serialized, everything else is JSON-encoded).
+	 *
+	 * @param CmdContext   $context The command context for injection.
+	 * @param FunctionCall $call    The function name and arguments from the AI.
+	 *
+	 * @return string The JSON-encoded result, or an error message.
+	 */
 	private function processFunctionCall(CmdContext $context, FunctionCall $call): string {
 		$arguments = Safe::jsonDecode($call->arguments, Type\dict(Type\string(), Type\mixed()));
 		if (!array_key_exists($call->name, $this->toolFunctions)) {
@@ -673,6 +847,38 @@ class AIController extends ModuleInstance {
 			return json_encode(Hydrator::serialize($result), \JSON_UNESCAPED_SLASHES);
 		}
 		return json_encode($result, \JSON_UNESCAPED_SLASHES);
+	}
+
+	/**
+	 * Build a human-readable string for a tool call to show in the footer.
+	 *
+	 * For run_command the actual bot command is returned, for everything else the function name.
+	 */
+	private function formatToolCallDisplay(FunctionCall $call): string {
+		if ($call->name === 'run_command') {
+			$args = Safe::jsonDecode($call->arguments, Type\dict(Type\string(), Type\mixed()));
+			$command = $args['command'] ?? null;
+			if (is_string($command)) {
+				return $command;
+			}
+		}
+		return $call->name;
+	}
+
+	/**
+	 * Get the content of the most recent tool result in the conversation history.
+	 *
+	 * @return ?string The content, or null if no tool result exists.
+	 */
+	private function getLastToolResult(string $historyKey): ?string {
+		$messages = $this->conversationHistory[$historyKey] ?? [];
+		for ($i = count($messages) - 1; $i >= 0; $i--) {
+			if (isset($messages[$i]->role) && $messages[$i]->role === Models\Role::TOOL->value) {
+				$content = $messages[$i]->content ?? null;
+				return is_string($content) ? $content : null;
+			}
+		}
+		return null;
 	}
 
 	/**

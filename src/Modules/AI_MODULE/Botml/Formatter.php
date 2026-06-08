@@ -31,7 +31,7 @@ class Formatter {
 				'use_underscore' => true,
 				'unordered_list_markers' => ['-', '*', '+'],
 			],
-			'html_input' => 'escape',
+			'html_input' => 'allow',
 			'allow_unsafe_links' => false,
 			'max_nesting_level' => \PHP_INT_MAX,
 			'max_delimiters_per_line' => \PHP_INT_MAX,
@@ -93,6 +93,8 @@ class Formatter {
 		}
 		$rendered = $this->documentRenderer->renderDocument($document)->getContent();
 		$rendered = str_ireplace('<br />', "\n", $rendered);
+		$rendered = Safe::pregReplace("/&lt;a href='((?:itemref|chatcmd).*?)'&gt;(.+?)&lt;\/a&gt;/s", "<a href='$1'>$2</a>", $rendered);
+		$rendered = str_replace(['&lt;symbol&gt;', '&lt;myname&gt;'], ['<symbol>', '<myname>'], $rendered);
 
 		return $rendered;
 	}
