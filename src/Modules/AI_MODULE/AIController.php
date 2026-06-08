@@ -248,6 +248,9 @@ class AIController extends ModuleInstance {
 
 			try {
 				$result = $this->sendCommand($context, $this->aiModel, $key);
+				if ($result->content === '' || $result->content === '""') {
+					return;
+				}
 				$result = $this->addCommandsFooter($result);
 				$result = $this->formatContentForBot($result);
 			} catch (UserException $e) {
