@@ -108,6 +108,7 @@ class AIController extends ModuleInstance {
 	)]
 	public string $aiApiUrl = self::LOCAL;
 
+	/** Maximum age for entries to keep in the context */
 	#[NCA\Setting\Time(
 		options: ['1h', '2h', '4h', '6h', '12h', '1d', '2d', '7w']
 	)]
