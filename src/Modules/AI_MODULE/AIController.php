@@ -106,12 +106,13 @@ class AIController extends ModuleInstance {
 			'Google Gemini' => self::GEMINI,
 		]
 	)]
+	public string $aiApiUrl = self::LOCAL;
+
 	#[NCA\Setting\Time(
 		options: ['1h', '2h', '4h', '6h', '12h', '1d', '2d', '7w']
 	)]
 	public int $aiMaxMessageAge = 24*3_600;
 
-	public string $aiApiUrl = self::LOCAL;
 
 	/** The API token (if using an API that requires it) */
 	#[NCA\Setting\Text(accessLevel: AccessLevel::Superadmin, confidential: true)]
