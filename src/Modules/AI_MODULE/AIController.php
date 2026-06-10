@@ -13,12 +13,11 @@ use BackedEnum;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Exception;
 use Nadybot\Core\{Attributes as NCA, CmdContext, CommandManager, Hydrator, ModuleInstance, Registry, Safe, Text};
-use Nadybot\Core\Attributes\ExposeToAI;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\Exceptions\{StopExecutionException, UserException};
 use Nadybot\Core\Routing\Source;
 use Nadybot\Core\Types\{AccessLevel, CommandReply};
-use Nadybot\Modules\AI_MODULE\Models\{FunctionCall, ReplyFormat, ToolCallChoice};
+use Nadybot\Modules\AI_MODULE\Models\{FunctionCall, ReplyFormat, Role, ToolCallChoice};
 use Nadylib\Type;
 use Nadylib\Type\Exception\AssertException;
 use Psr\Log\LoggerInterface;
@@ -107,6 +106,11 @@ class AIController extends ModuleInstance {
 			'Google Gemini' => self::GEMINI,
 		]
 	)]
+	#[NCA\Setting\Time(
+		options: ['1h', '2h', '4h', '6h', '12h', '1d', '2d', '7w']
+	)]
+	public int $aiMaxMessageAge = 24*3_600;
+
 	public string $aiApiUrl = self::LOCAL;
 
 	/** The API token (if using an API that requires it) */
@@ -138,6 +142,10 @@ class AIController extends ModuleInstance {
 	)]
 	public string $aiHistoryMode = self::HISTORY_MODE_EXPIRE;
 
+	/** Maximum age of AI conversation history entries in seconds (0 = disabled) */
+	#[NCA\Setting\Number]
+	public int $aiHistoryMaxAge = 0;
+
 	#[NCA\Inject]
 	private HttpClientBuilder $http;
 
@@ -150,19 +158,7 @@ class AIController extends ModuleInstance {
 	#[NCA\Logger]
 	private LoggerInterface $logger;
 
-	/**
-	 * Conversation histories per channel/DM key
-	 *
-	 * @var array<string,list<stdClass>>
-	 */
-	private array $conversationHistory = [];
-
-	/**
-	 * Active request flags per history key to block concurrent queries
-	 *
-	 * @var array<string,true>
-	 */
-	private array $activeKeys = [];
+	private ConversationStore $conversationStore;
 
 	/**
 	 * @var array<int,Models\ToolFunction>
@@ -174,12 +170,13 @@ class AIController extends ModuleInstance {
 	/** @var array<string,ExposedFunction> */
 	private array $toolFunctions = [];
 
-	#[NCA\Setup]
 	/**
 	 * Scan all registered module instances for methods annotated with #[ExposeToAI]
 	 * and register them as callable AI functions.
 	 */
+	#[NCA\Setup]
 	public function setup(): void {
+		$this->conversationStore = new ConversationStore();
 		$instances = Registry::getAllInstances();
 		foreach ($instances as $instance) {
 			$class = new \ReflectionClass($instance);
@@ -203,11 +200,7 @@ class AIController extends ModuleInstance {
 		}
 	}
 
-	/**
-	 * Chat with an AI
-	 *
-	 * @psalm-suppress PropertyTypeCoercion
-	 */
+	/** Chat with an AI */
 	#[NCA\HandlesCommand('ai')]
 	#[NCA\Untestable]
 	public function aiCommand(
@@ -219,32 +212,26 @@ class AIController extends ModuleInstance {
 			$context->reply('AI chat is not available in this context.');
 			return;
 		}
-		if (!isset($this->conversationHistory[$key])) {
-			$this->conversationHistory[$key] = [];
-		}
-		if (isset($this->activeKeys[$key])) {
-			$context->reply('I can only process one query at a time.');
-			return;
-		}
-		$this->activeKeys[$key] = true;
+		$conversation = $this->conversationStore->getOrCreate($key);
+		$lock = $conversation->acquire();
 		try {
 			if ($this->aiHistoryMode === self::HISTORY_MODE_EXPIRE) {
-				$this->expireHistory($key);
+				$conversation->trimToCount(self::MAX_HISTORY_EXPIRE);
 			}
-			if (count($this->conversationHistory[$key]) === 0 && strlen($this->aiPrompt) > 0) {
-				$this->conversationHistory[$key] []= (object)[
-					'role' => 'system',
-					'content' => str_replace(
+			if ($conversation->isEmpty() && strlen($this->aiPrompt) > 0) {
+				$conversation->push(Conversation::msg(
+					Role::SYSTEM,
+					str_replace(
 						'<myname>',
 						$this->config->main->character,
 						$this->aiPrompt
 					)."\n" . self::ADDED_SYSTEM_PROMPT,
-				];
+				));
 			}
-			$this->conversationHistory[$key] []= (object)[
-				'role' => Models\Role::USER->value,
-				'content' => sprintf('[%s] %s', $context->char->name, $text),
-			];
+			$conversation->push(Conversation::msg(
+				Role::USER,
+				sprintf('[%s] %s', $context->char->name, $text),
+			));
 
 			try {
 				$result = $this->sendCommand($context, $this->aiModel, $key);
@@ -264,23 +251,23 @@ class AIController extends ModuleInstance {
 				$context->reply('An error occurred while processing your request. Please check the logs for more details.');
 				return;
 			}
-			$this->conversationHistory[$key] []= (object)[
-				'role' => Models\Role::ASSISTANT->value,
-				'content' => $result->content,
-			];
+			$conversation->push(Conversation::msg(
+				Role::ASSISTANT,
+				$result->content,
+			));
 			$context->reply($result->content);
-		} finally {
-			unset($this->activeKeys[$key]);
-		}
-		if ($this->aiHistoryMode === self::HISTORY_MODE_COMPACT) {
-			try {
-				$this->compactWithSummary($key);
-			} catch (Throwable $e) {
-				$this->logger->error('Compacting conversation history failed: {error}', [
-					'error' => $e->getMessage(),
-					'exception' => $e,
-				]);
+			if ($this->aiHistoryMode === self::HISTORY_MODE_COMPACT) {
+				try {
+					$this->compactWithSummary($conversation);
+				} catch (Throwable $e) {
+					$this->logger->error('Compacting conversation history failed: {error}', [
+						'error' => $e->getMessage(),
+						'exception' => $e,
+					]);
+				}
 			}
+		} finally {
+			$lock->release();
 		}
 	}
 
@@ -297,7 +284,8 @@ class AIController extends ModuleInstance {
 	 * and returns the final text response.
 	 */
 	public function sendCommand(CmdContext $context, string $model, string $historyKey, ?string $apiURL=null): Models\SendCommandResult {
-		$messages = $this->conversationHistory[$historyKey];
+		$conversation = $this->conversationStore->get($historyKey);
+		$messages = $conversation->getMessages();
 		assert(count($messages) > 0);
 		[$body, $completion] = $this->executeRequest($model, $messages, $apiURL);
 		if ($completion->choices[0] instanceof ToolCallChoice) {
@@ -316,7 +304,7 @@ class AIController extends ModuleInstance {
 
 			/** @var stdClass $llmToolCall */
 			$llmToolCall = $decoded->choices[0]->message;
-			$this->conversationHistory[$historyKey] []= $llmToolCall;
+			$conversation->push($llmToolCall);
 
 			/** @var list<string> */
 			$commandsUsed = [];
@@ -330,8 +318,7 @@ class AIController extends ModuleInstance {
 				$commandsUsed []= $this->formatToolCallDisplay($call->function);
 			}
 			foreach ($this->processToolCallChoice($context, $toolCallChoice) as $result) {
-				/** @var stdClass $result */
-				$this->conversationHistory[$historyKey] []= $result;
+				$conversation->push($result);
 			}
 			$nextResult = $this->sendCommand($context, $model, $historyKey, $apiURL);
 			return new Models\SendCommandResult(
@@ -345,9 +332,9 @@ class AIController extends ModuleInstance {
 			throw new UserException('AI response contained no text content.');
 		}
 		if ($content === self::FORWARD_LAST_TOOL_OUTPUT) {
-			$lastToolResult = $this->getLastToolResult($historyKey);
+			$lastToolResult = $conversation->getLastToolResult();
 			if ($lastToolResult !== null) {
-				return new Models\SendCommandResult($lastToolResult, Models\ReplyFormat::AOML);
+				return new Models\SendCommandResult($lastToolResult, ReplyFormat::AOML);
 			}
 		}
 		if (count(Safe::pregMatch('/<a href=[\'"]?text:\/\//s', $content))) {
@@ -361,10 +348,10 @@ class AIController extends ModuleInstance {
 	 *
 	 * @return string the current date and time in ISO 8601 format
 	 */
-	#[ExposeToAI(name: 'get_date_time')]
+	#[NCA\ExposeToAI(name: 'get_date_time')]
 	public function getCurrentTime(): string {
 		$dateTime = new DateTimeImmutable('now');
-		return $dateTime->format(\DateTime::ISO8601);
+		return $dateTime->format(\DateTime::ATOM);
 	}
 
 	/**
@@ -376,7 +363,7 @@ class AIController extends ModuleInstance {
 	 *
 	 * @return string|list<stdClass> Either a JSON structure with results, or an error message
 	 */
-	#[ExposeToAI(name: 'web_search')]
+	#[NCA\ExposeToAI(name: 'web_search')]
 	public function webSearch(string $query): string|array {
 		$client = $this->http->build();
 		$request = new Request(
@@ -416,7 +403,24 @@ class AIController extends ModuleInstance {
 				'class' => $e::class,
 				'exception' => $e,
 			]);
-			return 'Error fetching search  results. Please check your logs.';
+			return 'Error fetching search results. Please check your logs.';
+		}
+	}
+
+	/** Expire old messages from context */
+	#[NCA\Timer(interval: '1hr')]
+	public function expireOutdatedMessages(): void {
+		if ($this->aiMaxMessageAge <= 0) {
+			return;
+		}
+		foreach ($this->conversationStore->getKeys() as $key) {
+			$store = $this->conversationStore->get($key);
+			$lock = $store->acquire();
+			try {
+				$store->expireOlderThan($this->aiMaxMessageAge);
+			} finally {
+				$lock->release();
+			}
 		}
 	}
 
@@ -428,7 +432,7 @@ class AIController extends ModuleInstance {
 	 *
 	 * @return string The website content or an error message
 	 */
-	#[ExposeToAI(name: 'fetch_url')]
+	#[NCA\ExposeToAI(name: 'fetch_url')]
 	public function fetchURL(string $url): string {
 		$client = $this->http->build();
 		$request = new Request(uri: $url, method: 'GET');
@@ -462,7 +466,7 @@ class AIController extends ModuleInstance {
 	 *
 	 * @throws StopExecutionException
 	 */
-	#[ExposeToAI('run_command')]
+	#[NCA\ExposeToAI('run_command')]
 	public function executeCommand(CmdContext $context, string $command): string {
 		$newContext = clone $context;
 		$newContext->message = $command;
@@ -494,7 +498,7 @@ class AIController extends ModuleInstance {
 	 * Only affects MARKDOWN results; AOML results are returned unchanged.
 	 */
 	private function addCommandsFooter(Models\SendCommandResult $result): Models\SendCommandResult {
-		if ($result->format !== Models\ReplyFormat::MARKDOWN || count($result->commandsUsed) === 0) {
+		if ($result->format !== ReplyFormat::MARKDOWN || count($result->commandsUsed) === 0) {
 			return $result;
 		}
 		$commands = array_map(
@@ -512,8 +516,8 @@ class AIController extends ModuleInstance {
 	/** Convert a SendCommandResult to bot-ready AOML format. */
 	private function formatContentForBot(Models\SendCommandResult $result): Models\SendCommandResult {
 		return match ($result->format) {
-			Models\ReplyFormat::AOML => $result,
-			Models\ReplyFormat::MARKDOWN => $this->formatMarkdownForBot($result),
+			ReplyFormat::AOML => $result,
+			ReplyFormat::MARKDOWN => $this->formatMarkdownForBot($result),
 		};
 	}
 
@@ -528,7 +532,7 @@ class AIController extends ModuleInstance {
 			$summary = count($summaries) > 0 ? $summaries[1] : 'AI reply';
 			$formatted = Text::makeBlob($summary, $formatted);
 		}
-		return new Models\SendCommandResult($formatted, Models\ReplyFormat::AOML);
+		return new Models\SendCommandResult($formatted, ReplyFormat::AOML);
 	}
 
 	/**
@@ -803,7 +807,7 @@ class AIController extends ModuleInstance {
 		$calls = $choice->message->tool_calls;
 		foreach ($calls as $call) {
 			$result []= (object)[
-				'role' => Models\Role::TOOL->value,
+				'role' => Role::TOOL->value,
 				'tool_call_id' => $call->id,
 				'content' => $this->processFunctionCall($context, $call->function),
 			];
@@ -869,124 +873,36 @@ class AIController extends ModuleInstance {
 	}
 
 	/**
-	 * Get the content of the most recent tool result in the conversation history.
-	 *
-	 * @return ?string The content, or null if no tool result exists.
-	 */
-	private function getLastToolResult(string $historyKey): ?string {
-		$messages = $this->conversationHistory[$historyKey] ?? [];
-		for ($i = count($messages) - 1; $i >= 0; $i--) {
-			if (isset($messages[$i]->role) && $messages[$i]->role === Models\Role::TOOL->value) {
-				$content = $messages[$i]->content ?? null;
-				return is_string($content) ? $content : null;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Find the index of the next message with role "user".
-	 *
-	 * @param list<stdClass> $messages
-	 * @param int            $start    The search position to start from
-	 *
-	 * @return ?int The index, or null if none exists.
-	 */
-	private function searchNextUserMessage(array $messages, int $start): ?int {
-		$count = count($messages);
-		$search = Models\Role::USER->value;
-		for ($i = $start; $i < $count; $i++) {
-			if (isset($messages[$i]->role) && $messages[$i]->role === $search) {
-				return $i;
-			}
-		}
-		return null;
-	}
-
-	/**
-	 * Find the index of the last message with role "user".
-	 *
-	 * @param list<stdClass> $messages
-	 * @param ?int           $before   Search no further than this index.
-	 *
-	 * @return ?int The index, or null if none exists.
-	 */
-	private function searchLastUserMessage(array $messages, ?int $before=null): ?int {
-		$end = $before ?? count($messages) - 1;
-		$search = Models\Role::USER->value;
-		for ($i = $end; $i >= 0; $i--) {
-			if (isset($messages[$i]->role) && $messages[$i]->role === $search) {
-				return $i;
-			}
-		}
-		return null;
-	}
-
-	/** Drop the oldest complete turn from the history. */
-	private function deleteOldestHistoryEntry(string $key): bool {
-		$messages = $this->conversationHistory[$key];
-		$firstUser = $this->searchNextUserMessage($messages, 1);
-		if ($firstUser === null) {
-			return false;
-		}
-		$secondUser = $this->searchNextUserMessage($messages, $firstUser + 1);
-		if ($secondUser === null) {
-			// firstUser is the last user in the history (current turn).
-			return false;
-		}
-		array_splice($this->conversationHistory[$key], $firstUser, $secondUser - $firstUser);
-		return true;
-	}
-
-	/** Drop the oldest complete turns to keep the history short. */
-	private function expireHistory(string $key): void {
-		while (count($this->conversationHistory[$key]) > self::MAX_HISTORY_EXPIRE) {
-			if (!$this->deleteOldestHistoryEntry($key)) {
-				break;
-			}
-		}
-	}
-
-	/**
 	 * Replace the oldest complete turns with a generated summary.
 	 *
 	 * The most recent messages are preserved so pronouns and context remain usable.
+	 *
+	 * @throws UserException If summary generation returns no content.
 	 */
-	private function compactWithSummary(string $key): void {
-		while (count($this->conversationHistory[$key]) > self::MAX_HISTORY_COMPACT) {
-			if (!$this->compactOldestBlock($key)) {
-				break;
-			}
+	private function compactWithSummary(Conversation $conversation): void {
+		if ($conversation->count() <= self::MAX_HISTORY_COMPACT) {
+			return;
 		}
+		$conversation->replaceOldestBlock(
+			self::COMPACT_KEEP_MESSAGES,
+			$this->createSummaryTurn(...),
+		);
 	}
 
 	/**
-	 * Summarize the oldest block of the history and replace it with a summary turn.
+	 * @param list<stdClass> $messages
 	 *
-	 * @return bool Whether a block was compacted.
+	 * @return list<stdClass>
+	 *
+	 * @throws UserException If summary generation returns no content.
 	 */
-	private function compactOldestBlock(string $key): bool {
-		$messages = $this->conversationHistory[$key];
-		$count = count($messages);
+	private function createSummaryTurn(array $messages): array {
+		$messages []= Conversation::msg(
+			Role::USER,
+			self::COMPACT_SUMMARY_PROMPT,
+		);
 
-		/**
-		 * Index of the first message to *keep* (not summarize).
-		 * Everything between index 1 and $splitIndex-1 goes to the summary.
-		 */
-		$splitIndex = $this->searchLastUserMessage($messages, $count - self::COMPACT_KEEP_MESSAGES);
-		if ($splitIndex === null || $splitIndex <= 1) {
-			return false;
-		}
-
-		$summaryMessages = array_slice($messages, 1, $splitIndex - 1);
-		assert(count($summaryMessages) > 0);
-		$summaryMessages []= (object)[
-			'role' => Models\Role::USER->value,
-			'content' => self::COMPACT_SUMMARY_PROMPT,
-		];
-
-		/** @psalm-suppress ArgumentTypeCoercion */
-		[, $completion] = $this->executeRequest($this->aiModel, $summaryMessages, forbidTools: true);
+		[, $completion] = $this->executeRequest($this->aiModel, $messages, forbidTools: true);
 		$summaryText = $completion->getContent();
 		if ($summaryText === null) {
 			throw new UserException('Summary generation returned no content.');
@@ -994,35 +910,10 @@ class AIController extends ModuleInstance {
 		$this->logger->info('AI history compacted to {compacted}', [
 			'compacted' => $summaryText,
 		]);
-
-		$recentMessages = array_slice($messages, $splitIndex);
-		$this->setHistory($key, $summaryText, $recentMessages);
-		return true;
-	}
-
-	/**
-	 * Replace the history of a key with a system prompt, a summary turn and recent context.
-	 *
-	 * @param list<stdClass> $recentMessages
-	 */
-	private function setHistory(string $key, string $summary, array $recentMessages): void {
-		/** @var list<stdClass> $newHistory */
-		$newHistory = [];
-		$newHistory []= $this->conversationHistory[$key][0];
-		$newHistory []= (object)[
-			'role' => Models\Role::USER->value,
-			'content' => self::COMPACT_SUMMARY_PROMPT,
+		return [
+			Conversation::msg(Role::USER, self::COMPACT_SUMMARY_PROMPT),
+			Conversation::msg(Role::ASSISTANT, $summaryText),
 		];
-		$newHistory []= (object)[
-			'role' => Models\Role::ASSISTANT->value,
-			'content' => $summary,
-		];
-		foreach ($recentMessages as $msg) {
-			$newHistory []= $msg;
-		}
-
-		/** @psalm-suppress PropertyTypeCoercion */
-		$this->conversationHistory[$key] = $newHistory;
 	}
 
 	/** Get the conversation key in the history to allow or prevent shared history */
