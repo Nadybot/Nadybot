@@ -47,7 +47,8 @@ final class HttpRetry implements ApplicationInterceptor {
 
 				// Request can safely be retried.
 			}
-			$delay = 0.25 * pow(2, $attempt);
+			$base = 0.25 * pow(2, $attempt);
+			$delay = ($base / 2) + (mt_rand() / mt_getrandmax()) * ($base / 2);
 			$this->logger->info('Retrying {url} in {delay}ms', [
 				'url' => $request->getUri()->__toString(),
 				'delay' => $delay,

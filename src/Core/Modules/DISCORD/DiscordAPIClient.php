@@ -457,11 +457,12 @@ class DiscordAPIClient extends ModuleInstance {
 
 				$body = $response->getBody()->buffer();
 				if ($response->getStatus() >= 500 && $response->getStatus() < 600) {
-					$delay = 0.5;
+					$base = 0.5;
+					$delay = ($base / 2) + (mt_rand() / mt_getrandmax()) * ($base / 2);
 					$this->logger->warning(
 						'Got a {code} when sending message to Discord{retry}',
 						[
-							'retry' => ($retries > 0) ? ", retrying in {$delay}s" : '',
+							'retry' => ($retries > 0) ? ', retrying in ' . number_format($delay, 3) . 's' : '',
 							'code' => $response->getStatus(),
 						]
 					);
@@ -472,11 +473,12 @@ class DiscordAPIClient extends ModuleInstance {
 					continue;
 				}
 			} catch (\Exception $e) {
-				$delay = 0.5;
+				$base = 0.5;
+				$delay = ($base / 2) + (mt_rand() / mt_getrandmax()) * ($base / 2);
 				$this->logger->error(
 					'Error sending message to discord: {error}{retry}',
 					[
-						'retry' => ($retries > 0) ? ", retrying in {$delay}s" : '',
+						'retry' => ($retries > 0) ? ', retrying in ' . number_format($delay, 3) . 's' : '',
 						'error' => $e->getMessage(),
 						'delay' => $delay,
 						'exception' => $e,
