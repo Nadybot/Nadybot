@@ -55,15 +55,11 @@ class PlayerHistoryManager extends ModuleInstance {
 		}
 		$client = $this->builder->build();
 
-		$triesLeft = 5;
 		$response = null;
 		$url = $urls[0];
 		do {
 			$body = null;
-			if (count($urls) > 0) {
-				$url = array_shift($urls);
-			}
-			$triesLeft--;
+			$url = array_shift($urls);
 			try {
 				$response = $client->request(new Request($url), new TimeoutCancellation(10));
 				if ($response->getStatus() !== 200) {
@@ -73,7 +69,7 @@ class PlayerHistoryManager extends ModuleInstance {
 			} catch (Throwable) {
 				continue;
 			}
-		} while (!isset($body) && $triesLeft > 0);
+		} while (!isset($body) && count($urls) > 0);
 		if ($url !== $mainUrl && $dimension > 3) {
 			async($client->request(...), new Request($mainUrl))->ignore();
 		}
@@ -86,7 +82,6 @@ class PlayerHistoryManager extends ModuleInstance {
 		return $this->parsePlayerHistory($body, $name);
 	}
 
-	/** @psalm-param callable(?PlayerHistory, mixed...) $callback */
 	private function parsePlayerHistory(string $data, string $name): ?PlayerHistory {
 		try {
 			$history = Safe::jsonDecode($data, Type\vec(Type\dict(Type\string(), Type\mixed())));

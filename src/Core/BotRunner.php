@@ -5,7 +5,7 @@ namespace Nadybot\Core;
 use function Amp\async;
 use function Amp\ByteStream\getStderr;
 use function Amp\File\{createDefaultDriver, filesystem};
-use function Safe\{fwrite, getopt, ini_set, parse_url, putenv, sapi_windows_set_ctrl_handler, sleep};
+use function Safe\{getopt, ini_set, parse_url, putenv, sapi_windows_set_ctrl_handler, sleep};
 
 use Amp\ByteStream\BufferedReader;
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
@@ -231,7 +231,8 @@ class BotRunner {
 			$config = $this->getConfigFile();
 			Registry::setInstance(Registry::formatName(BotConfig::class), $config);
 			Registry::setInstance(Registry::formatName(KeyedMutex::class), new LocalKeyedMutex());
-			$retryHandler = new HttpRetry(8);
+			$retryLimit = self::$arguments->testRun ? 3 : 8;
+			$retryHandler = new HttpRetry($retryLimit);
 			Registry::injectDependencies($retryHandler);
 			$rateLimitRetryHandler = new HttpRetryRateLimits();
 			Registry::injectDependencies($rateLimitRetryHandler);
@@ -432,19 +433,16 @@ class BotRunner {
 			!class_exists('Revolt\\EventLoop')
 			|| !class_exists('Amp\\Future')
 		) {
-			// @phpstan-ignore-next-line
-			fwrite(
-				\STDERR,
+			Util::die(
 				"Nadybot cannot find all the required composer modules in 'vendor'.\n".
 				"Please run 'composer install' to install all missing modules\n".
 				"or download one of the Nadybot bundles and copy the 'vendor'\n".
 				"directory from the zip-file into the Nadybot main directory.\n".
 				"\n".
 				"See https://github.com/Nadybot/Nadybot/wiki/Running#cloning-the-repository\n".
-				"for more information.\n"
+				"for more information.\n",
+				5
 			);
-			sleep(5);
-			exit(1);
 		}
 	}
 
@@ -459,10 +457,7 @@ class BotRunner {
 	private function checkRequiredModules(): void {
 		// @phpstan-ignore if.alwaysFalse
 		if (version_compare(\PHP_VERSION, '8.1.17', '<')) {
-			// @phpstan-ignore-next-line
-			fwrite(\STDERR, 'Nadybot 7 needs at least PHP version 8 to run, you have ' . \PHP_VERSION . "\n");
-			sleep(5);
-			exit(1);
+			Util::die('Nadybot 7 needs at least PHP version 8 to run, you have ' . \PHP_VERSION . "\n", 5);
 		}
 		$missing = [];
 		$requiredModules = [
@@ -506,10 +501,7 @@ class BotRunner {
 		if (!count($missing)) {
 			return;
 		}
-		// @phpstan-ignore-next-line
-		fwrite(\STDERR, 'Nadybot needs the following missing PHP-extensions: ' . implode(', ', $missing) . ".\n");
-		sleep(5);
-		exit(1);
+		Util::die('Nadybot needs the following missing PHP-extensions: ' . implode(', ', $missing) . ".\n", 5);
 	}
 
 	/** Parse all command line options and return them */

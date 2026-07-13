@@ -20,6 +20,14 @@ class TestCase {
 	 * @param null|string  $capture            The route source from which to capture messages
 	 * @param list<string> $captured           The data to expect being captured
 	 * @param list<string> $unexpectedCaptured The data to expect being captured
+	 * @param null|string  $id                 An optional identifier used to reference this test
+	 * @param list<string> $requires           Identifiers of tests that must have succeeded
+	 *                                         for this test to run
+	 * @param list<string> $skipWhen           Regular expression(s) that mark a failed test
+	 *                                         as skipped instead of failed
+	 * @param list<string> $skipWhenCaptured   Regular expression(s) that mark a failed test
+	 *                                         as skipped instead of failed when matched
+	 *                                         in the captured output
 	 */
 	public function __construct(
 		public readonly string $command,
@@ -38,6 +46,22 @@ class TestCase {
 			ForceList,
 			CastListToType('string')
 		] public readonly array $unexpectedCaptured=[],
+		public readonly ?string $id=null,
+		#[
+			MapFrom('requires'),
+			ForceList,
+			CastListToType('string')
+		] public readonly array $requires=[],
+		#[
+			MapFrom('skip-when'),
+			ForceList,
+			CastListToType('string')
+		] public readonly array $skipWhen=[],
+		#[
+			MapFrom('skip-when-captured'),
+			ForceList,
+			CastListToType('string')
+		] public readonly array $skipWhenCaptured=[],
 	) {
 		if (
 			!count($this->expect)

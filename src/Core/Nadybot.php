@@ -2016,9 +2016,7 @@ class Nadybot {
 		}
 		$this->logger->notice('Entering testing mode.');
 		if (!Testing::canRun()) {
-			/** @phpstan-ignore-next-line */
-			\fwrite(\STDOUT, "Testing mode selected, but missing requirements!\n");
-			exit(1);
+			Util::die("Testing mode selected, but missing requirements!\n");
 		}
 		$testing = new Testing();
 		Registry::injectDependencies($testing);

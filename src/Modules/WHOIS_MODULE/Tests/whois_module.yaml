@@ -1,40 +1,55 @@
 ---
 name: Whois Module
 groups:
-
   - name: Whois command
     tests:
       - command: whois <superadmin>
+        id: whois-superadmin
         name: Get whois-information about us
         expect: Detailed Info for
+        skip-when:
+          - "Note: Could not retrieve detailed info for character"
       - command: whois b4erbel
         name: Non-existent characters give errors
         expect: Character.*does not exist
       - command: whois nady 5
+        requires: whois-superadmin
         name: We can get information about chars on RK5
-        expect: '220'
+        expect: "220"
       - command: whois Deylaw 6
+        id: whois-deylaw
+        requires: whois-superadmin
         name: Also on RK19
-        expect: '377050696'
+        expect: "377050696"
       - command: whois 960756792
+        requires: whois-superadmin
         name: We can get information about a UID
         expect: Nadybot
 
   - name: History command
     tests:
       - command: history <superadmin>
+        id: history-superadmin
         name: Get history of us in this dimension
-        expect: History of
+        expect:
+          - History of <superadmin> for RK
+          - History provided by
+        skip-when:
+          - "Could not get history of"
       - command: history b4erbel
         name: Getting history of a non-existing character gives a message
-        expect: Could not get History of B4erbel
+        expect: Could not get history of B4erbel
       - command: history regolus 5
+        id: history-regolus
+        requires: history-superadmin
         name: Get explicit history for a dummy in RK5
         expect: History of Regolus for RK5
       - command: history regolus 1
+        requires: history-superadmin
         name: We can also get history for chars of Atlanteen
         expect: History of Regolus for RK1
       - command: history chrisax 2
+        requires: history-superadmin
         name: And for Rimor
         expect: History of Chrisax for RK2
 
@@ -59,6 +74,9 @@ groups:
         expect:
           - Search results for "e" \(\d+\)
           - Male|Female
+        requires:
+          - whois-deylaw
+          - history-regolus
       - command: findplayer b4erbel
         name: If no match is found, give an error
         expect: Could not find any players matching

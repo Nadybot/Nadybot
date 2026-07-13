@@ -51,7 +51,7 @@ class PlayerHistoryController extends ModuleInstance {
 
 	private function renderPlayerHistory(?PlayerHistory $history, string $name, int $dimension): string {
 		if ($history === null) {
-			return "Could not get History of {$name} on RK{$dimension}.";
+			return "Could not get history of {$name} on RK{$dimension}.";
 		}
 		$blob = '';
 		$header = "Date            Level    AI    Faction    Breed     Guild (rank)\n".

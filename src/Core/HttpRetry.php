@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use function Amp\delay;
 use Amp\{Cancellation, ForbidCloning as AmpForbidCloning, ForbidSerialization as AmpForbidSerialization};
 use Amp\Http\Client\{ApplicationInterceptor, DelegateHttpClient, HttpException, Request, Response};
+use Amp\Socket\ConnectException;
 use Nadybot\Core\Attributes as NCA;
 
 /** This will automatically retry HTTP-requests on HTTP exceptions */
@@ -44,6 +45,9 @@ final class HttpRetry implements ApplicationInterceptor {
 				if (!$request->isIdempotent()) {
 					throw $exception;
 				}
+				if (self::isPermanentFailure($exception)) {
+					throw $exception;
+				}
 
 				// Request can safely be retried.
 			}
@@ -58,5 +62,23 @@ final class HttpRetry implements ApplicationInterceptor {
 		} while ($attempt++ <= $this->retryLimit);
 
 		throw $exception;
+	}
+
+	/**
+	 * Check if an HTTP exception indicates a permanent failure that should not
+	 * be retried, such as a non-existent domain (NXDOMAIN).
+	 */
+	private static function isPermanentFailure(HttpException $exception): bool {
+		$throwable = $exception;
+		while ($throwable !== null) {
+			if ($throwable instanceof ConnectException) {
+				$message = $throwable->getMessage();
+				if (str_contains($message, 'NXDomain') || str_contains($message, 'Name resolution failed')) {
+					return true;
+				}
+			}
+			$throwable = $throwable->getPrevious();
+		}
+		return false;
 	}
 }

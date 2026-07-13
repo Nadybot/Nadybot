@@ -6,7 +6,7 @@ use function Safe\{json_decode, json_encode};
 use EventSauce\ObjectHydrator\{MapFrom, MapperSettings, UnableToHydrateObject};
 use EventSauce\ObjectHydrator\PropertyCasters\CastListToType;
 use Nadybot\Core\Attributes\{Instance, JSON\Ignore};
-use Nadybot\Core\{BotRunner, Filesystem, Hydrator, Safe};
+use Nadybot\Core\{BotRunner, Filesystem, Hydrator, Safe, Util};
 use Nadylib\IMEX\ImportException;
 use Nadylib\{IMEX, Type};
 
@@ -60,15 +60,12 @@ class BotConfig {
 					$errorMessages []= $e->getMessage();
 				}
 				$cleanToml = Safe::pregReplace('/password\s*=\s*[\'"].*/m', 'password = "***REDACTED***"', $toml);
-				// @phpstan-ignore-next-line
-				fwrite(
-					\STDERR,
+				Util::die(
 					"Your configuration file {$filePath} is invalid TOML:\n\n".
 					implode("\n", $errorMessages) . "\n\n".
 					$cleanToml.
 					"\n\n"
 				);
-				exit(1);
 			}
 		} elseif (str_ends_with($filePath, '.json')) {
 			$json = $fs->read($filePath);
@@ -80,12 +77,7 @@ class BotConfig {
 		try {
 			Type\dict(Type\string(), Type\mixed())->assert($vars);
 		} catch (Type\Exception\AssertException $e) {
-			// @phpstan-ignore-next-line
-			fwrite(
-				\STDERR,
-				"Your configuration file {$filePath} is not in the right format\n"
-			);
-			exit(1);
+			Util::die("Your configuration file {$filePath} is not in the right format\n");
 		}
 
 		$settings = self::convertOldSettings($vars);
@@ -113,15 +105,12 @@ class BotConfig {
 			while (($e = $e->getPrevious()) !== null) {
 				$errorMessages []= $e->getMessage();
 			}
-			// @phpstan-ignore-next-line
-			fwrite(
-				\STDERR,
+			Util::die(
 				"Your configuration file {$filePath} is invalid:\n\n".
 				implode("\n", $errorMessages) . "\n\n".
 				json_encode($settings, \JSON_PRETTY_PRINT|\JSON_UNESCAPED_SLASHES|\JSON_UNESCAPED_UNICODE).
 				"\n\n"
 			);
-			exit(1);
 		}
 		return $config;
 	}

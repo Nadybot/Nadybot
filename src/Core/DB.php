@@ -554,15 +554,12 @@ class DB {
 			};
 			if ($this->schema()->hasTable($table)) {
 				if (BotRunner::getArguments()->testRun) {
-					// @phpstan-ignore-next-line
-					\fwrite(
-						\STDOUT,
+					Util::die(
 						"The testing mode only works on vanilla databases.\n".
 						"Running tests on an already existing database would\n".
 						"ruin your database, and lead to unpredictable results\n".
 						"of the test commands.\n"
 					);
-					// exit(1);
 				}
 				$colType = strtolower($this->schema()->getColumnType($table, 'id'));
 				if (str_starts_with($colType, 'int')

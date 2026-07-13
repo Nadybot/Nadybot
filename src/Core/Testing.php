@@ -10,7 +10,7 @@ use Nadybot\Core\Attributes as NCA;
 use Nadybot\Core\Config\BotConfig;
 use Nadybot\Core\DBSchema\{Alt, Member};
 use Nadybot\Core\Exceptions\{NonExistingTestException, ParseTestException};
-use Nadybot\Core\Testing\{CapturerFactory, MockCommandReply, TestCase, TestCollection, TestGroup, TestResult, TestResults};
+use Nadybot\Core\Testing\{CapturerFactory, MockCommandReply, TestCase, TestCollection, TestGroup, TestPosition, TestResult, TestResults};
 use Nadybot\Core\Types\CommandReply;
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
@@ -18,6 +18,7 @@ use Safe\Exceptions\YamlException;
 
 class Testing {
 	private const ERROR_INDENT = '               ';
+	private const VALID_ID_REGEX = '/^[a-z0-9_-]+$/D';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
@@ -48,9 +49,7 @@ class Testing {
 
 	public function __construct() {
 		if (!self::canRun()) {
-			// @phpstan-ignore-next-line
-			\fwrite(\STDERR, "Nadybot needs the a required PHP-extensions to run tests.\n");
-			exit(1);
+			Util::die("Nadybot needs the a required PHP-extensions to run tests.\n");
 		}
 	}
 
@@ -435,8 +434,7 @@ class Testing {
 		return false;
 	}
 
-	/** @return TestResult::Failure */
-	private function logUnfoundExpectation(TestCase $test, string $expect, string $output): TestResult {
+	private function logUnfoundExpectation(TestCase $test, string $expect, string $output): void {
 		$this->logger->error(
 			"   [✖] {test}\n".
 			"{indent}Cannot find \"{expected}\" in output:\n".
@@ -448,11 +446,9 @@ class Testing {
 				'output' => implode("\n" . self::ERROR_INDENT, explode("\n", $output)),
 			]
 		);
-		return TestResult::Failure;
 	}
 
-	/** @return TestResult::Failure */
-	private function logUnexpectedFind(TestCase $test, string $unexpected, string $output): TestResult {
+	private function logUnexpectedFind(TestCase $test, string $unexpected, string $output): void {
 		$this->logger->error(
 			"   [✖] {test}\n".
 			"{indent}Did find \"{unexpected}\" in output:\n".
@@ -464,7 +460,6 @@ class Testing {
 				'output' => implode("\n" . self::ERROR_INDENT, explode("\n", $output)),
 			]
 		);
-		return TestResult::Failure;
 	}
 
 	/**
@@ -495,7 +490,7 @@ class Testing {
 	 *
 	 * @return array<string,string>
 	 */
-	private function addNamedMatchesToPlaceholders(array $matches, array $placeholders): array {
+	private static function addNamedMatchesToPlaceholders(array $matches, array $placeholders): array {
 		if (count($matches) <= 1) {
 			return $placeholders;
 		}
@@ -511,16 +506,36 @@ class Testing {
 	/**
 	 * Run a single test case and return whether the output matches
 	 *
-	 * @param array<string,string> $placeholders
+	 * @param array<string,string>     $placeholders
+	 * @param array<string,TestResult> $testResultsById
 	 *
 	 * @return array{TestResult,array<string,string>}
 	 */
-	private function runTest(TestCase $test, array $placeholders): array {
+	private function runTest(TestCase $test, array $placeholders, array &$testResultsById): array {
 		if (!$this->evaluateCondition($test->condition)) {
 			$this->logger->notice('  [S] ({condition}) {test}', [
 				'test' => $test->getName(),
 				'condition' => $test->condition,
 			]);
+			$this->recordTestResult($test, TestResult::Skipped, $testResultsById);
+			return [TestResult::Skipped, $placeholders];
+		}
+
+		$missingRequirements = [];
+		foreach ($test->requires as $requiredId) {
+			if (!isset($testResultsById[$requiredId]) || $testResultsById[$requiredId] !== TestResult::Success) {
+				$missingRequirements[] = $requiredId;
+			}
+		}
+		if (count($missingRequirements)) {
+			$this->logger->notice(
+				'  [S] {test} (requires {requirements})',
+				[
+					'test' => $test->getName(),
+					'requirements' => implode(', ', $missingRequirements),
+				]
+			);
+			$this->recordTestResult($test, TestResult::Skipped, $testResultsById);
 			return [TestResult::Skipped, $placeholders];
 		}
 
@@ -540,42 +555,126 @@ class Testing {
 		}
 		$output = $reply->getOutput();
 
+		$result = TestResult::Success;
+		$failedExpect = null;
+		$failedUnexpected = null;
+		$failedCapturedExpect = null;
+		$failedCapturedUnexpected = null;
+		$failedOutput = '';
+		$failedCapturedOutput = '';
+
 		// Handle expected output
 		foreach ($test->expect as $expect) {
 			$expect = $this->replacePlaceholders($expect, $placeholders);
 			$matches = $this->getExpectMatches($expect, $output);
 			if (!count($matches)) {
-				return [$this->logUnfoundExpectation($test, $expect, $output), $placeholders];
+				$result = TestResult::Failure;
+				$failedExpect = $expect;
+				$failedOutput = $output;
+				break;
 			}
-			$placeholders = $this->addNamedMatchesToPlaceholders($matches, $placeholders);
+			$placeholders = self::addNamedMatchesToPlaceholders($matches, $placeholders);
 		}
+
 		// Handle unexpected output
-		foreach ($test->unexpected as $unexpected) {
-			$unexpected = $this->replacePlaceholders($unexpected, $placeholders);
-			$unexpectResult = count($this->getExpectMatches($unexpected, $output)) > 0;
-			if ($unexpectResult === true) {
-				return [$this->logUnexpectedFind($test, $unexpected, $output), $placeholders];
+		if ($result === TestResult::Success) {
+			foreach ($test->unexpected as $unexpected) {
+				$unexpected = $this->replacePlaceholders($unexpected, $placeholders);
+				if (count($this->getExpectMatches($unexpected, $output)) > 0) {
+					$result = TestResult::Failure;
+					$failedUnexpected = $unexpected;
+					$failedOutput = $output;
+					break;
+				}
 			}
 		}
+
 		// Handle expected captured output
-		foreach ($test->captured as $expect) {
-			$expect = $this->replacePlaceholders($expect, $placeholders);
-			$matches = $this->getExpectMatches($expect, $capturedOutput);
-			if (!count($matches)) {
-				return [$this->logUnfoundExpectation($test, $expect, $capturedOutput), $placeholders];
+		if ($result === TestResult::Success) {
+			foreach ($test->captured as $expect) {
+				$expect = $this->replacePlaceholders($expect, $placeholders);
+				$matches = $this->getExpectMatches($expect, $capturedOutput);
+				if (!count($matches)) {
+					$result = TestResult::Failure;
+					$failedCapturedExpect = $expect;
+					$failedCapturedOutput = $capturedOutput;
+					break;
+				}
+				$placeholders = self::addNamedMatchesToPlaceholders($matches, $placeholders);
 			}
-			$placeholders = $this->addNamedMatchesToPlaceholders($matches, $placeholders);
 		}
+
 		// Handle unexpected captured output
-		foreach ($test->unexpectedCaptured as $unexpected) {
-			$unexpected = $this->replacePlaceholders($unexpected, $placeholders);
-			$unexpectResult = count($this->getExpectMatches($unexpected, $capturedOutput)) > 0;
-			if ($unexpectResult === true) {
-				return [$this->logUnexpectedFind($test, $unexpected, $capturedOutput), $placeholders];
+		if ($result === TestResult::Success) {
+			foreach ($test->unexpectedCaptured as $unexpected) {
+				$unexpected = $this->replacePlaceholders($unexpected, $placeholders);
+				if (count($this->getExpectMatches($unexpected, $capturedOutput)) > 0) {
+					$result = TestResult::Failure;
+					$failedCapturedUnexpected = $unexpected;
+					$failedCapturedOutput = $capturedOutput;
+					break;
+				}
 			}
 		}
-		$this->logger->notice('  [✔] {test}', ['test' => $test->getName()]);
-		return [TestResult::Success, $placeholders];
+
+		// If the test failed, check if it should be treated as skipped instead
+		if ($result === TestResult::Failure) {
+			if (
+				$this->shouldSkipOnFailure($test->skipWhen, $failedOutput)
+				|| $this->shouldSkipOnFailure($test->skipWhenCaptured, $failedCapturedOutput)
+			) {
+				$this->logger->notice(
+					'  [S] {test} (skipped due to external dependency failure)',
+					['test' => $test->getName()]
+				);
+				$result = TestResult::Skipped;
+			} else {
+				if (isset($failedExpect)) {
+					$this->logUnfoundExpectation($test, $failedExpect, $failedOutput);
+				} elseif (isset($failedUnexpected)) {
+					$this->logUnexpectedFind($test, $failedUnexpected, $failedOutput);
+				} elseif (isset($failedCapturedExpect)) {
+					$this->logUnfoundExpectation($test, $failedCapturedExpect, $failedCapturedOutput);
+				} elseif (isset($failedCapturedUnexpected)) {
+					$this->logUnexpectedFind($test, $failedCapturedUnexpected, $failedCapturedOutput);
+				}
+			}
+		}
+
+		$this->recordTestResult($test, $result, $testResultsById);
+		if ($result === TestResult::Success) {
+			$this->logger->notice('  [✔] {test}', ['test' => $test->getName()]);
+		}
+		return [$result, $placeholders];
+	}
+
+	/**
+	 * Store the result of a test under its ID so later tests can depend on it
+	 *
+	 * @param array<string,TestResult> $testResultsById
+	 */
+	private function recordTestResult(TestCase $test, TestResult $result, array &$testResultsById): void {
+		if (isset($test->id)) {
+			$testResultsById[$test->id] = $result;
+		}
+	}
+
+	/**
+	 * Check if a failed test should be treated as skipped because its output
+	 * matches one of the configured skipWhen patterns.
+	 *
+	 * @param list<string> $skipWhenPatterns
+	 */
+	private function shouldSkipOnFailure(array $skipWhenPatterns, string $output): bool {
+		if (!count($skipWhenPatterns)) {
+			return false;
+		}
+		foreach ($skipWhenPatterns as $pattern) {
+			if (count($this->getExpectMatches($pattern, $output)) > 0) {
+				return true;
+			}
+		}
+		return false;
 	}
 
 	private function runTestCollection(TestCollection $collection): TestResults {
@@ -586,13 +685,110 @@ class Testing {
 		$this->logger->notice('Starting tests for {collection}', [
 			'collection' => $collection->name,
 		]);
+		$testResultsById = [];
+		$this->validateTestIds($collection);
 		foreach ($collection->groups as $testGroup) {
-			$results->addResults($this->runTestGroup($testGroup));
+			$results->addResults($this->runTestGroup($testGroup, $testResultsById));
 		}
 		return $results;
 	}
 
-	private function runTestGroup(TestGroup $group): TestResults {
+	/**
+	 * Validate that all test IDs are well-formed, unique and only reference
+	 * earlier tests in the same collection.
+	 *
+	 * @throws ParseTestException on validation errors
+	 */
+	private static function validateTestIds(TestCollection $collection): void {
+		$positionById = self::collectTestIds($collection);
+		self::validateTestRequires($collection, $positionById);
+	}
+
+	/**
+	 * Collect all test IDs with their positions and validate their format/uniqueness.
+	 *
+	 * @return array<string,int> Map of test ID to its global position in the collection.
+	 */
+	private static function collectTestIds(TestCollection $collection): array {
+		$positionById = [];
+		foreach ($collection->allTests() as $entry) {
+			$positionById = self::registerTestId($entry, $positionById);
+		}
+		return $positionById;
+	}
+
+	/**
+	 * Register a single test id after validating its format and uniqueness.
+	 *
+	 * @param \Nadybot\Core\Testing\TestPosition $entry        The test position containing id, group and position.
+	 * @param array<string,int>                  $positionById Map of already registered test IDs to positions.
+	 *
+	 * @return array<string,int> Map of test IDs to positions, including the newly registered one.
+	 */
+	private static function registerTestId(TestPosition $entry, array $positionById): array {
+		$id = $entry->test->id;
+		if ($id === null) {
+			return $positionById;
+		}
+		if (!Safe::pregMatches(self::VALID_ID_REGEX, $id)) {
+			throw new ParseTestException(
+				message: "Test id '{$id}' in group '{$entry->group->name}' " .
+					'contains invalid characters. Only a-z, 0-9, _ and - are allowed.'
+			);
+		}
+		if (isset($positionById[$id])) {
+			throw new ParseTestException(
+				message: "Duplicate test id '{$id}' in group '{$entry->group->name}'."
+			);
+		}
+		$positionById[$id] = $entry->position;
+		return $positionById;
+	}
+
+	/**
+	 * Validate that all requires-references point to known earlier tests.
+	 *
+	 * @param array<string,int> $positionById Map of test IDs to their global positions.
+	 */
+	private static function validateTestRequires(TestCollection $collection, array $positionById): void {
+		foreach ($collection->allTests() as $entry) {
+			foreach ($entry->test->requires as $requiredId) {
+				self::validateSingleRequire($entry, $requiredId, $positionById);
+			}
+		}
+	}
+
+	/**
+	 * Validate a single requires-reference.
+	 *
+	 * @param array<string,int> $positionById Map of test IDs to their global positions.
+	 */
+	private static function validateSingleRequire(
+		TestPosition $entry,
+		string $requiredId,
+		array $positionById,
+	): void {
+		$testName = $entry->test->id ?? $entry->test->getName();
+		if (!isset($positionById[$requiredId])) {
+			throw new ParseTestException(
+				message: "Test '{$testName}' in group '{$entry->group->name}' " .
+					"requires unknown test id '{$requiredId}'."
+			);
+		}
+		if ($positionById[$requiredId] >= $entry->position) {
+			throw new ParseTestException(
+				message: "Test '{$testName}' in group '{$entry->group->name}' " .
+					"requires test id '{$requiredId}', which is executed after it."
+			);
+		}
+	}
+
+	/**
+	 * Run a single test group and return the combined results
+	 *
+	 * @param array<string,TestResult> $testResultsById
+	 */
+	private function runTestGroup(TestGroup $group, array &$testResultsById): TestResults {
 		$results = new TestResults();
 		if (!$this->evaluateCondition($group->condition)) {
 			return $results->addTest(TestResult::Skipped);
@@ -602,7 +798,7 @@ class Testing {
 		]);
 		$placeholders = [];
 		foreach ($group->tests as $test) {
-			[$testResult, $placeholders] = $this->runTest($test, $placeholders);
+			[$testResult, $placeholders] = $this->runTest($test, $placeholders, $testResultsById);
 			$results->addTest($testResult);
 		}
 		return $results;

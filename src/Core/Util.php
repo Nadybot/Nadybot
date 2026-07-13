@@ -5,6 +5,7 @@ namespace Nadybot\Core;
 use function Safe\{date, getcwd};
 use Amp\File\FilesystemException;
 use BackedEnum;
+use Error;
 use Exception;
 use InvalidArgumentException;
 use Nadybot\Core\{
@@ -442,6 +443,27 @@ class Util {
 		}
 		$last = end($array);
 		return $last;
+	}
+
+	/**
+	 * Exit the running program with an error message
+	 *
+	 * @param string $message The error message to print
+	 * @param int    $sleep   How many seconds to wait before exiting
+	 * @param int    $code    The code to exit with
+	 *
+	 * @return never
+	 */
+	public static function die(string $message, int $sleep=0, int $code=1): void {
+		try {
+			\Amp\ByteStream\getStderr()->write($message);
+			\Amp\delay($sleep);
+		} catch (Error) {
+			// @phpstan-ignore-next-line
+			fwrite(\STDERR, $message);
+			sleep($sleep);
+		}
+		exit($code);
 	}
 
 	/** Get the ParamType for a single parameter to a class spec constructor */
