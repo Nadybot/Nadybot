@@ -127,7 +127,7 @@ class OrglistJob {
 				continue;
 			}
 			$state[$worker] = [
-				'waiting' => count($this->procQueue[$worker]),
+				'waiting' => count($this->procQueue[$worker] ?? []),
 				'queue' => $workerObj->getQueueSize(),
 				'buddylist' => count($workerObj->getBuddylist()),
 			];
@@ -175,6 +175,7 @@ class OrglistJob {
 			}
 			$first ??= $worker;
 		} while ($this->slotsFree[$worker] - count($this->procQueue[$worker] ?? []) <= 0);
+		$this->procQueue[$worker] ??= [];
 		$uid = $player->charid;
 		if ($uid === 0) {
 			$this->sendFinalPing();
