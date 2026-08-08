@@ -39,8 +39,8 @@ use Revolt\EventLoop;
 class PlayerManager extends ModuleInstance {
 	/** @var int */
 	public const CACHE_GRACE_TIME = 87_000;
-	public const PORK_URL = 'http://people.anarchy-onlinexxx.com';
-	public const BORK_URL = 'https://bork.aobotsxxx.org';
+	public const PORK_URL = 'http://people.anarchy-online.com';
+	public const BORK_URL = 'https://bork.aobots.org';
 
 	/** How many jobs in parallel to run to lookup missing character data */
 	#[NCA\Setting\Options(options: ['Off' => 0, 1, 2, 3, 4, 5, 10])]
