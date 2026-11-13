@@ -2,14 +2,10 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\{async, delay};
+use function Amp\async;
 use function Amp\Future\await;
 
-use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
-use Amp\TimeoutCancellation;
-
 use DateInterval;
-use DateTimeZone;
 use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
@@ -17,19 +13,11 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	EventManager,
-	Hydrator,
 	ModuleInstance,
 	Nadybot,
-	Safe,
-	Types\Faction,
-	Types\Government,
-	Types\Profession,
 };
-use Nadylib\Type;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\Directory\{DirectoryRegistry, DirectoryUnavailableException};
 use Psr\Log\LoggerInterface;
-use Psr\SimpleCache\CacheInterface;
-use Safe\DateTimeImmutable;
-use Throwable;
 
 /**
  * @author Tyrence (RK2)
@@ -38,9 +26,6 @@ use Throwable;
 class GuildManager extends ModuleInstance {
 	#[NCA\Logger]
 	private LoggerInterface $logger;
-
-	#[NCA\Inject]
-	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
 	private Nadybot $chatBot;
@@ -57,111 +42,45 @@ class GuildManager extends ModuleInstance {
 	#[NCA\Inject]
 	private PlayerManager $playerManager;
 
-	#[NCA\Cache(prefix: 'guild_roster')]
-	private CacheInterface $cache;
+	#[NCA\Inject]
+	private DirectoryRegistry $directoryRegistry;
 
 	public function byId(int $guildID, ?int $dimension=null, bool $forceUpdate=false): ?Guild {
 		// if no server number is specified use the one on which the bot is logged in
 		$dimension ??= $this->config->main->dimension;
-		$body = null;
 
-		$baseUrl = $this->playerManager->porkUrl;
-		$maxCacheAge = new DateInterval('PT24H');
-		if ($this->isMyGuild($guildID)) {
-			$maxCacheAge = new DateInterval('PT6H');
+		$providers = $this->directoryRegistry->orgRosterProviders($dimension, $this->playerManager->porkUrl);
+		if (count($providers) === 0) {
+			return null;
 		}
-
-		$cacheKey = "{$guildID}.{$dimension}";
-		$fromCache = true;
-		if (!$forceUpdate) {
-			$body = (string)$this->cache->get($cacheKey);
-		}
-
-		$try = 0;
-		while ((!isset($body) || $body === '') && $try < 3) {
+		$result = null;
+		$lastError = null;
+		foreach ($providers as $provider) {
 			try {
-				$url = "{$baseUrl}/org/stats/d/{$dimension}/name/{$guildID}/basicstats.xml?data_type=json";
-				$start = microtime(true);
-				$try++;
-				$client = $this->builder->build();
-				$timeout = null;
-				if (str_contains($url, 'bork')) {
-					$timeout = new TimeoutCancellation(10);
-				}
-				$response = $client->request(new Request($url), $timeout);
-
-				$body = $response->getBody()->buffer();
-				$end = microtime(true);
-				$this->logger->info('Getting {url} took {duration}ms', [
-					'url' => $url,
-					'duration' => $end - $start,
-				]);
-				$this->cache->set($cacheKey, $body, $maxCacheAge);
-				$fromCache = false;
-			} catch (\Amp\TimeoutException | \Amp\CancelledException) {
-				$baseUrl = $this->playerManager::PORK_URL;
-			} catch (TimeoutException) {
-				/** @psalm-suppress RedundantCast */
-				$delay = (int)pow($try, 2); // @phpstan-ignore-line
-				$this->logger->info('Lookup for ORG {guild} D{dimension} timed out, retrying in {delay}s ({try}/{retries})', [
+				$result = $provider->lookupOrgRoster($guildID, $dimension, $forceUpdate);
+				$lastError = null;
+				break;
+			} catch (DirectoryUnavailableException $e) {
+				$lastError = $e;
+				$this->logger->info('{provider} could not look up ORG {guild} D{dimension}: {error}', [
+					'provider' => $provider->getName(),
 					'guild' => $guildID,
 					'dimension' => $dimension,
-					'try' => $try,
-					'delay' => $delay,
-					'retries' => 3,
+					'error' => $e->getMessage(),
+					'exception' => $e,
 				]);
-				if ($try < 3) {
-					delay($delay);
-				}
 			}
 		}
-
-		if (!isset($body) || $body === '') {
-			throw new Exception('Empty data received when reading org data');
+		if (isset($lastError)) {
+			throw new Exception('Empty data received when reading org data', 0, $lastError);
 		}
-		$validator = Type\shape([
-			0 => Type\dict(Type\string(), Type\mixed()),
-			1 => Type\vec(Type\dict(Type\string(), Type\mixed())),
-			2 => Type\nonEmptyString(),
-		]);
-		$data = Safe::jsonDecode($body, $validator);
-
-		[$orgInfo, $members, $lastUpdated] = $data;
-
-		/**
-		 * @var array<string,mixed>       $orgInfo
-		 * @var list<array<string,mixed>> $members
-		 * @var non-empty-string          $lastUpdated
-		 */
-
-		try {
-			$orgInfo = Hydrator::literalHydrate(DTOGuild::class, $orgInfo);
-		} catch (Throwable) {
+		if (!isset($result)) {
 			return null;
 		}
-		if ($orgInfo->NAME === null) {
-			return null;
-		}
-		try {
-			$members = Hydrator::literalHydrateObjects(DTOGuildMember::class, $members)->toArray();
-		} catch (Throwable) {
-			return null;
-		}
+		$guild = $result->guild;
+		$fromCache = $result->fromCache;
 
-		// parsing of the member data
-		$guild = new Guild(
-			guild_id: $guildID,
-			governing_form: Government::from($orgInfo->GOVERNINGNAME),
-			orgname: $orgInfo->NAME,
-			orgside: Faction::tryFrom($orgInfo->SIDE_NAME) ?? Faction::Unknown,
-			last_update: DateTimeImmutable::createFromFormat('!Y/m/d H:i:s', $lastUpdated, new DateTimeZone('UTC')),
-		);
 		$luDateTime = $guild->last_update;
-		// Try to reduce the cache time to the last updated time + 24h
-		if (isset($luDateTime)) {
-			$newCacheDuration = max(60, 86_400 - (time() - $luDateTime->getTimestamp()));
-			$this->cache->set($cacheKey, $body, $newCacheDuration);
-		}
 		if (isset($luDateTime) && $this->isMyGuild($guild->guild_id)) {
 			// Try to time the next roster update to occur 1 day and 10m after the last export
 			$key = $this->eventManager->getKeyForCronEvent(24*3_600, 'guildcontroller.downloadOrgRosterEvent');
@@ -175,41 +94,17 @@ class GuildManager extends ModuleInstance {
 
 		// pre-fetch the charids...this speeds things up immensely
 		$futures = [];
-		foreach ($members as $member) {
-			$name = $member->NAME;
-			if (($this->chatBot->getUid($name, true) === null) && !isset($member->CHAR_INSTANCE)) {
+		foreach ($guild->members as $name => $member) {
+			if ($member->charid === 0 && ($this->chatBot->getUid($name, true) === null)) {
 				$futures []= async($this->chatBot->getUid(...), $name);
 			}
 		}
 		await($futures);
 
-		foreach ($members as $member) {
-			$name = $member->NAME;
-			$charid = $member->CHAR_INSTANCE ?? $this->chatBot->getUid($name, true) ?? 0;
-
-			$guild->members[$name] = new Player(
-				charid: $charid,
-				firstname: trim($member->FIRSTNAME),
-				name: $name,
-				lastname: trim($member->LASTNAME),
-				level: $member->LEVELX,
-				breed: $member->BREED,
-				gender: $member->SEX,
-				faction: $guild->orgside,
-				profession: Profession::tryFrom($member->PROF),
-				prof_title: $member->PROF_TITLE,
-				ai_rank: $member->DEFENDER_RANK_TITLE,
-				ai_level: $member->ALIENLEVEL,
-				guild_id: $guild->guild_id,
-				guild: $guild->orgname,
-				guild_rank: $member->RANK_TITLE,
-				guild_rank_id: $member->RANK,
-				dimension: $dimension,
-				source: 'org_roster',
-				head_id: $member->HEADID,
-				pvp_rating: $member->PVPRATING,
-				pvp_title: $member->PVPTITLE,
-			);
+		foreach ($guild->members as $name => $member) {
+			if ($member->charid === 0) {
+				$member->charid = $this->chatBot->getUid($name, true) ?? 0;
+			}
 		}
 
 		// If this result is from our cache, then this information is already present

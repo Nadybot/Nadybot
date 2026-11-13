@@ -15,7 +15,8 @@ use Nadybot\Core\{
 	Filesystem,
 	Options,
 	Terminal,
-	Types\Status
+	Types\Dimension,
+	Types\Status,
 };
 use Psr\Log\LoggerInterface;
 
@@ -112,18 +113,20 @@ class Setup {
 	}
 
 	public function queryAccountDimension(): void {
+		$choices = '';
+		foreach (Dimension::cases() as $dimension) {
+			$choices .= "  [{$dimension->value}] {$dimension->getDescription()}\n";
+		}
 		$this->showStep(
 			"Enter the dimension that the bot will run on.\n".
 			"The following are available:\n".
-			"  [4] Test Server\n".
-			"  [5] Rubi-Ka (a.k.a. RK5)\n".
-			"  [6] RK2019\n"
+			$choices
 		);
 
 		$msg = 'Choose a Dimension: ';
 		do {
 			$this->configFile->main->dimension = (int)$this->readInput($msg);
-		} while (!in_array($this->configFile->main->dimension, [4, 5, 6], true));
+		} while (Dimension::tryFrom($this->configFile->main->dimension) === null);
 		$this->queryCharacter();
 	}
 

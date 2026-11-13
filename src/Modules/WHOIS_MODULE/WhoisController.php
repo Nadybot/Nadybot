@@ -23,12 +23,15 @@ use Nadybot\Core\{
 	ModuleInstance,
 	Modules\ALTS\AltsController,
 	Modules\BAN\BanController,
+	Modules\PLAYER_LOOKUP\Directory\DirectoryFeature,
+	Modules\PLAYER_LOOKUP\Directory\DirectoryRegistry,
 	Modules\PLAYER_LOOKUP\PlayerManager,
 	Nadybot,
 	ParamClass\PCharacter,
 	Safe,
 	Text,
 	Types\AccessLevel,
+	Types\Dimension,
 	Util,
 };
 use Nadybot\Modules\COMMENT_MODULE\CommentController;
@@ -78,6 +81,9 @@ class WhoisController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private PlayerManager $playerManager;
+
+	#[NCA\Inject]
+	private DirectoryRegistry $directoryRegistry;
 
 	#[NCA\Inject]
 	private BuddylistManager $buddylistManager;
@@ -251,7 +257,7 @@ class WhoisController extends ModuleInstance {
 				async($this->buddylistManager->checkIsOnline(...), $uid),
 				async($this->playerManager->byName(...), $name, $dimension),
 			]);
-			$msg = $this->playerToWhois($player, $name, $online);
+			$msg = $this->playerToWhois($player, $name, $online, $dimension);
 			$context->reply($msg);
 			return;
 		}
@@ -260,7 +266,7 @@ class WhoisController extends ModuleInstance {
 			$context->reply("Character <highlight>{$name}<end> does not exist.");
 			return;
 		}
-		$msg = $this->playerToWhois($player, $name, false);
+		$msg = $this->playerToWhois($player, $name, false, $dimension);
 		$context->reply($msg);
 	}
 
@@ -281,7 +287,7 @@ class WhoisController extends ModuleInstance {
 			async($this->buddylistManager->checkIsOnline(...), $uid),
 			async($this->playerManager->byName(...), $name),
 		]);
-		$msg = $this->playerToWhois($player, $name, $online);
+		$msg = $this->playerToWhois($player, $name, $online, $this->config->main->dimension);
 		$context->reply($msg);
 	}
 
@@ -348,41 +354,81 @@ class WhoisController extends ModuleInstance {
 		return $result;
 	}
 
-	private function playerToWhois(?Player $whois, string $name, bool $online): string {
-		$charID = $this->chatBot->getUid($name);
-		$lookupNameLink = Text::makeChatcmd('lookup', "/tell <myname> lookup {$name}");
-		$historyNameLink = Text::makeChatcmd('history', "/tell <myname> history {$name}");
-		$history1NameLink = Text::makeChatcmd('RK1', "/tell <myname> history {$name} 1");
-		$history2NameLink = Text::makeChatcmd('RK2', "/tell <myname> history {$name} 2");
-		$lookupCharIdLink = null;
-		if ($charID !== null) {
-			$lookupCharIdLink = Text::makeChatcmd('lookup', "/tell <myname> lookup {$charID}");
+	/** Get the dimension parameter to append to commands for $dimension */
+	private function dimSuffix(int $dimension): string {
+		return ($dimension === $this->config->main->dimension) ? '' : " {$dimension}";
+	}
+
+	/** Get the links to look up and to show the history of $name on $dimension */
+	private function getNameLinks(string $name, int $dimension): string {
+		$historyCmd = "/tell <myname> history {$name}";
+		$links = [];
+
+		// !lookup only knows the names and IDs of our own dimension
+		if ($dimension === $this->config->main->dimension) {
+			$links []= Text::makeChatcmd('lookup', "/tell <myname> lookup {$name}");
+		}
+		if ($this->directoryRegistry->supports(DirectoryFeature::History, $dimension)) {
+			$links []= Text::makeChatcmd('history', $historyCmd . $this->dimSuffix($dimension));
+		}
+
+		// Characters on Funcom's servers might have existed on the merged RK1 and RK2
+		if (Dimension::isFuncomDimension($dimension)) {
+			foreach ([1, 2] as $oldDimension) {
+				if ($this->directoryRegistry->supports(DirectoryFeature::History, $oldDimension)) {
+					$links []= Text::makeChatcmd(Dimension::nameOf($oldDimension), "{$historyCmd} {$oldDimension}");
+				}
+			}
+		}
+		if (count($links) === 0) {
+			return '';
+		}
+		return ' [' . implode('] [', $links) . ']';
+	}
+
+	private function playerToWhois(?Player $whois, string $name, bool $online, int $dimension): string {
+		// Everything the bot knows by itself (chat IDs, name history, alts, bans, ...)
+		// is only valid for its own dimension
+		$isOwnDimension = $dimension === $this->config->main->dimension;
+		$charID = $isOwnDimension ? $this->chatBot->getUid($name) : $whois?->charid;
+		if ($charID === 0) {
+			$charID = null;
+		}
+		$nameLinks = $this->getNameLinks($name, $dimension);
+		$charIdLinks = '';
+		if ($isOwnDimension && $charID !== null) {
+			$charIdLinks = ' [' . Text::makeChatcmd('lookup', "/tell <myname> lookup {$charID}") . ']';
 		}
 
 		if ($whois === null) {
 			$blob = "<orange>Note: Could not retrieve detailed info for character.<end>\n\n";
-			$blob .= "Name: <highlight>{$name}<end> [{$lookupNameLink}] [{$historyNameLink}] [{$history1NameLink}] [{$history2NameLink}]\n";
-			if (isset($lookupCharIdLink)) {
-				$blob .= "Character ID: <highlight>{$charID}<end> [{$lookupCharIdLink}]\n\n";
+			$blob .= "Name: <highlight>{$name}<end>{$nameLinks}\n";
+			if (isset($charID)) {
+				$blob .= "Character ID: <highlight>{$charID}<end>{$charIdLinks}\n\n";
 			}
-			if (is_int($charID)) {
+			if ($isOwnDimension && isset($charID)) {
 				$blob .= $this->getNameHistory($charID, $this->config->main->dimension);
 			}
 
 			$msg = Text::makeBlob("Basic Info for {$name}", $blob);
 			return $msg;
 		}
-		$altInfo = $this->altsController->getAltInfo($name);
+		$altInfo = $isOwnDimension ? $this->altsController->getAltInfo($name) : null;
 
-		$blob = 'Name: <highlight>' . $this->getFullName($whois) . "<end> [{$lookupNameLink}] [{$historyNameLink}] [{$history1NameLink}] [{$history2NameLink}]\n";
-		$nick = $altInfo->getNick();
+		$blob = 'Name: <highlight>' . $this->getFullName($whois) . "<end>{$nameLinks}\n";
+		$nick = $altInfo?->getNick();
 		if (isset($nick)) {
 			$blob .= "Nickname: <highlight>{$nick}<end>\n";
 		}
 		if (isset($whois->guild) && $whois->guild !== '') {
-			$orglistLink = Text::makeChatcmd('see members', "/tell <myname> orglist {$whois->guild_id}");
-			$orginfoLink = Text::makeChatcmd('info', "/tell <myname> whoisorg {$whois->guild_id}");
-			$blob .= "Org: <highlight>{$whois->guild}<end> (<highlight>{$whois->guild_id}<end>) [{$orginfoLink}] [{$orglistLink}]\n";
+			$orgLinks = [
+				Text::makeChatcmd('info', "/tell <myname> whoisorg {$whois->guild_id}" . $this->dimSuffix($dimension)),
+			];
+			// !orglist only works for orgs on our own dimension
+			if ($isOwnDimension) {
+				$orgLinks []= Text::makeChatcmd('see members', "/tell <myname> orglist {$whois->guild_id}");
+			}
+			$blob .= "Org: <highlight>{$whois->guild}<end> (<highlight>{$whois->guild_id}<end>) [" . implode('] [', $orgLinks) . "]\n";
 			$blob .= "Org Rank: <highlight>{$whois->guild_rank}<end> (<highlight>{$whois->guild_rank_id}<end>)\n";
 		}
 		$blob .= "Breed: <highlight>{$whois->breed}<end>\n";
@@ -394,7 +440,7 @@ class WhoisController extends ModuleInstance {
 		$blob .= "Head Id: <highlight>{$whois->head_id}<end>\n";
 		// $blob .= "PVP Rating: <highlight>{$whois->pvp_rating}<end>\n";
 		// $blob .= "PVP Title: <highlight>{$whois->pvp_title}<end>\n";
-		if ($whois->dimension === $this->config->main->dimension) {
+		if ($isOwnDimension) {
 			$blob .= 'Status: ';
 			if ($online) {
 				$blob .= "<on>Online<end>\n";
@@ -404,19 +450,18 @@ class WhoisController extends ModuleInstance {
 				$blob .= "<off>Offline<end>\n";
 			}
 		} else {
-			$blob .= "Dimension: <highlight>{$whois->dimension}<end>\n";
+			$blob .= 'Dimension: <highlight>' . Dimension::nameOf($whois->dimension) . "<end> ({$whois->dimension})\n";
 		}
 		if ($charID !== null) {
-			$blob .= "Character ID: <highlight>{$charID}<end> [{$lookupCharIdLink}]\n\n";
+			$blob .= "Character ID: <highlight>{$charID}<end>{$charIdLinks}\n\n";
 		}
 
 		$blob .= "Source: <highlight>{$whois->source}<end>\n\n";
 
-		if ($charID !== null) {
+		if ($isOwnDimension && $charID !== null) {
 			$blob .= $this->getNameHistory($charID, $this->config->main->dimension);
 		}
-		$main = $this->altsController->getMainOf($name);
-		if ($main === $name) {
+		if ($isOwnDimension && $this->altsController->getMainOf($name) === $name) {
 			$audits = $this->db->table(Audit::getTable())
 				->where('actee', $name)
 				->whereIn('action', [
@@ -440,7 +485,7 @@ class WhoisController extends ModuleInstance {
 			}
 		}
 
-		if (isset($charID)) {
+		if ($isOwnDimension && isset($charID)) {
 			$isBanned = $this->banController->isOnBanlist($charID);
 			if ($isBanned) {
 				if (isset($whois->guild_id) && $this->banController->orgIsBanned($whois->guild_id)) {
@@ -454,7 +499,7 @@ class WhoisController extends ModuleInstance {
 		}
 
 		$msg = $this->playerManager->getInfo($whois);
-		if ($whois->dimension === $this->config->main->dimension) {
+		if ($isOwnDimension) {
 			if ($online) {
 				$msg .= ' :: <on>Online<end>';
 			} elseif ($charID === null) {
@@ -464,7 +509,7 @@ class WhoisController extends ModuleInstance {
 			}
 		}
 		$msg .= ' :: ' . Text::makeBlob('More Info', $blob, "Detailed Info for {$name}");
-		if ($this->whoisAddComments) {
+		if ($isOwnDimension && $this->whoisAddComments) {
 			$numComments = $this->commentController->countComments(null, $whois->name);
 			if ($numComments) {
 				$comText = ($numComments > 1) ? "{$numComments} Comments" : '1 Comment';
@@ -474,7 +519,7 @@ class WhoisController extends ModuleInstance {
 			}
 		}
 
-		if (count($altInfo->getAllValidatedAlts()) === 0) {
+		if (!isset($altInfo) || count($altInfo->getAllValidatedAlts()) === 0) {
 			return $msg;
 		}
 		$altsBlob = $altInfo->getAltsBlob(true);

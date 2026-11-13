@@ -7,11 +7,14 @@ use Nadybot\Core\{
 	CmdContext,
 	Config\BotConfig,
 	ModuleInstance,
+	Modules\PLAYER_LOOKUP\Directory\DirectoryFeature,
+	Modules\PLAYER_LOOKUP\Directory\DirectoryRegistry,
 	Modules\PLAYER_LOOKUP\PlayerHistory,
 	Modules\PLAYER_LOOKUP\PlayerHistoryManager,
 	ParamClass\PCharacter,
 	Text,
 	Types\AccessLevel,
+	Types\Dimension,
 	Types\Faction,
 };
 
@@ -34,16 +37,23 @@ class PlayerHistoryController extends ModuleInstance {
 	#[NCA\Inject]
 	private PlayerHistoryManager $playerHistoryManager;
 
+	#[NCA\Inject]
+	private DirectoryRegistry $directoryRegistry;
+
 	/**
 	 * Show the history of a player on this dimension or &lt;dimension&gt;
 	 *
-	 * Valid dimensions are 1 (Atlantean), 2 (Rimor), 5 (Rubi-Ka), and 6 (RK19)
+	 * Valid dimensions are 5 (Rubi-Ka) and 6 (RK19)
 	 */
 	#[NCA\HandlesCommand('history')]
 	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {
 		$name = $char();
 		$dimension ??= $this->config->main->dimension;
 
+		if (!$this->directoryRegistry->supports(DirectoryFeature::History, $dimension)) {
+			$context->reply('There is no character history for ' . Dimension::nameOf($dimension) . '.');
+			return;
+		}
 		$history = $this->playerHistoryManager->lookup($name, $dimension);
 		$msg = $this->renderPlayerHistory($history, $name, $dimension);
 		$context->reply($msg);
@@ -51,7 +61,7 @@ class PlayerHistoryController extends ModuleInstance {
 
 	private function renderPlayerHistory(?PlayerHistory $history, string $name, int $dimension): string {
 		if ($history === null) {
-			return "Could not get history of {$name} on RK{$dimension}.";
+			return "Could not get history of {$name} on " . Dimension::nameOf($dimension) . '.';
 		}
 		$blob = '';
 		$header = "Date            Level    AI    Faction    Breed     Guild (rank)\n".
@@ -87,7 +97,7 @@ class PlayerHistoryController extends ModuleInstance {
 			$blob .= "{$date} <highlight>|<end>  {$level}  <highlight>|<end> {$ailevel} <highlight>|<end> {$faction} <highlight>|<end> {$entry->breed} <highlight>|<end> {$guild}\n";
 		}
 		$blob .= "\nHistory provided by Auno.org, Chrisax, and Athen Paladins";
-		$msg = Text::makeBlob("History of {$name} for RK{$dimension}", $blob, null, $header);
+		$msg = Text::makeBlob("History of {$name} for " . Dimension::nameOf($dimension), $blob, null, $header);
 
 		return $msg;
 	}

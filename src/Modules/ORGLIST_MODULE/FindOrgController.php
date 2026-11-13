@@ -2,11 +2,7 @@
 
 namespace Nadybot\Modules\ORGLIST_MODULE;
 
-use function Amp\delay;
-
-use Amp\Http\Client\{HttpClientBuilder, Request, TimeoutException};
 use Amp\Pipeline\Pipeline;
-use DateInterval;
 use Exception;
 
 use Nadybot\Core\{
@@ -17,18 +13,21 @@ use Nadybot\Core\{
 	DB,
 	Events\Event,
 	Exceptions\SQLException,
-	Exceptions\UserException,
 	ModuleInstance,
-	Safe,
 	Text,
 	Types\AccessLevel,
 	Types\CommandReply,
-	Types\Faction,
-	Types\Government,
+	Types\Dimension,
 };
-use Nadybot\Core\Modules\PLAYER_LOOKUP\PlayerManager;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\Directory\{
+	DirectoryFeature,
+	DirectoryRegistry,
+	DirectoryUnavailableException,
+	OrgListEntry,
+	OrgListProvider,
+};
+use Nadybot\Core\Modules\PLAYER_LOOKUP\GuildManager;
 use Psr\Log\LoggerInterface;
-use Psr\SimpleCache\CacheInterface;
 use Throwable;
 
 /**
@@ -48,14 +47,14 @@ class FindOrgController extends ModuleInstance {
 	#[NCA\Setting\Number]
 	public int $numOrglistDlJobs = 5;
 
-	/** Which service to use for orglist downloads */
+	/** Which service to use for orglist downloads on RK4-6 */
 	#[NCA\Setting\Text(
 		options: [
-			'bork.aobots.org (Nadybot)' => PlayerManager::BORK_URL,
-			'people.anarchy-online.com (Funcom)' => PlayerManager::PORK_URL,
+			'bork.aobots.org (Nadybot)' => DirectoryRegistry::BORK_URL,
+			'people.anarchy-online.com (Funcom)' => DirectoryRegistry::PORK_URL,
 		]
 	)]
-	public string $orglistPorkUrl = PlayerManager::BORK_URL;
+	public string $orglistPorkUrl = DirectoryRegistry::BORK_URL;
 
 	protected bool $ready = false;
 
@@ -63,7 +62,10 @@ class FindOrgController extends ModuleInstance {
 	private LoggerInterface $logger;
 
 	#[NCA\Inject]
-	private HttpClientBuilder $builder;
+	private DirectoryRegistry $directoryRegistry;
+
+	#[NCA\Inject]
+	private GuildManager $guildManager;
 
 	#[NCA\Inject]
 	private DB $db;
@@ -71,11 +73,13 @@ class FindOrgController extends ModuleInstance {
 	#[NCA\Inject]
 	private BotConfig $config;
 
-	#[NCA\Cache(prefix: 'orglist')]
-	private CacheInterface $cache;
-
 	#[NCA\Setup]
 	public function setup(): void {
+		$this->directoryRegistry->updateSettingOptions(
+			'orglist_pork_url',
+			DirectoryFeature::OrgList,
+			Dimension::FUNCOM_DIMENSIONS,
+		);
 		$this->ready = $this->db->table(Organization::getTable())
 			->where('index', 'others')
 			->exists();
@@ -83,16 +87,37 @@ class FindOrgController extends ModuleInstance {
 
 	/** Check if the orglists are currently ready to be used */
 	public function isReady(): bool {
-		return $this->ready;
+		return $this->isAvailable() && $this->ready;
+	}
+
+	/**
+	 * Check if orgs can be looked up by their id right now
+	 *
+	 * Without a list of all orgs, this is done via the org roster
+	 */
+	public function isReadyForIdLookups(): bool {
+		return !$this->isAvailable() || $this->ready;
+	}
+
+	/** Check if there is a list of all orgs for this dimension at all */
+	public function isAvailable(): bool {
+		return $this->directoryRegistry->supports(DirectoryFeature::OrgList, $this->config->main->dimension);
 	}
 
 	public function sendNotReadyError(CommandReply $sendto): void {
+		if (!$this->isAvailable()) {
+			$sendto->reply('There is no list of all orgs for this server.');
+			return;
+		}
 		$sendto->reply(
 			'The org roster is currently being updated, please wait.'
 		);
 	}
 
 	public function getByID(int $orgID): ?Organization {
+		if (!$this->isAvailable()) {
+			return $this->getFromRoster($orgID);
+		}
 		return $this->db->table(Organization::getTable())
 			->where('id', $orgID)
 			->firstObj(Organization::class);
@@ -157,31 +182,22 @@ class FindOrgController extends ModuleInstance {
 		return $blob;
 	}
 
-	public function handleOrglistResponse(string $body, string $letter): void {
-		$pattern = '@<tr>\s*'.
-			'<td align="left">\s*'.
-				'<a href="(?:https?:)?//people.anarchy-online.com/org/stats/d/(\d+)/name/(\d+)">\s*'.
-					'([^<]+)'.
-				'</a>'.
-			'</td>\s*'.
-			'<td align="right">(\d+)</td>\s*'.
-			'<td align="right">(\d+)</td>\s*'.
-			'<td align="left">([^<]+)</td>\s*'.
-			'<td align="left">([^<]+)</td>\s*'.
-			'<td align="left" class="dim">RK\d+</td>\s*'.
-			'</tr>@s';
-
-		$arr = Safe::pregMatchOrderedAll($pattern, $body);
-		$this->logger->info('Updating orgs starting with {letter}', ['letter' => $letter]);
+	/**
+	 * Store one chunk of the org list in the database
+	 *
+	 * @param list<OrgListEntry> $orgs
+	 */
+	public function storeOrgs(array $orgs, string $chunk): void {
+		$this->logger->info('Updating orgs starting with {letter}', ['letter' => $chunk]);
 		$inserts = [];
-		foreach ($arr as $match) {
+		foreach ($orgs as $org) {
 			$inserts []= [
-				'id' => (int)$match[2],
-				'name' => trim($match[3]),
-				'num_members' => (int)$match[4],
-				'faction' => Faction::from($match[6])->name,
-				'index' => $letter,
-				'governing_form' => Government::from($match[7])->name,
+				'id' => $org->id,
+				'name' => $org->name,
+				'num_members' => $org->numMembers,
+				'faction' => $org->faction->name,
+				'index' => $chunk,
+				'governing_form' => $org->governingForm->name,
 			];
 		}
 		$this->db->awaitBeginTransaction();
@@ -199,14 +215,17 @@ class FindOrgController extends ModuleInstance {
 		}
 	}
 
-	/** Parses all orgs from People of Rubi-Ka */
+	/** Downloads the list of all orgs, if available for this dimension */
 	#[NCA\Timer(interval: '24hrs')]
 	public function downloadAllOrgsEvent(Event $eventObj): void {
-		$searches = [
-			'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
-			'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
-			'others',
-		];
+		$providers = $this->directoryRegistry->orgListProviders(
+			$this->config->main->dimension,
+			$this->orglistPorkUrl,
+		);
+		if (count($providers) === 0) {
+			return;
+		}
+		$provider = $providers[0];
 
 		$this->ready = $this->db->table(Organization::getTable())
 			->where('index', 'others')
@@ -214,9 +233,11 @@ class FindOrgController extends ModuleInstance {
 		$this->logger->info('Downloading list of all orgs');
 		try {
 			/** @psalm-suppress MixedArgumentTypeCoercion */
-			Pipeline::fromIterable($searches)
+			Pipeline::fromIterable($provider->getOrgListChunks())
 				->concurrent($this->numOrglistDlJobs)
-				->forEach($this->downloadOrglistLetter(...));
+				->forEach(function (string $chunk) use ($providers): void {
+					$this->downloadOrglistChunk($providers, $chunk);
+				});
 		} catch (Throwable $e) {
 			$this->logger->error('Error downloading orglists: {error}', [
 				'error' => $e->getMessage(),
@@ -242,84 +263,69 @@ class FindOrgController extends ModuleInstance {
 		if (!count($ids)) {
 			return new Collection();
 		}
+		if (!$this->isAvailable()) {
+			$orgs = [];
+			foreach ($ids as $id) {
+				$org = $this->getFromRoster($id);
+				if (isset($org)) {
+					$orgs []= $org;
+				}
+			}
+
+			/** @var Collection<int,Organization> */
+			$result = new Collection($orgs);
+			return $result;
+		}
 		return $this->db->table(Organization::getTable())
 			->whereIn('id', $ids)
 			->asObj(Organization::class);
 	}
 
-	private function downloadOrglistLetter(string $letter): void {
-		$this->logger->info('Downloading orglist for letter {letter}', ['letter' => $letter]);
+	/** Get basic org information from the org roster, for dimensions without an org list */
+	private function getFromRoster(int $orgID): ?Organization {
+		try {
+			$guild = $this->guildManager->byId($orgID);
+		} catch (Throwable) {
+			return null;
+		}
+		if (!isset($guild)) {
+			return null;
+		}
+		return new Organization(
+			id: $guild->guild_id,
+			name: $guild->orgname,
+			num_members: count($guild->members),
+			faction: $guild->orgside,
+			governing_form: $guild->governing_form,
+		);
+	}
 
-		/** @var ?string */
-		$body = $this->cache->get($letter);
-
-		if ($body !== null) {
-			if (!$this->isReady()) {
-				$this->handleOrglistResponse($body, $letter);
+	/**
+	 * Download one chunk of the org list, trying the next provider if one is unavailable
+	 *
+	 * @param non-empty-list<OrgListProvider> $providers
+	 */
+	private function downloadOrglistChunk(array $providers, string $chunk): void {
+		$lastError = null;
+		foreach ($providers as $provider) {
+			try {
+				$result = $provider->lookupOrgList($chunk, $this->config->main->dimension);
+			} catch (DirectoryUnavailableException $e) {
+				$lastError = $e;
+				$this->logger->warning('{provider} could not deliver the orglist for {letter}: {error}', [
+					'provider' => $provider->getName(),
+					'letter' => $chunk,
+					'error' => $e->getMessage(),
+					'exception' => $e,
+				]);
+				continue;
 			}
+			if ($result->fromCache && $this->isReady()) {
+				return;
+			}
+			$this->storeOrgs($result->orgs, $chunk);
 			return;
 		}
-		$body = null;
-		$url = $this->orglistPorkUrl . '/people/lookup/orgs.html'.
-			"?l={$letter}&dim={$this->config->main->dimension}";
-		$client = $this->builder->build();
-		$retry = 5;
-		do {
-			try {
-				$request = new Request($url);
-				// The gateway timeout of PORK is 60s
-				$request->setTransferTimeout(61);
-
-				$response = $client->request($request);
-
-				if ($response->getStatus() !== 200) {
-					if (--$retry <= 0) {
-						throw new UserException("Unable to download orglist for {$letter}");
-					}
-					$this->logger->warning(
-						'Error downloading orglist for letter {letter}, retrying in {retry}s',
-						[
-							'letter' => $letter,
-							'dim' => $this->config->main->dimension,
-							'retry' => 5,
-						]
-					);
-					delay(5);
-				} else {
-					$body = $response->getBody()->buffer();
-				}
-			} catch (TimeoutException) {
-				$this->logger->warning(
-					'Timeout downloading orglist for letter {letter}, retrying in {retry}s',
-					[
-						'letter' => $letter,
-						'dim' => $this->config->main->dimension,
-						'retry' => 5,
-					]
-				);
-				delay(5);
-			} catch (Throwable $e) {
-				$this->logger->warning(
-					'Error downloading orglist for letter {letter}: {error}, retrying in {retry}s',
-					[
-						'letter' => $letter,
-						'error' => $e->getMessage(),
-						'dim' => $this->config->main->dimension,
-						'retry' => 5,
-						'exception' => $e,
-					]
-				);
-				delay(5);
-			}
-		} while ((!isset($response) || $response->getStatus() !== 200));
-		if ($body === null || $body === '' || !str_contains($body, 'ORGS BEGIN')) {
-			throw new Exception("Invalid data received from orglist for {$letter}");
-		}
-
-		/** @var truthy-string $body */
-
-		$this->cache->set($letter, $body, new DateInterval('PT23H'));
-
-		$this->handleOrglistResponse($body, $letter);
+		throw new Exception("Unable to download orglist for {$chunk}", 0, $lastError);
 	}
 }

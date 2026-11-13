@@ -11,6 +11,7 @@ use InvalidArgumentException;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Config\BotConfig,
+	Types\Dimension,
 	Types\ParamType,
 };
 use RangeException;
@@ -44,6 +45,11 @@ class Util {
 
 	#[NCA\Inject]
 	private Filesystem $fs;
+
+	/** Check if the bot runs on a dimension run by Funcom */
+	public function isFuncomServer(): bool {
+		return Dimension::isFuncomDimension($this->config->main->dimension);
+	}
 
 	/** Convert bytes to kB, MB, etc. so it's never more than 1024 */
 	public static function bytesConvert(int $bytes): string {

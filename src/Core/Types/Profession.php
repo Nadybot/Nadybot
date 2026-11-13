@@ -82,6 +82,32 @@ enum Profession: string implements EnumParameterInterface {
 		];
 	}
 
+	/**
+	 * Get the profession title for a given title level
+	 *
+	 * A level 220 Bureaucrat becomes "Dictator", a level 1 Enforcer "Docker"
+	 */
+	public function title(TitleLevel $titleLevel): string {
+		$titles = match ($this) {
+			self::Adventurer => ['Scout', 'Hunter', 'Preserver', 'Adventurer', 'Wanderer', 'Ranger', 'Vanguard'],
+			self::Agent => ['Informer', 'Spy', 'Agent', 'Assassin', 'Master Assassin', 'Grandmaster Assassin', 'Finalizer'],
+			self::Bureaucrat => ['Clerk', 'Bureaucrat', 'Secretary', 'Manager', 'Minister', 'President', 'Dictator'],
+			self::Doctor => ['Nurse', 'Medic', 'Doctor', 'Surgeon', 'Master Surgeon', 'Chief of Staff Surgery', 'Eternalist'],
+			self::Enforcer => ['Docker', 'Worker', 'Foreman', 'Union Man', 'Made Man', 'Don', 'Godfather'],
+			self::Engineer => ['Techie', 'Mechanic', 'Engineer', 'Chief Engineer', 'Master Engineer', 'Nobel Prize Engineer', 'Supreme Creator'],
+			self::Fixer => ['Lifter', 'Thug', 'Embezzler', 'Fixer', 'Doer', 'The Man', 'Kingpin'],
+			self::Keeper => ['Escort', 'Sentinel', 'Warden', 'Vigilante', 'Defender', 'Keeper', 'Savior'],
+			self::MartialArtist => ['Initiate', 'Apprentice', 'Monk', 'Master 5th Dan', 'Master 10th Dan', 'Legend', 'Guru'],
+			self::MetaPhysicist => ['Disciple', 'Devotee', 'Priest', 'ArchPriest', 'Spiritual Leader', 'Saint', 'Deity'],
+			self::NanoTechnician => ['Novice', 'Apprentice', 'Initiate', 'Sorcerer', 'Techno-Mage', 'Techno Wizard', 'Techno Arch-Wizard'],
+			self::Shade => ['Haunt', 'Phantom', 'Shadow', 'Specter', 'Vampire', 'Spirit', 'Lich'],
+			self::Soldier => ['Militiaman', 'Mercenary', 'Soldier', 'Lieutenant', 'Colonel', 'General', 'Field Marshal'],
+			self::Trader => ['Courier', 'Salesman', 'Merchant', 'Board Member', 'CEO', 'Chairman and CEO', 'Mogul'],
+			self::Unknown => null,
+		};
+		return $titles[$titleLevel->value - 1] ?? '';
+	}
+
 	/** Get the colorized string for this profession */
 	public function inColor(): string {
 		return "<highlight>{$this->value}<end>";

@@ -86,7 +86,7 @@ class OrglistController extends ModuleInstance {
 		if (ctype_digit($search)) {
 			$orgId = (int)$search;
 		} else {
-			if (!$this->findOrgController->isReady()) {
+			if ($this->findOrgController->isAvailable() && !$this->findOrgController->isReady()) {
 				$this->findOrgController->sendNotReadyError($context);
 				return;
 			}
@@ -130,7 +130,10 @@ class OrglistController extends ModuleInstance {
 	 * @return list<Organization>
 	 */
 	public function getOrgsMatchingSearch(string $search): array {
-		$orgs = $this->findOrgController->lookupOrg($search);
+		$orgs = [];
+		if ($this->findOrgController->isAvailable()) {
+			$orgs = $this->findOrgController->lookupOrg($search);
+		}
 		if (count($orgs) === 1 && strcasecmp($orgs[0]->name, $search) === 0) {
 			return $orgs;
 		}

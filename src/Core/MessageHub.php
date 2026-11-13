@@ -21,6 +21,7 @@ use Nadybot\Core\{
 	Modules\MESSAGES\MessageHubController,
 	Routing\RoutableEvent,
 	Routing\Source,
+	Types\Dimension,
 	Types\EventModifier,
 	Types\HopColorType,
 	Types\MessageEmitter,
@@ -929,11 +930,6 @@ class MessageHub {
 	 * This is based on the dimension they are on.
 	 */
 	private function dimensionToSuffix(int $dimension): string {
-		return match ($dimension) {
-			4 => 'Test',
-			5 => 'RK5',
-			6 => 'RK19',
-			default => "RK{$dimension}",
-		};
+		return Dimension::tryFrom($dimension)?->getRelaySuffix() ?? "RK{$dimension}";
 	}
 }

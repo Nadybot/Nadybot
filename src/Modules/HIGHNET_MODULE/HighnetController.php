@@ -30,6 +30,7 @@ use Nadybot\Core\{
 	Registry,
 	Text,
 	Types\AccessLevel,
+	Types\Dimension,
 	Types\EventFeedHandler,
 	Util,
 };
@@ -666,12 +667,7 @@ class HighnetController extends ModuleInstance implements EventFeedHandler {
 	}
 
 	public function dimensionToName(int $dimension): string {
-		$map = [
-			4 => 'Test-Server',
-			5 => 'Rubi-Ka',
-			6 => 'RK19',
-		];
-		return $map[$dimension] ?? 'Unknown server';
+		return Dimension::nameOf($dimension);
 	}
 
 	public function getInfoPopup(Message $message): string {

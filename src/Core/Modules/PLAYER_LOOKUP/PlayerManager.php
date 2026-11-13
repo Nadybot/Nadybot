@@ -2,17 +2,7 @@
 
 namespace Nadybot\Core\Modules\PLAYER_LOOKUP;
 
-use function Amp\delay;
-use function Safe\parse_url;
-
-use Amp\Http\Client\{
-	HttpClientBuilder,
-	Request,
-	TimeoutException,
-};
-use Amp\TimeoutCancellation;
 use AO\Utils;
-use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	Collection,
@@ -20,16 +10,16 @@ use Nadybot\Core\{
 	DB,
 	DBSchema\Player,
 	Exceptions\SQLException,
-	Hydrator,
 	ModuleInstance,
 	Nadybot,
 	Registry,
 	Safe,
+	Types\Dimension,
 	Types\Status,
 };
 use Nadybot\Core\Attributes\ExposeToAI;
+use Nadybot\Core\Modules\PLAYER_LOOKUP\Directory\{DirectoryFeature, DirectoryRegistry, DirectoryUnavailableException};
 use Psr\Log\LoggerInterface;
-use Psr\SimpleCache\CacheInterface;
 use Revolt\EventLoop;
 
 /**
@@ -39,29 +29,24 @@ use Revolt\EventLoop;
 class PlayerManager extends ModuleInstance {
 	/** @var int */
 	public const CACHE_GRACE_TIME = 87_000;
-	public const PORK_URL = 'http://people.anarchy-online.com';
-	public const BORK_URL = 'https://bork.aobots.org';
 
 	/** How many jobs in parallel to run to lookup missing character data */
 	#[NCA\Setting\Options(options: ['Off' => 0, 1, 2, 3, 4, 5, 10])]
 	public int $lookupJobs = 0;
 
-	/** Which service to use for character look-ups */
+	/** Which service to use for character look-ups on RK4-6 */
 	#[NCA\Setting\Text(
 		options: [
-			'bork.aobots.org (Nadybot)' => self::BORK_URL,
-			'people.anarchy-online.com (Funcom)' => self::PORK_URL,
+			'bork.aobots.org (Nadybot)' => DirectoryRegistry::BORK_URL,
+			'people.anarchy-online.com (Funcom)' => DirectoryRegistry::PORK_URL,
 		]
 	)]
-	public string $porkUrl = self::BORK_URL;
+	public string $porkUrl = DirectoryRegistry::BORK_URL;
 
 	public ?PlayerLookupJob $playerLookupJob = null;
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;
-
-	#[NCA\Inject]
-	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
 	private DB $db;
@@ -72,8 +57,18 @@ class PlayerManager extends ModuleInstance {
 	#[NCA\Inject]
 	private Nadybot $chatBot;
 
-	#[NCA\Cache(prefix: 'players')]
-	private CacheInterface $cache;
+	#[NCA\Inject]
+	private DirectoryRegistry $directoryRegistry;
+
+	/** Offer all known providers as choices for the preferred services */
+	#[NCA\Setup]
+	public function setup(): void {
+		$this->directoryRegistry->updateSettingOptions(
+			'pork_url',
+			DirectoryFeature::Character,
+			Dimension::FUNCOM_DIMENSIONS,
+		);
+	}
 
 	/** Periodically lookup missing or outdated player data */
 	#[NCA\Timer(interval: '1h', defaultStatus: Status::Enabled)]
@@ -191,89 +186,38 @@ class PlayerManager extends ModuleInstance {
 		return $player;
 	}
 
+	/**
+	 * Look up a character from the providers for $dimension, without using the database
+	 *
+	 * Providers are asked in order of preference, and the next one is only
+	 * asked if the previous one could not answer.
+	 */
 	public function lookup(string $name, int $dimension): ?Player {
-		$client = $this->builder->build();
-		$baseUrl = $this->porkUrl;
-		$url = $baseUrl;
 		$player = null;
-		try {
-			$try = 0;
-			$retries = 5;
-			while ($try++ < $retries) {
-				try {
-					$url = $baseUrl . "/character/bio/d/{$dimension}/name/{$name}/bio.xml?data_type=json";
-
-					$cacheKey = "{$name}.{$dimension}";
-					$body = $this->cache->get($cacheKey);
-
-					if (isset($body) && is_string($body)) {
-						$player = $this->parsePlayerFromBody($body);
-						break;
-					}
-
-					$start = microtime(true);
-
-					$timeout = null;
-					if (str_contains($url, 'bork')) {
-						$timeout = new TimeoutCancellation(1);
-					}
-					$response = $client->request(new Request($url), $timeout);
-
-					if ($response->getStatus() === 200) {
-						$body = $response->getBody()->buffer();
-						$this->cache->set($cacheKey, $body, 60);
-						$player = $this->parsePlayerFromBody($body);
-					} else {
-						$this->logger->debug('Looking up {name}.{dimension}: {code}', [
-							'name' => $name,
-							'dimension' => $dimension,
-							'code' => $response->getStatus(),
-						]);
-					}
-					$end = microtime(true);
-					$this->logger->info('Lookup for {name} took {duration}ms', [
-						'name' => $name,
-						'duration' => $end - $start,
-					]);
-					break;
-				} catch (\Amp\TimeoutException | \Amp\CancelledException) {
-					$baseUrl = self::PORK_URL;
-				} catch (TimeoutException) {
-					/** @psalm-suppress RedundantCast */
-					$delay = (int)pow($try, 2); // @phpstan-ignore-line
-					$this->logger->info('Lookup for {name}.{dimension} timed out, retrying in {delay}s ({try}/{retries})', [
-						'name' => $name,
-						'dimension' => $dimension,
-						'try' => $try,
-						'delay' => $delay,
-						'retries' => $retries,
-					]);
-					if ($try < $retries) {
-						delay($delay);
-					}
-				}
+		$providers = $this->directoryRegistry->characterProviders($dimension, $this->porkUrl);
+		foreach ($providers as $provider) {
+			try {
+				$player = $provider->lookupCharacter($name, $dimension);
+				break;
+			} catch (DirectoryUnavailableException $e) {
+				$this->logger->info('{provider} could not look up {name}.{dimension}: {error}', [
+					'provider' => $provider->getName(),
+					'name' => $name,
+					'dimension' => $dimension,
+					'error' => $e->getMessage(),
+					'exception' => $e,
+				]);
 			}
-		} catch (\Throwable $e) {
-			$this->logger->warning('Error looking up {name}.{dimension}: {error} ({class})', [
-				'name' => $name,
-				'dimension' => $dimension,
-				'error' => $e->getMessage(),
-				'class' => $e::class,
-				'exception' => $e,
-			]);
 		}
 		if (isset($player) && $player->name === $name) {
-			/** @var ?string */
-			$host = parse_url($url, \PHP_URL_HOST);
-			$player->source = $host ?? 'people.anarchy-online.com';
 			$player->dimension = $dimension;
-		} else {
-			$this->logger->info('No char information found about {character} on RK{dimension}', [
-				'character' => $name,
-				'dimension' => $dimension,
-			]);
+			return $player;
 		}
-		return $player;
+		$this->logger->info('No char information found about {character} on RK{dimension}', [
+			'character' => $name,
+			'dimension' => $dimension,
+		]);
+		return null;
 	}
 
 	public function update(Player $char): void {
@@ -306,22 +250,5 @@ class PlayerManager extends ModuleInstance {
 		}
 
 		return $query->asObj(Player::class);
-	}
-
-	private function parsePlayerFromBody(string $body): ?Player {
-		if ($body === 'null') {
-			return null;
-		}
-		try {
-			return Hydrator::hydrateString(PlayerInfo::class, $body)->toPlayer();
-		} catch (Exception $e) {
-			$this->logger->warning('Error parsing player data: {error} ({class})', [
-				'error' => $e->getMessage(),
-				'class' => $e::class,
-				'exception' => $e,
-				'data' => $body,
-			]);
-			return null;
-		}
 	}
 }

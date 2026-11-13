@@ -609,7 +609,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		#[Str('addorg')] string $action,
 		int $orgId
 	): void {
-		if (!$this->findOrgController->isReady()) {
+		if (!$this->findOrgController->isReadyForIdLookups()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
 		}
@@ -690,7 +690,7 @@ class TrackerController extends ModuleInstance implements MessageEmitter {
 		#[Regexp('(?:rem|del)org', example: 'remorg')] string $action,
 		int $orgId
 	): void {
-		if (!$this->findOrgController->isReady()) {
+		if (!$this->findOrgController->isReadyForIdLookups()) {
 			$this->findOrgController->sendNotReadyError($context);
 			return;
 		}
