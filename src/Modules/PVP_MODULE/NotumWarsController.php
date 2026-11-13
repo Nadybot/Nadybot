@@ -27,6 +27,7 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 	Types\AccessLevel,
+	Types\Dimension,
 	Types\Faction,
 	Types\Playfield,
 	Util
@@ -410,9 +411,17 @@ class NotumWarsController extends ModuleInstance {
 		$this->msgHub->handle($rMsg);
 	}
 
+	/** Check if there is a Tower-API for the given dimension */
+	public function supportsTowerAPI(int $dimension): bool {
+		return $dimension === Dimension::RK5->value;
+	}
+
 	/** Load all towers from the API */
 	#[NCA\HandlesEvent]
 	public function initTowersFromApi(?ConnectEvent $event=null): void {
+		if (!$this->supportsTowerAPI($this->config->main->dimension)) {
+			return;
+		}
 		$client = $this->http->build();
 
 		$response = $client->request(new Request(self::TOWER_API));
@@ -468,6 +477,10 @@ class NotumWarsController extends ModuleInstance {
 	/** Load all attacks from the API */
 	#[NCA\HandlesEvent]
 	public function initAttacksFromApi(?ConnectEvent $event=null): void {
+		if (!$this->supportsTowerAPI($this->config->main->dimension)) {
+			return;
+		}
+
 		/** @var ?int */
 		$maxTS = $this->db->table(DBTowerAttack::getTable())->max('timestamp');
 		$client = $this->http->build();
@@ -531,6 +544,10 @@ class NotumWarsController extends ModuleInstance {
 	/** Load all tower outcomes from the API */
 	#[NCA\HandlesEvent]
 	public function initOutcomesFromApi(?ConnectEvent $event=null): void {
+		if (!$this->supportsTowerAPI($this->config->main->dimension)) {
+			return;
+		}
+
 		/** @var ?int */
 		$maxTS = $this->db->table(DBOutcome::getTable())->max('timestamp');
 		$client = $this->http->build();

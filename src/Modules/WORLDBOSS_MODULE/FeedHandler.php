@@ -47,7 +47,7 @@ class FeedHandler extends ModuleInstance implements EventFeedHandler {
 		}
 		$this->logger->notice('Converted {event}', ['event' => $event]);
 		if ($event->sourceDimension !== $this->config->main->dimension) {
-			$this->logger->info('Event is for a different dimension');
+			$this->logger->debug('Ignoring event for a different dimension');
 			return;
 		}
 		$this->eventManager->dispatch($event);

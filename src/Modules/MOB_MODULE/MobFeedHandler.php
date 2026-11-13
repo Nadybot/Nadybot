@@ -5,7 +5,7 @@ namespace Nadybot\Modules\MOB_MODULE;
 use Closure;
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{EventManager, Hydrator, ModuleInstance, Types\EventFeedHandler};
+use Nadybot\Core\{Config\BotConfig, EventManager, Hydrator, ModuleInstance, Types\EventFeedHandler};
 use Nadybot\Modules\MOB_MODULE\FeedMessage\Spawn;
 use Psr\Log\LoggerInterface;
 use Throwable;
@@ -17,6 +17,9 @@ use Throwable;
 class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]
 	private LoggerInterface $logger;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	#[NCA\Inject]
 	private EventManager $eventManager;
@@ -53,6 +56,10 @@ class MobFeedHandler extends ModuleInstance implements EventFeedHandler {
 		];
 		try {
 			$baseInfo = Hydrator::hydrate(FeedMessage\Base::class, $data);
+			if ($baseInfo->dimension !== $this->config->main->dimension) {
+				$this->logger->debug('Ignoring event for a different dimension');
+				return;
+			}
 			$class = $mapping[$baseInfo->event] ?? null;
 			if (!isset($class)) {
 				$this->logger->notice('Unknown mob-event {type}: {data}', [

@@ -9,6 +9,7 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
 	Collection,
+	Config\BotConfig,
 	Events\ConnectEvent,
 	Hydrator,
 	MessageHub,
@@ -18,6 +19,7 @@ use Nadybot\Core\{
 	Safe,
 	Text,
 	Types\AccessLevel,
+	Types\Dimension,
 	Util
 };
 use Nadybot\Modules\WHEREIS_MODULE\{Whereis, WhereisController};
@@ -85,6 +87,9 @@ class MobController extends ModuleInstance {
 	private LoggerInterface $logger;
 
 	#[NCA\Inject]
+	private BotConfig $config;
+
+	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 
 	#[NCA\Inject]
@@ -96,6 +101,9 @@ class MobController extends ModuleInstance {
 	/** Load all mobs from the API */
 	#[NCA\HandlesEvent]
 	public function initMobsFromApi(?ConnectEvent $event=null): void {
+		if ($this->config->main->dimension !== Dimension::RK5->value) {
+			return;
+		}
 		$client = $this->builder->build();
 
 		$response = $client->request(new Request(self::MOB_API));
@@ -143,6 +151,9 @@ class MobController extends ModuleInstance {
 
 	/** Load the data for a single mob from the API */
 	public function loadMobFromApi(string $type, string $key): void {
+		if ($this->config->main->dimension !== Dimension::RK5->value) {
+			return;
+		}
 		$client = $this->builder->build();
 
 		$response = $client->request(new Request(self::MOB_API . $type));

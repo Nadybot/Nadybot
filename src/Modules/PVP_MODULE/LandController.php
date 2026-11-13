@@ -8,10 +8,12 @@ use Nadybot\Core\{
 	Attributes as NCA,
 	Attributes\Parameter\Str,
 	CmdContext,
+	Config\BotConfig,
 	ModuleInstance,
 	ParamClass\PTowerSite,
 	Text,
 	Types\AccessLevel,
+	Types\Dimension,
 	Types\Playfield
 };
 
@@ -25,7 +27,7 @@ use Nadybot\Core\{
 	),
 	NCA\DefineCommand(
 		command: 'nw wait',
-		description: 'Wait for the Tower-API to be initialized',
+		description: 'Wait for the Tower-API to be isnitialized',
 		accessLevel: AccessLevel::Admin,
 	)
 ]
@@ -35,6 +37,9 @@ class LandController extends ModuleInstance {
 	#[NCA\Inject]
 	private NotumWarsController $nwCtrl;
 
+	#[NCA\Inject]
+	private BotConfig $config;
+
 	/** Wait for the Tower-API to be available */
 	#[NCA\HandlesCommand('nw wait')]
 	public function waitForTowerAPI(
@@ -42,6 +47,11 @@ class LandController extends ModuleInstance {
 		#[Str('wait')] string $action,
 		?int $maxWait,
 	): void {
+		$dimension = $this->config->main->dimension;
+		if (!$this->nwCtrl->supportsTowerAPI($dimension)) {
+			$context->reply('There is no Tower-API for ' . Dimension::nameOf($dimension) . ' yet.');
+			return;
+		}
 		$maxWait ??= 60;
 		$start = time();
 		while (!count($this->nwCtrl->state)) {
@@ -60,8 +70,7 @@ class LandController extends ModuleInstance {
 		CmdContext $context,
 		#[Str('lc')] string $action,
 	): void {
-		if (!count($this->nwCtrl->state)) {
-			$context->reply('The Tower-API is still initializing.');
+		if (!$this->isTowerAPIReady($context)) {
 			return;
 		}
 		$lines = [];
@@ -87,8 +96,7 @@ class LandController extends ModuleInstance {
 		#[Str('lc')] string $action,
 		Playfield $playfield,
 	): void {
-		if (!count($this->nwCtrl->state)) {
-			$context->reply('The Tower-API is still initializing.');
+		if (!$this->isTowerAPIReady($context)) {
 			return;
 		}
 		$sites = $this->nwCtrl->state[$playfield->value] ?? null;
@@ -117,8 +125,7 @@ class LandController extends ModuleInstance {
 		#[Str('lc')] string $action,
 		PTowerSite $site,
 	): void {
-		if (!count($this->nwCtrl->state)) {
-			$context->reply('The Tower-API is still initializing.');
+		if (!$this->isTowerAPIReady($context)) {
 			return;
 		}
 		$siteInfo = $this->nwCtrl->state[$site->pf->value][$site->site] ?? null;
@@ -133,5 +140,19 @@ class LandController extends ModuleInstance {
 			$blob,
 		);
 		$context->reply($msg);
+	}
+
+	/** Check if the Tower-API can be used, and if not, tell the user why */
+	private function isTowerAPIReady(CmdContext $context): bool {
+		$dimension = $this->config->main->dimension;
+		if (!$this->nwCtrl->supportsTowerAPI($dimension)) {
+			$context->reply('There is no Tower-API for ' . Dimension::nameOf($dimension) . ' yet.');
+			return false;
+		}
+		if (!count($this->nwCtrl->state)) {
+			$context->reply('The Tower-API is still initializing.');
+			return false;
+		}
+		return true;
 	}
 }

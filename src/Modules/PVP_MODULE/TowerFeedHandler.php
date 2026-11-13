@@ -4,7 +4,7 @@ namespace Nadybot\Modules\PVP_MODULE;
 
 use EventSauce\ObjectHydrator\UnableToHydrateObject;
 use Nadybot\Core\Attributes as NCA;
-use Nadybot\Core\{EventManager, Events\Event as CoreEvent, Hydrator, ModuleInstance, Types\EventFeedHandler};
+use Nadybot\Core\{Config\BotConfig, EventManager, Events\Event as CoreEvent, Hydrator, ModuleInstance, Types\EventFeedHandler};
 use Psr\Log\LoggerInterface;
 
 #[
@@ -14,6 +14,9 @@ use Psr\Log\LoggerInterface;
 class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 	#[NCA\Logger]
 	private LoggerInterface $logger;
+
+	#[NCA\Inject]
+	private BotConfig $config;
 
 	#[NCA\Inject]
 	private EventManager $eventManager;
@@ -58,6 +61,10 @@ class TowerFeedHandler extends ModuleInstance implements EventFeedHandler {
 		];
 		try {
 			$baseInfo = Hydrator::hydrate(FeedMessage\Base::class, $data);
+			if ($baseInfo->dimension !== $this->config->main->dimension) {
+				$this->logger->debug('Ignoring event for a different dimension');
+				return;
+			}
 			$specs = $mapping[$baseInfo->type] ?? null;
 			if (!isset($specs)) {
 				$this->logger->notice('Unknown tower-package {type}', [
