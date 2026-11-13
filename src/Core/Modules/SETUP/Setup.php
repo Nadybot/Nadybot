@@ -142,7 +142,7 @@ class Setup {
 				connection: new \AO\Connection(reader: $connection, writer: $connection),
 				parser: \AO\Parser::createDefault(),
 			);
-			$chars = $client->getChars($workerConf->username, $workerConf->password);
+			$chars = $client->getChars($workerConf);
 		} catch (\Throwable) {
 		}
 		$text = "Enter the character the bot will run on.\n".

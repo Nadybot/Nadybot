@@ -220,8 +220,9 @@ class BuddylistController extends ModuleInstance {
 		}
 		$count = 0;
 		$blob = "Buddy list Search: '{$search}'\n\n";
+		$quotedSearch = preg_quote($search, '/');
 		foreach ($this->getSortedBuddyList() as $value) {
-			if (Safe::pregMatches("/{$search}/i", $value->name)) {
+			if (Safe::pregMatches("/{$quotedSearch}/i", $value->name)) {
 				$count++;
 				$blob .= $this->renderBuddyLine($value);
 			}

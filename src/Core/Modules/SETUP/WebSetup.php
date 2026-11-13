@@ -133,7 +133,7 @@ class WebSetup {
 				connection: new \AO\Connection(reader: $connection, writer: $connection),
 				parser: \AO\Parser::createDefault(),
 			);
-			$chars = $client->getChars($workerConf->username, $workerConf->password);
+			$chars = $client->getChars($workerConf);
 		} catch (InvalidArgumentException) {
 			return $this->errPage(
 				HttpStatus::UNPROCESSABLE_ENTITY,

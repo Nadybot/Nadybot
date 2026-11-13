@@ -1120,9 +1120,16 @@ class Nadybot {
 		$this->eventManager->dispatch($eventObj);
 	}
 
+	public function isRealCharacter(int $userId): bool {
+		return !($this->config->main->dimension === 7 && $userId >= 0xD0_00_00_00);
+	}
+
 	/** Log a player coming online into the database */
 	public function updateLastOnline(int $userId, string $charName, bool $online=true): void {
 		if ($online === false || $userId === $this->char?->id) {
+			return;
+		}
+		if (!$this->isRealCharacter($userId)) {
 			return;
 		}
 		$this->logger->info('Register user {name} (ID {id}) as online', [
@@ -1254,7 +1261,8 @@ class Nadybot {
 		$this->logChat('Inc. Msg.', $sender, $message);
 
 		// AFK/bot check
-		if (Safe::pregMatches("|{$sender} is AFK|si", $message)) {
+		$quotedSender = preg_quote($sender, '|');
+		if (Safe::pregMatches("|{$quotedSender} is AFK|si", $message)) {
 			return;
 		} elseif (Safe::pregMatches('|I am away from my keyboard right now|si', $message)) {
 			return;
@@ -1274,7 +1282,7 @@ class Nadybot {
 			return;
 		} elseif (Safe::pregMatches('|Unknown command input|si', $message)) {
 			return;
-		} elseif (Safe::pregMatches("|/tell {$sender} !help|i", $message)) {
+		} elseif (Safe::pregMatches("|/tell {$quotedSender} !help|i", $message)) {
 			return;
 		}
 
@@ -1378,6 +1386,7 @@ class Nadybot {
 	/** Handle a message on a public channel */
 	public function processPublicChannelMessage(WorkerPackage $package): void {
 		assert($package->package instanceof Package\In\GroupMessage);
+
 		$sender = null;
 		$senderId = $package->package->charId;
 		$channel = $this->getGroupById($package->package->groupId);
@@ -1389,6 +1398,11 @@ class Nadybot {
 		}
 		if (Util::isValidSender($senderId)) {
 			$sender = $this->getName($senderId);
+			if (isset($sender) && !$this->isRealCharacter($senderId)) {
+				// Names relayed in by server-side modules (e.g. Discord) may contain
+				// formatting and must never clash with real character names
+				$sender = trim(strip_tags($sender)) . ' (External)';
+			}
 			if ($senderId !== 0 && !is_string($sender)) {
 				$this->logger->info('Invalid sender ID in {package}', [
 					'package' => $package,

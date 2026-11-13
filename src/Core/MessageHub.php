@@ -611,6 +611,7 @@ class MessageHub {
 				$this->config->main->dimension === $char->dimension
 				&& in_array($lastHop->type??null, $aoSources, true)
 				&& $withUserLink
+				&& ($char->id === null || $this->chatBot->isRealCharacter($char->id))
 			) {
 				$charLink = "<a href=user://{$char->name}>{$routedName}</a>: ";
 			}

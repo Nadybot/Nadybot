@@ -28,7 +28,7 @@ class Credentials {
 		public string $login,
 		#[Confidential] public string $password,
 		#[StrLength(min: 4, max: 12)] public string $character,
-		#[Min(4), Max(6)] public int $dimension,
+		#[Min(4), Max(7)] public int $dimension,
 		#[Confidential] public ?string $webLogin=null,
 		#[Confidential] public ?string $webPassword=null,
 	) {

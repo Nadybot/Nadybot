@@ -147,6 +147,9 @@ class WhoisController extends ModuleInstance {
 		if ($packet->charId > 0 && $packet->charId >= 4_294_967_295) {
 			return;
 		}
+		if (!$this->chatBot->isRealCharacter($packet->charId)) {
+			return;
+		}
 		$this->nameHistoryCache []= new CharData(
 			charid: $packet->charId,
 			name: $packet->name,
