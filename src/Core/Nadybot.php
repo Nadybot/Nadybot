@@ -1258,7 +1258,11 @@ class Nadybot {
 			worker: $package->worker,
 		);
 
-		$this->logChat('Inc. Msg.', $sender, $message);
+		$senderName = $sender;
+		if ($package->package->extra === "\x00\x02\x01") {
+			$senderName .= ' (GM)';
+		}
+		$this->logChat('Inc. Msg.', $senderName, $message);
 
 		// AFK/bot check
 		$quotedSender = preg_quote($sender, '|');
@@ -1444,7 +1448,11 @@ class Nadybot {
 
 		// don't log tower messages with rest of chat messages
 		if ($channel->name !== 'All Towers' && $channel->name !== 'Tower Battle Outcome' && (!$isOrgMessage || $this->guildChannelStatus === true)) {
-			$this->logChat($channel->name, $sender ?? $senderId, $package->package->message);
+			$senderName = $sender;
+			if (isset($senderName) && $package->package->extra === "\x02\x01") {
+				$senderName .= ' (GM)';
+			}
+			$this->logChat($channel->name, $senderName ?? $senderId, $package->package->message);
 		} else {
 			$this->logger->info('[{channel}]: {message}', [
 				'channel' => $channel->name,
