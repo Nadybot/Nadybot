@@ -43,7 +43,6 @@ class SQLController extends ModuleInstance {
 		// I don't want to expose the API in any other way, so yeah...
 		$refDB = new ReflectionClass($this->db);
 		$refCap = $refDB->getProperty('capsule');
-		$refCap->setAccessible(true);
 
 		/** @var Capsule */
 		$capsule = $refCap->getValue($this->db);
@@ -68,7 +67,6 @@ class SQLController extends ModuleInstance {
 		// I don't want to expose the API in any other way, so yeah...
 		$refDB = new ReflectionClass($this->db);
 		$refCap = $refDB->getProperty('capsule');
-		$refCap->setAccessible(true);
 
 		/** @var Capsule */
 		$capsule = $refCap->getValue($this->db);
