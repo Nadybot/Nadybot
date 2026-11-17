@@ -14,8 +14,10 @@ class DimensionTest extends TestCase {
 		$this->assertSame('RK5', Dimension::nameOf(5));
 		$this->assertSame('RK19', Dimension::nameOf(6));
 		$this->assertSame('Lost Eden', Dimension::nameOf(7));
-		$this->assertSame('RK1', Dimension::nameOf(1));
-		$this->assertSame('RK2', Dimension::nameOf(2));
+		$this->assertSame('RK1 (Atlantean)', Dimension::nameOf(1));
+		$this->assertSame('RK2 (Rimor)', Dimension::nameOf(2));
+		$this->assertSame('RK3 (Die Neue Welt)', Dimension::nameOf(3));
+		$this->assertSame('RK8', Dimension::nameOf(8));
 	}
 
 	#[Test]

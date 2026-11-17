@@ -43,7 +43,7 @@ class PlayerHistoryController extends ModuleInstance {
 	/**
 	 * Show the history of a player on this dimension or &lt;dimension&gt;
 	 *
-	 * Valid dimensions are 5 (Rubi-Ka) and 6 (RK19)
+	 * Valid dimensions are 1 (Atlantean), 2 (Rimor), 5 (Rubi-Ka), and 6 (RK19)
 	 */
 	#[NCA\HandlesCommand('history')]
 	public function playerHistoryCommand(CmdContext $context, PCharacter $char, ?int $dimension): void {

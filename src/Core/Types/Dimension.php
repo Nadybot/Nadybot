@@ -49,10 +49,16 @@ enum Dimension: int {
 	/**
 	 * Get the name of $dimension to show to users
 	 *
-	 * Dimensions the bot cannot run on, like the long gone RK1 and RK2, are called "RK<number>"
+	 * Dimensions the bot cannot run on are called "RK<number>", with the
+	 * name of the server added for the long gone RK1-RK3
 	 */
 	public static function nameOf(int $dimension): string {
-		return self::tryFrom($dimension)?->getName() ?? "RK{$dimension}";
+		return self::tryFrom($dimension)?->getName() ?? match ($dimension) {
+			1 => 'RK1 (Atlantean)',
+			2 => 'RK2 (Rimor)',
+			3 => 'RK3 (Die Neue Welt)',
+			default => "RK{$dimension}",
+		};
 	}
 
 	/** Check if $dimension is run by Funcom */

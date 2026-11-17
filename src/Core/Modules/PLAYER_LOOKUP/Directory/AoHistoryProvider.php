@@ -36,7 +36,7 @@ class AoHistoryProvider implements HistoryProvider {
 	public function __construct(
 		private string $name,
 		private string $urlTemplate,
-		private array $dimensions=[5, 6],
+		private array $dimensions=[1, 2, 5, 6],
 		private ?string $notifyUrlTemplate=null,
 	) {
 	}
