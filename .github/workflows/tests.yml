@@ -29,26 +29,27 @@ jobs:
             libuv: 'uv'
             os: macos-latest
             php: auto
-          - db: sqlite
-            libuv: 'uv'
-            os: ['freebsd', 'libuv', 'php81']
-            php: system
-          - db: sqlite
-            libuv: ''
-            os: ['freebsd', 'nouv', 'php81']
-            php: system
-          - db: sqlite
-            libuv: 'uv'
-            os: ['freebsd', 'libuv', 'php84']
-            php: system
-          - db: sqlite
-            libuv: ''
-            os: ['freebsd', 'nouv', 'php84']
-            php: system
-          - db: sqlite
-            libuv: 'ev'
-            os: ['freebsd', 'libev', 'php84']
-            php: system
+          # FreeBSD: currently no self-hosted runner available
+          # - db: sqlite
+          #   libuv: 'uv'
+          #   os: ['freebsd', 'libuv', 'php81']
+          #   php: system
+          # - db: sqlite
+          #   libuv: ''
+          #   os: ['freebsd', 'nouv', 'php81']
+          #   php: system
+          # - db: sqlite
+          #   libuv: 'uv'
+          #   os: ['freebsd', 'libuv', 'php84']
+          #   php: system
+          # - db: sqlite
+          #   libuv: ''
+          #   os: ['freebsd', 'nouv', 'php84']
+          #   php: system
+          # - db: sqlite
+          #   libuv: 'ev'
+          #   os: ['freebsd', 'libev', 'php84']
+          #   php: system
           # - db: sqlite
           #   libuv: ''
           #   os: ['linux', 'nouv', 'ppc64', 'php83']
