@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New `!ga` and `!gaf` command to see what can be worn with social armor (like grid armor)
 - New AI_MODULE allows chatting with chatbots (`!ai`) or translating text
 - New location for inferno doja chips added
+- Support for the private server Lost Eden (dimension 7). It can be chosen in the setup, characters and org rosters are looked up via rubi-ka.org, and `!track addorg` works there as well. Names relayed in by server-side chat modules (like the Discord bridge in Global) are shown as `<name> (External)` and never stored.
+- Messages from GMs are marked with `(GM)` in the chat log
 
 ### Changed
 
@@ -33,6 +35,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The `!calc`-command  now uses a proper calculator implementation that supports math-functions, as well as constants like `e`, and `pi`. `!calc INF^0`, or `!calc cot(2pi)` work now as well. And while I was at it, I added the possibility to store and solve formulas with the new `!formula`-command.
 - Events are now executed simultaneously. While this breaks some core concepts, it greatly speeds up a lot of things.
 - Before applying migrations to an SQLite database, Nadybot now takes a backup by default
+- Server names are now the same everywhere: `RK5`, `RK19`, and `Lost Eden`. The long gone servers are called `RK1 (Atlantean)`, `RK2 (Rimor)`, and `RK3 (Die Neue Welt)`. Highnet now shows `RK5` instead of `Rubi-Ka`.
+- `!whois <name> <dimension>` no longer mixes in data from the bot's own dimension (chat ID, name history, alts, bans, comments), and only shows links that work for that dimension
+- Commands only offer what exists on the bot's dimension. There is no `!history` for Lost Eden, no org list (`!findorg`) for Lost Eden, and no Tower-API (`!nw lc`, `!nw wait`) outside of RK5
 
 ### Coding
 
@@ -53,6 +58,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Drill is now part of Core
 - NadyUI is now part of Nadybot
 - We now use `mago` for linting and analyzing alongside `psalm` and `phpstan`
+- Character, org and history lookups now go through providers registered in the new `DirectoryRegistry`, so new servers or mirrors only need a new provider
+- New `Dimension` enum as the single source for server names, relay suffixes, and detecting Funcom servers
+- The http-client honors `Retry-After: <seconds>` and stops waiting when the request gets cancelled
 
 ### Fixed
 
@@ -63,6 +71,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **All** bot commands are now permanently being tested on every commit to catch errors that are introduced due to side-effects, and generally test different platforms, architectures, and event libraries.
 - Fix deletion of tracked org members
 - A possible timing-attack on webserver auth was fixed
+- Bots not running on RK5 no longer process tower, mob, and worldboss feed events of RK5 as their own
 
 ## [6.2.8] - 2024-02-21
 
@@ -2035,7 +2044,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added the loading of the `php-win.ini` in the batch file and in the `mainloop.php` (if the OS is Windows)
 - Added that the org-members variable gets created during the start of the Bot
 - Added that players can join the guest-channel without an invitation of an org-member. You can set if everyone or just players on guest-list can join.
-- Added that `!verify` and `!guestjoin` commands by-pass the tell requirements
+- Added that `!verify` and `!guestjoin` commands bypass the tell requirements
 - Changed the look of the `!orgmembers` command a bit
 - The `!lock` command will no longer kick everyone out of the private group
 - Made the tell command available for org-channel
