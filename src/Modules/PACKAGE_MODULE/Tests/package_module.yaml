@@ -7,6 +7,10 @@ groups:
       - command: package list
         name: Get a list of installable packages
         expect: Available Packages \(\d+\)|The operation was cancelled
+        skip-when:
+          - "There was an error executing your command: Connection to"
       - command: package info SPAWNTIME_MODULE
         name: Get package details
         expect: <header2>SPAWNTIME_MODULE<end>\s*A Nadybot module to query respawn-timers for mobs|The operation was cancelled
+        skip-when:
+          - "There was an error executing your command: Connection to"

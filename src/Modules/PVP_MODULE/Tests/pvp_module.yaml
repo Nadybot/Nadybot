@@ -64,7 +64,7 @@ groups:
         name: We can search for attacks by/on a given org using wildcards
         expect:
           - Tower Attacks on/by '*a*'
-          - Page 1
+          - 'Attacker: <(omni|clan|neutral)>'
       - command: nw attacks char {attacker}
         name: We can search for attacks by a given character
         expect: Tower Attacks by '{attacker}'
@@ -72,7 +72,7 @@ groups:
         name: We can search for attacks by a given character using wildcards
         expect:
           - Tower Attacks by '*a*'
-          - Page 1
+          - 'Attacker: <(omni|clan|neutral)>'
 
       - command: nw victory
         name: We can get a list of last victories

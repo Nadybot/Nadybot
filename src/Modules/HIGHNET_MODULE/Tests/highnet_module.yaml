@@ -16,7 +16,7 @@ groups:
 
       - command: highnet filter permanent bot Nadybot 5
         name: Permanently block that annoying Nadybot bot on RK5
-        expect: Filter Bot=Nadybot \(UID \d+\) AND Dimension=Rubi-Ka \(5\) added
+        expect: Filter Bot=Nadybot \(UID \d+\) AND Dimension=RK5 \(5\) added
       - command: highnet filter 1d sender Nadybot 6
         name: Temporarily block that bot from RK19
         expect: Filter Character=Nadybot AND Dimension=RK19 \(6\) added

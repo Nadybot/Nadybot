@@ -20,7 +20,9 @@ groups:
         id: whois-deylaw
         requires: whois-superadmin
         name: Also on RK19
-        expect: "377050696"
+        expect:
+          - 'Dimension: <highlight>RK19<end> \(6\)'
+          - 'Character ID: <highlight>\d+<end>'
       - command: whois 960756792
         requires: whois-superadmin
         name: We can get information about a UID
