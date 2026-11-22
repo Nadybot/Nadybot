@@ -1,0 +1,48 @@
+{
+	"name":"Unchipping Cyberdecks",
+	"author":"Nadyita",
+	"items":[
+		{
+			"alias":"Disassembler Tool",
+			"item_id":253167,
+			"ql":300
+		},
+		{
+			"alias":"Izgimmer Speed-modified Cyberdeck",
+			"item_id":253214,
+			"ql":1
+		},
+		{
+			"alias":"Izgimmer Damage-modified Cyberdeck",
+			"item_id":253196,
+			"ql":1
+		},
+		{
+			"alias":"Izgimmer Cost-modified Cyberdeck",
+			"item_id":253213,
+			"ql":1
+		},
+		{
+			"alias":"Izgimmer-modified Cyberdeck",
+			"item_id":233454,
+			"ql":1
+		}
+	],
+	"steps":[
+		{
+			"source":"Disassembler Tool",
+			"target":"Izgimmer Speed-modified Cyberdeck",
+			"result":"Izgimmer-modified Cyberdeck"
+		},
+		{
+			"source":"Disassembler Tool",
+			"target":"Izgimmer Damage-modified Cyberdeck",
+			"result":"Izgimmer-modified Cyberdeck"
+		},
+		{
+			"source":"Disassembler Tool",
+			"target":"Izgimmer Cost-modified Cyberdeck",
+			"result":"Izgimmer-modified Cyberdeck"
+		}
+	]
+}
