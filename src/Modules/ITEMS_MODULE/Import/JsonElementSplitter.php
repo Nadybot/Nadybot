@@ -104,6 +104,7 @@ final class JsonElementSplitter {
 			}
 			if ($this->state === self::ELEMENT) {
 				$element = null;
+				$matches = [];
 				if (preg_match(self::CONTAINER, $buf, $matches, 0, $this->tokenStart) === 1) {
 					$element = $matches[0] ?? null;
 				}
@@ -198,14 +199,14 @@ final class JsonElementSplitter {
 						break;
 					}
 					$this->startValue($char, $pos);
-					continue 2;
+					break;
 				case self::SEC_COLON:
 					$this->expect($char, ':', $pos);
 					$this->state = self::SEC_VALUE;
 					break;
 				case self::SEC_VALUE:
 					$this->startValue($char, $pos);
-					continue 2;
+					break;
 				case self::SEC_NEXT:
 					if ($char === ($this->sectionIsObject ? '}' : ']')) {
 						$this->state = self::TOP_NEXT;
@@ -233,18 +234,20 @@ final class JsonElementSplitter {
 		}
 	}
 
-	/** Start reading an element whose first character is at $pos */
-	private function startValue(string $char, int &$pos): void {
+	/**
+	 * Start reading an element whose first character is at $pos
+	 *
+	 * Containers are matched as a whole from $pos, the scan of scalars
+	 * continues after their first character.
+	 */
+	private function startValue(string $char, int $pos): void {
 		$this->tokenStart = $pos;
 		if ($char === '{' || $char === '[') {
 			$this->state = self::ELEMENT;
 			return;
 		}
 		$this->state = self::SEC_SCALAR;
-		if ($char === '"') {
-			$this->inString = true;
-			$pos++;
-		}
+		$this->inString = $char === '"';
 	}
 
 	private function decodeKey(string $buf, int $end): string {

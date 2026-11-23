@@ -36,13 +36,17 @@ class ItemImporterTest extends TestCase {
 		$this->assertSame(1, $result->notInGame);
 		$this->assertSame([
 			['lowid' => 10, 'highid' => 11, 'lowql' => 1, 'highql' => 100, 'name' => 'Basic Pistol',
-			 'icon' => 1_000, 'froob_friendly' => 0, 'slot' => 8, 'flags' => 7, 'in_game' => 1, 'type' => 'Weapon', 'properties' => 5],
+			 'icon' => 1_000, 'froob_friendly' => 0, 'slot' => 8, 'flags' => 7, 'in_game' => 1, 'type' => 'Weapon', 'properties' => 5,
+			 'high_name' => 'Good Pistol', 'low_ref_ql' => 1, 'high_ref_ql' => 100],
 			['lowid' => 11, 'highid' => 12, 'lowql' => 101, 'highql' => 200, 'name' => 'Good Pistol',
-			 'icon' => 0, 'froob_friendly' => 0, 'slot' => 0, 'flags' => 0, 'in_game' => 0, 'type' => 'Misc', 'properties' => 0],
+			 'icon' => 0, 'froob_friendly' => 0, 'slot' => 0, 'flags' => 0, 'in_game' => 0, 'type' => 'Misc', 'properties' => 0,
+			 'high_name' => 'Superior Pistol', 'low_ref_ql' => 100, 'high_ref_ql' => 200],
 			['lowid' => 20, 'highid' => 20, 'lowql' => 5, 'highql' => 5, 'name' => 'Something',
-			 'icon' => 0, 'froob_friendly' => 1, 'slot' => 0, 'flags' => 0, 'in_game' => 1, 'type' => 'Misc', 'properties' => 0],
+			 'icon' => 0, 'froob_friendly' => 1, 'slot' => 0, 'flags' => 0, 'in_game' => 1, 'type' => 'Misc', 'properties' => 0,
+			 'high_name' => 'Something', 'low_ref_ql' => 5, 'high_ref_ql' => 5],
 			['lowid' => 30, 'highid' => 30, 'lowql' => 50, 'highql' => 50, 'name' => 'Lonely Item',
-			 'icon' => 0, 'froob_friendly' => 1, 'slot' => 0, 'flags' => 0, 'in_game' => 1, 'type' => 'Armor', 'properties' => 0],
+			 'icon' => 0, 'froob_friendly' => 1, 'slot' => 0, 'flags' => 0, 'in_game' => 1, 'type' => 'Armor', 'properties' => 0,
+			 'high_name' => 'Lonely Item', 'low_ref_ql' => 50, 'high_ref_ql' => 50],
 		], $this->rows[AODBEntry::class]);
 		$this->assertSame([
 			['id' => 1, 'group_id' => 1, 'item_id' => 10],

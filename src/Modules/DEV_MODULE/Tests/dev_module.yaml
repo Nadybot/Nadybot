@@ -45,6 +45,15 @@ groups:
       - command: makeitem 1 2 3 Test name
         name: Create an item with "!makeitem"
         expect: itemref://1/2/3.*Test name
+      - command: makeitem 85738 21793 100
+        name: Create an item link with the name at QL 100
+        expect: itemref://85738/21793/100'>Basic Nano Armor Sleeves<
+      - command: makeitem 85738 21793 101
+        name: Create an item link with the name at QL 101
+        expect: itemref://85738/21793/101'>Augmented Nano Armor Sleeves<
+      - command: makeitem 1 2 3
+        name: Create an item link for an unknown item without a name
+        expect: There is no item 1/2 at QL 3 in the item database
       - command: createblob error
         name: Call "!createblob" with invalid argument
         expect: Help \(createblob\)

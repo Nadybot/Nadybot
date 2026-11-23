@@ -353,6 +353,9 @@ final class ItemImporter {
 			'in_game' => $inGame ? 1 : 0,
 			'type' => AodbType::fromTemplate($low->itemClass, $low->name)->value,
 			'properties' => $low->properties,
+			'high_name' => $high->name,
+			'low_ref_ql' => $low->ql,
+			'high_ref_ql' => $high->ql,
 		]);
 	}
 

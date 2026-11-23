@@ -10,6 +10,7 @@ use Nadybot\Core\{
 	Collection,
 	DB,
 	ModuleInstance,
+	QueryBuilder,
 	Safe,
 	Text,
 	Types\AccessLevel,
@@ -228,7 +229,7 @@ class ItemsController extends ModuleInstance {
 		}
 		$footer .= "\nItem DB rips created using the {$aoiaPlusLink} tool.";
 
-		$msg = $this->createItemsBlob($data, $search, $ql, ($this->itemDataController->itemDataVersion !== '' ? $this->itemDataController->itemDataVersion : 'unknown'), $footer);
+		$msg = $this->createItemsBlob($data, $search, $ql, $this->itemDataController->itemDataVersion !== '' ? $this->itemDataController->itemDataVersion : 'unknown', $footer);
 
 		return $msg;
 	}
@@ -265,7 +266,10 @@ class ItemsController extends ModuleInstance {
 				'a.properties',
 				'g.group_id',
 				'a.in_game',
-				'a.type'
+				'a.type',
+				'a.high_name',
+				'a.low_ref_ql',
+				'a.high_ref_ql',
 			)->orderBy('a.name')
 			->orderByDesc('a.highql')
 			->limit($this->maxitems)
@@ -291,7 +295,10 @@ class ItemsController extends ModuleInstance {
 			->selectRaw($query->colFunc('COALESCE', ['a1.highid', 'a2.highid', 'foo.highid'], 'highid'))
 			->selectRaw($query->colFunc('COALESCE', ['a1.lowql', 'a2.highql', 'foo.highql'], 'ql'))
 			->selectRaw($query->colFunc('COALESCE', ['a1.lowql', 'a2.lowql', 'foo.lowql'], 'lowql'))
-			->selectRaw($query->colFunc('COALESCE', ['a1.highql', 'a2.highql', 'foo.highql'], 'highql'));
+			->selectRaw($query->colFunc('COALESCE', ['a1.highql', 'a2.highql', 'foo.highql'], 'highql'))
+			->selectRaw($this->fromSameRow($query, 'high_name'))
+			->selectRaw($this->fromSameRow($query, 'low_ref_ql'))
+			->selectRaw($this->fromSameRow($query, 'high_ref_ql'));
 		$data = $query->asObj(ItemSearchResult::class);
 		$data = $data->filter(static function (ItemSearchResult $item): bool {
 			/** @var array<string,true> */
@@ -691,5 +698,20 @@ class ItemsController extends ModuleInstance {
 		return $this->db->table(ItemGroup::getTable())
 			->where('item_id', $aoid)
 			->exists();
+	}
+
+	/**
+	 * Select a nullable column of the group member query from the row the IDs come from
+	 *
+	 * COALESCE() would fall back to the next row for NULL values and thereby
+	 * mix data of different rows.
+	 */
+	private function fromSameRow(QueryBuilder $query, string $column): string {
+		$wrap = $query->grammar->wrap(...);
+		return 'CASE'.
+			' WHEN ' . $wrap('a1.lowid') . ' IS NOT NULL THEN ' . $wrap("a1.{$column}").
+			' WHEN ' . $wrap('a2.lowid') . ' IS NOT NULL THEN ' . $wrap("a2.{$column}").
+			' ELSE ' . $wrap("foo.{$column}").
+			' END AS ' . $wrap($column);
 	}
 }

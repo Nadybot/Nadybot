@@ -20,6 +20,7 @@ use Nadybot\Core\{
 	Types\Status,
 	Util,
 };
+use Nadybot\Modules\ITEMS_MODULE\{AODBEntry, ItemsController};
 use Psr\Log\LoggerInterface;
 use ReflectionClass;
 use ReflectionException;
@@ -84,6 +85,9 @@ class DevController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private DB $db;
+
+	#[NCA\Inject]
+	private ItemsController $itemsController;
 
 	#[NCA\Setup]
 	public function setup(): void {
@@ -307,10 +311,31 @@ class DevController extends ModuleInstance {
 		$context->reply($msg);
 	}
 
-	/** Create a custom item link */
+	/**
+	 * Create a custom item link
+	 *
+	 * Without a name, the name the item has at this QL is taken from the item database
+	 */
 	#[NCA\HandlesCommand('makeitem')]
-	public function makeItemCommand(CmdContext $context, int $lowId, int $highId, int $ql, string $name): void {
-		$context->reply(Text::makeItem($lowId, $highId, $ql, $name));
+	#[NCA\Help\Example('<symbol>makeitem 85738 21793 150')]
+	#[NCA\Help\Example('<symbol>makeitem 85738 21793 150 Some sleeves')]
+	public function makeItemCommand(CmdContext $context, int $lowId, int $highId, int $ql, ?string $name): void {
+		if (isset($name)) {
+			$context->reply(Text::makeItem($lowId, $highId, $ql, $name));
+			return;
+		}
+		$item = $this->itemsController->getByIDs($lowId, $highId)
+			->first(static function (AODBEntry $item) use ($lowId, $highId, $ql): bool {
+				return $item->lowid === $lowId
+					&& $item->highid === $highId
+					&& $item->lowql <= $ql
+					&& $item->highql >= $ql;
+			});
+		if (!isset($item)) {
+			$context->reply("There is no item {$lowId}/{$highId} at QL {$ql} in the item database, please give a name.");
+			return;
+		}
+		$context->reply($item->getLink($ql));
 	}
 
 	/** Create 1 or &lt;num blobs&gt; blobs of &lt;length&gt; characters */
