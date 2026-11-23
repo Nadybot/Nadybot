@@ -268,3 +268,9 @@ groups:
           - Corroded Ring
         unexpected:
           - De'Valos
+  - name: Item data
+    tests:
+      - command: itemsupdate
+        name: Check for new item data
+        expect: The item data is up to date \(version [^)]+\)|Imported item data
+        unexpected: Unable to update the item data

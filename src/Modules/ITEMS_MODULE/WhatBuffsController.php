@@ -83,8 +83,6 @@ class WhatBuffsController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_buffs.csv');
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_types.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/buffs.csv');
 	}
 

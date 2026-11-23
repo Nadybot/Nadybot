@@ -11,7 +11,6 @@ use Nadybot\Core\{
 	DB,
 	ModuleInstance,
 	Safe,
-	SettingManager,
 	Text,
 	Types\AccessLevel,
 	Types\Bitfield,
@@ -55,14 +54,7 @@ class ItemsController extends ModuleInstance {
 	private DB $db;
 
 	#[NCA\Inject]
-	private SettingManager $settingManager;
-
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/aodb.csv');
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_groups.csv');
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_group_names.csv');
-	}
+	private ItemDataController $itemDataController;
 
 	/**
 	 * Search for an item by name, optionally in a specific QL.
@@ -236,7 +228,7 @@ class ItemsController extends ModuleInstance {
 		}
 		$footer .= "\nItem DB rips created using the {$aoiaPlusLink} tool.";
 
-		$msg = $this->createItemsBlob($data, $search, $ql, $this->settingManager->getString('aodb_db_version')??'unknown', $footer);
+		$msg = $this->createItemsBlob($data, $search, $ql, ($this->itemDataController->itemDataVersion !== '' ? $this->itemDataController->itemDataVersion : 'unknown'), $footer);
 
 		return $msg;
 	}
