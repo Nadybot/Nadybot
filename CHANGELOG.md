@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New location for inferno doja chips added
 - Support for the private server Lost Eden (dimension 7). It can be chosen in the setup, characters and org rosters are looked up via rubi-ka.org, and `!track addorg` works there as well. Names relayed in by server-side chat modules (like the Discord bridge in Global) are shown as `<name> (External)` and never stored.
 - Messages from GMs are marked with `(GM)` in the chat log
+- The item database is no longer part of the bot, but imported from a JSON export for the bot's dimension (`item_data_url`). The bot imports it on the first start, checks for a new version once a day, and `!itemsupdate [force]` updates it on request. Which items are not in the game comes from a separate list (`item_not_in_game_url`).
+- Downloads of the item data are verified against the `SHA256SUMS` file served next to it in the format of `sha256sum(1)`. A checksum mismatch aborts the import with an error; hosts not serving a sums file, like the Lost Eden export, are logged as a warning.
+- `!makeitem <low id> <high id> <ql>` takes the name from the item database when no name is given
 
 ### Changed
 
@@ -38,6 +41,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Server names are now the same everywhere: `RK5`, `RK19`, and `Lost Eden`. The long gone servers are called `RK1 (Atlantean)`, `RK2 (Rimor)`, and `RK3 (Die Neue Welt)`. Highnet now shows `RK5` instead of `Rubi-Ka`.
 - `!whois <name> <dimension>` no longer mixes in data from the bot's own dimension (chat ID, name history, alts, bans, comments), and only shows links that work for that dimension
 - Commands only offer what exists on the bot's dimension. There is no `!history` for Lost Eden, no org list (`!findorg`) for Lost Eden, and no Tower-API (`!nw lc`, `!nw wait`) outside of RK5
+- Item links show the name the item has at the link's QL, just like the game does. A QL 150 Nano Armor Sleeves is now called "Augmented Nano Armor Sleeves" instead of "Basic Nano Armor Sleeves".
+- Every item group has a name now, calculated from the names of all its items if none is given. Some groups are named better because of this, e.g. "Low-Tech Armor Boots" instead of "Battered Low-Tech Armor Boots".
+- Read-only settings are no longer saved in profiles, because they cannot be loaded anyway
 
 ### Coding
 
@@ -61,6 +67,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Character, org and history lookups now go through providers registered in the new `DirectoryRegistry`, so new servers or mirrors only need a new provider
 - New `Dimension` enum as the single source for server names, relay suffixes, and detecting Funcom servers
 - The http-client honors `Retry-After: <seconds>` and stops waiting when the request gets cancelled
+- The item CSV files (`aodb.csv`, `item_groups.csv`, `item_group_names.csv`, `item_buffs.csv`, `item_types.csv`, `weapon_attributes.csv`) are gone. The export format is described in `src/Modules/ITEMS_MODULE/FORMAT.md`, nano buffs and types stay in the bot.
+- New `ItemStat` enum for the stats of item templates that are not skills
+- A `--test-file` that doesn't exist is reported by name instead of failing with an unspecific error
 
 ### Fixed
 

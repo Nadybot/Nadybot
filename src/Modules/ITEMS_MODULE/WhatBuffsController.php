@@ -83,8 +83,6 @@ class WhatBuffsController extends ModuleInstance {
 
 	#[NCA\Setup]
 	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_buffs.csv');
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/item_types.csv');
 		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/buffs.csv');
 	}
 
@@ -457,7 +455,7 @@ class WhatBuffsController extends ModuleInstance {
 				->groupBy([
 					'a.name', 'a.lowql', 'a.highql', 'b.amount', 'b2.amount', 'a.lowid',
 					'a.highid', 'a.icon', 'a.froob_friendly', 'a.slot', 'a.properties', 'a.flags',
-					'a.in_game', 'a.type',
+					'a.in_game', 'a.type', 'a.high_name', 'a.low_ref_ql', 'a.high_ref_ql',
 				])->orderByDesc($query->raw($query->colFunc('ABS', 'b.amount')))
 				->orderByDesc('name')
 				->select([

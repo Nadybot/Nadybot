@@ -101,6 +101,13 @@ class Testing {
 				LegacyLogger::assignLogLevel($logger);
 			}
 		}
+		$missingFiles = $this->getMissingTestFiles();
+		if (count($missingFiles)) {
+			$this->logger->critical('Test file(s) not found: {files}', [
+				'files' => implode(', ', $missingFiles),
+			]);
+			exit(1);
+		}
 		$results = new TestResults();
 		try {
 			$dirs = $this->getTestDirectories();
@@ -819,6 +826,21 @@ class Testing {
 			$result = array_merge($result, $tests);
 		}
 		return $result;
+	}
+
+	/**
+	 * Get the test files given with --test-file that do not exist
+	 *
+	 * @return list<string>
+	 */
+	private function getMissingTestFiles(): array {
+		$missing = [];
+		foreach (BotRunner::getArguments()->testFiles ?? [] as $file) {
+			if (!$this->fs->isFile($file)) {
+				$missing []= $file;
+			}
+		}
+		return $missing;
 	}
 
 	/** @return ?list<string> */

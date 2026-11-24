@@ -23,6 +23,7 @@ use Nadybot\Core\{
 	Text,
 	Types\AccessLevel,
 	Types\CommandReply,
+	Types\SettingMode,
 	Types\Status,
 };
 use Nadybot\Core\Attributes\Parameter\{FilenameStr,Remove,Str};
@@ -35,6 +36,7 @@ use Nadybot\Core\DBSchema\{
 	ExtCmdPermissionSet,
 	RouteHopColor,
 	RouteHopFormat,
+	Setting,
 };
 use Nadybot\Modules\RELAY_MODULE\RelayController;
 use Nadylib\Type;
@@ -216,10 +218,22 @@ class ProfileController extends ModuleInstance {
 		$contents .= "!permissions {$setData}\n";
 
 		$contents .= "\n# Settings\n";
+
+		// Read-only settings cannot be loaded with !settings save
+		$readOnly = array_flip(
+			$this->db->table(Setting::getTable())
+				->where('mode', SettingMode::NoEdit->value)
+				->pluckStrings('name')
+				->toArray()
+		);
 		foreach ($this->settingManager->getSettings() as $name => $value) {
-			if ($name !== 'botid' && $name !== 'version' && !str_ends_with($name, '_db_version')) {
-				$contents .= "!settings save {$name} {$value->value}\n";
+			if ($name === 'botid' || $name === 'version' || str_ends_with($name, '_db_version')) {
+				continue;
 			}
+			if (isset($readOnly[$name])) {
+				continue;
+			}
+			$contents .= "!settings save {$name} {$value->value}\n";
 		}
 		$contents .= "\n# Events\n";
 

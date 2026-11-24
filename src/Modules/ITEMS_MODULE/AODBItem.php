@@ -19,6 +19,9 @@ class AODBItem extends AODBEntry implements AOItem {
 		AodbType $type,
 		bool $froob_friendly,
 		int $properties,
+		?string $high_name=null,
+		?int $low_ref_ql=null,
+		?int $high_ref_ql=null,
 	) {
 		parent::__construct(
 			lowid: $lowid,
@@ -33,6 +36,9 @@ class AODBItem extends AODBEntry implements AOItem {
 			type: $type,
 			froob_friendly: $froob_friendly,
 			properties: $properties,
+			high_name: $high_name,
+			low_ref_ql: $low_ref_ql,
+			high_ref_ql: $high_ref_ql,
 		);
 	}
 

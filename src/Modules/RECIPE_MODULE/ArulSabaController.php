@@ -280,6 +280,7 @@ class ArulSabaController extends ModuleInstance {
 		$bbPrint->lowid = $blueprints[$numGems][$balId];
 		$bbPrint->highid = $blueprints[$numGems][$balId+1];
 		$bbPrint->name = 'Balanced Bracelet Blueprints';
+		self::forgetTemplateNames($bbPrint);
 
 		// Adjuster
 		$ingredient = $this->readIngredientByName('Balance Adjuster - ' . ucfirst($side));
@@ -372,6 +373,7 @@ class ArulSabaController extends ModuleInstance {
 			/** @psalm-suppress InvalidArrayOffset */
 			$result->icon = $icons[$i];
 			$result->name = 'Unfinished Bracelet of Arul Saba';
+			self::forgetTemplateNames($result);
 
 			$result->ql = $result->lowql;
 			$blob .= $this->renderStep($circuitry, $target, $result, [self::ME => '*4', self::EE => '*4.2']);
@@ -382,6 +384,7 @@ class ArulSabaController extends ModuleInstance {
 		$coated = clone $result;
 		$coated->lowid = $coated->highid = $finished[$numGems][$side];
 		$coated->name = 'Bracelet of Arul Saba';
+		self::forgetTemplateNames($coated);
 		$blob .= "\n<pagebreak><header2>Add silver coating<end>\n".
 			$this->renderStep($furnace, $ingot, $liqSilver, [self::ME => '*3']).
 			$this->renderStep($liqSilver, $result, $coated);
@@ -542,5 +545,17 @@ class ArulSabaController extends ModuleInstance {
 			$line .= "\n";
 		}
 		return $line;
+	}
+
+	/**
+	 * Remove the template names and reference QLs of a manually built item
+	 *
+	 * The item was cloned from another one and got a new name, the name data
+	 * of the original would otherwise override it at some QLs.
+	 */
+	private static function forgetTemplateNames(AODBItem $item): void {
+		$item->high_name = null;
+		$item->low_ref_ql = null;
+		$item->high_ref_ql = null;
 	}
 }

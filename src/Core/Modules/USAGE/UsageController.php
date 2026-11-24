@@ -326,7 +326,7 @@ class UsageController extends ModuleInstance {
 			symbol                 : $this->settingManager->getString('symbol')??'!',
 			num_relays             : $this->db->table(RelayConfig::getTable())->count(),
 			relay_protocols        : $protocols,
-			aodb_db_version        : $this->settingManager->getString('aodb_db_version')??'unknown',
+			aodb_db_version        : $this->settingManager->getString('item_data_version')??'unknown',
 			max_blob_size          : $this->settingManager->getInt('max_blob_size')??0,
 			online_show_org_guild  : $this->settingManager->getInt('online_show_org_guild')??-1,
 			online_show_org_priv   : $this->settingManager->getInt('online_show_org_priv')??-1,

@@ -92,11 +92,6 @@ class SkillsController extends ModuleInstance {
 	#[NCA\Inject]
 	private ItemsController $itemsController;
 
-	#[NCA\Setup]
-	public function setup(): void {
-		$this->db->loadCSVFile($this->moduleName, __DIR__ . '/weapon_attributes.csv');
-	}
-
 	/** Find out where to set your aggdef slider to be 1/1 */
 	#[NCA\HandlesCommand('aggdef')]
 	#[NCA\Help\Epilogue(

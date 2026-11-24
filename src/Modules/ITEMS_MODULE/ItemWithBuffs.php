@@ -20,6 +20,9 @@ class ItemWithBuffs extends AODBEntry {
 			in_game: $item->in_game,
 			froob_friendly: $item->froob_friendly,
 			properties: $item->properties->toInt(),
+			high_name: $item->high_name,
+			low_ref_ql: $item->low_ref_ql,
+			high_ref_ql: $item->high_ref_ql,
 		);
 	}
 }

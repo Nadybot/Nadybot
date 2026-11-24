@@ -29,6 +29,9 @@ class AODBEntry extends DBTable implements AOItemSpec, AOIcon {
 		public AodbType $type,
 		public bool $froob_friendly,
 		int $properties,
+		public ?string $high_name=null,
+		public ?int $low_ref_ql=null,
+		public ?int $high_ref_ql=null,
 	) {
 		$this->flags = (new EnumBitfield(ItemFlag::class))->setInt($flags);
 		$this->properties = (new EnumBitfield(ItemProperty::class))->setInt($properties);
@@ -47,7 +50,7 @@ class AODBEntry extends DBTable implements AOItemSpec, AOIcon {
 
 	public function getLink(?int $ql=null, ?string $text=null): string {
 		$ql ??= $this->lowql;
-		$text ??= $this->name;
+		$text ??= $this->getNameAtQL($ql);
 		return "<a href='itemref://{$this->lowid}/{$this->highid}/{$ql}'>{$text}</a>";
 	}
 
@@ -69,6 +72,26 @@ class AODBEntry extends DBTable implements AOItemSpec, AOIcon {
 
 	public function getName(): string {
 		return $this->name;
+	}
+
+	/**
+	 * Get the name the game shows for this item at the given QL
+	 *
+	 * The name of the template whose reference QL is closer to $ql wins,
+	 * on a tie the high template's name. Without the reference QLs, or for
+	 * a QL outside the item's QL range, this is the item's base name.
+	 */
+	public function getNameAtQL(int $ql): string {
+		if (!isset($this->high_name, $this->low_ref_ql, $this->high_ref_ql)) {
+			return $this->name;
+		}
+		if ($ql < $this->lowql || $ql > $this->highql) {
+			return $this->name;
+		}
+		if (abs($ql - $this->low_ref_ql) < abs($ql - $this->high_ref_ql)) {
+			return $this->name;
+		}
+		return $this->high_name;
 	}
 
 	public function getIconID(): int {
@@ -94,6 +117,9 @@ class AODBEntry extends DBTable implements AOItemSpec, AOIcon {
 			type: $this->type,
 			froob_friendly: $this->froob_friendly,
 			properties: $this->properties->toInt(),
+			high_name: $this->high_name,
+			low_ref_ql: $this->low_ref_ql,
+			high_ref_ql: $this->high_ref_ql,
 		);
 	}
 }

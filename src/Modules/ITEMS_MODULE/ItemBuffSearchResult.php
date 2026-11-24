@@ -20,6 +20,9 @@ class ItemBuffSearchResult extends AODBEntry {
 		public ?int $low_amount=null,
 		public ?int $multi_m=null,
 		public ?int $multi_r=null,
+		?string $high_name=null,
+		?int $low_ref_ql=null,
+		?int $high_ref_ql=null,
 	) {
 		parent::__construct(
 			lowid: $lowid,
@@ -34,6 +37,9 @@ class ItemBuffSearchResult extends AODBEntry {
 			type: $type,
 			froob_friendly: $froob_friendly,
 			properties: $properties,
+			high_name: $high_name,
+			low_ref_ql: $low_ref_ql,
+			high_ref_ql: $high_ref_ql,
 		);
 	}
 }

@@ -4,10 +4,12 @@ namespace Nadybot\Core;
 
 use function Amp\async;
 use function Amp\ByteStream\getStderr;
+use function Amp\Dns\dnsResolver;
 use function Amp\File\{createDefaultDriver, filesystem};
 use function Safe\{getopt, ini_set, parse_url, putenv, sapi_windows_set_ctrl_handler, sleep};
 
 use Amp\ByteStream\BufferedReader;
+use Amp\Dns\BlockingFallbackDnsResolver;
 use Amp\File\Driver\{BlockingFilesystemDriver, EioFilesystemDriver, ParallelFilesystemDriver};
 use Amp\File\FilesystemDriver;
 use Amp\Http\Client\Connection\{DefaultConnectionFactory, UnlimitedConnectionPool};
@@ -29,6 +31,7 @@ use Psr\Log\LoggerInterface;
 use ReflectionAttribute;
 use ReflectionObject;
 use Revolt\EventLoop;
+use Revolt\EventLoop\Driver\UvDriver;
 use Safe\Exceptions\InfoException;
 use Throwable;
 
@@ -87,6 +90,13 @@ class BotRunner {
 		}
 		if (!self::getFS()->exists("{$baseDir}/.git")) {
 			throw new Exception('Unable to get a commit ID for the code');
+		}
+		if (self::isWindowsUv()) {
+			// Asynchronously spawning processes is broken with ext-uv
+			// on Windows (amphp/process issue #80), run git
+			// synchronously instead. Callers of this method don't
+			// expect an exception, so degrade to an empty string
+			return \trim((string)Terminal::readFromProcess('git rev-parse HEAD'));
 		}
 		$process = Process::start('git rev-parse HEAD', $baseDir);
 		$bufReader = new BufferedReader($process->getStdout());
@@ -174,6 +184,13 @@ class BotRunner {
 
 	/** Get a git tag plus commit, plus hash all in one string */
 	public static function getGitDescribe(): ?string {
+		if (self::isWindowsUv()) {
+			// Asynchronously spawning processes is broken with ext-uv
+			// on Windows (amphp/process issue #80), run git
+			// synchronously instead
+			$stdout = Terminal::readFromProcess('git describe --tags');
+			return $stdout === null || $stdout === '' ? null : \trim($stdout);
+		}
 		$baseDir = self::getBasedir();
 		$process = Process::start('git describe --tags', $baseDir);
 		$bufReader = new BufferedReader($process->getStdout());
@@ -195,16 +212,22 @@ class BotRunner {
 		if (isset(self::$latestTag)) {
 			return self::$latestTag;
 		}
-		$baseDir = self::getBasedir();
-		$process = Process::start('git tag -l', $baseDir);
-		$bufReader = new BufferedReader($process->getStdout());
-		$reader = async($bufReader->buffer(...));
-		$exitCode = $process->join();
-		$stdout = $reader->await();
-		if ($exitCode !== 0 || $stdout === '') {
+		if (self::isWindowsUv()) {
+			// Asynchronously spawning processes is broken with ext-uv
+			// on Windows (amphp/process issue #80), run git
+			// synchronously instead
+			$output = Terminal::readFromProcess('git tag -l');
+		} else {
+			$process = Process::start('git tag -l', self::getBasedir());
+			$bufReader = new BufferedReader($process->getStdout());
+			$reader = async($bufReader->buffer(...));
+			$exitCode = $process->join();
+			$output = $exitCode === 0 ? $reader->await() : '';
+		}
+		if ($output === null || $output === '') {
 			return null;
 		}
-		$tagString = (new Collection(explode("\n", trim($stdout))))
+		$tagString = (new Collection(explode("\n", trim($output))))
 			->diff(['nightly'])
 			->map(static function (string $tag): SemanticVersion {
 				return new SemanticVersion($tag);
@@ -289,6 +312,13 @@ class BotRunner {
 			Registry::setInstance(Registry::formatName(BotConfig::class), $config);
 		}
 		$this->setWindowTitle($config);
+		if (self::isWindowsUv()) {
+			// amphp/dns detects the system's DNS servers by spawning
+			// a PowerShell process, which is broken with ext-uv on
+			// Windows (amphp/process issue #80), so rely on
+			// gethostbynamel() instead
+			dnsResolver(new BlockingFallbackDnsResolver());
+		}
 
 		$version = self::getVersion();
 		Registry::setInstance(Registry::formatName(Filesystem::class), self::$fs);
@@ -372,6 +402,24 @@ class BotRunner {
 	/** Utility function to check whether the bot is running Linux */
 	public static function isLinux(): bool {
 		return \PHP_OS_FAMILY === 'Linux';
+	}
+
+	/**
+	 * Utility function to check whether the bot is running
+	 * Windows with the ext-uv driver as the event loop
+	 *
+	 * On Windows, spawning child processes with ext-uv hangs
+	 * for exactly 60 seconds before failing. The spawned process
+	 * inherits handles bound to the parent's I/O completion port,
+	 * so the handshake with the process wrapper never notifies
+	 * the parent, see https://github.com/amphp/process/issues/80
+	 *
+	 * Check this before Amp\Process::start() and fall back to
+	 * a synchronous command instead, as done for the git
+	 * commands and the window title in this class
+	 */
+	public static function isWindowsUv(): bool {
+		return self::isWindows() && EventLoop::getDriver() instanceof UvDriver;
 	}
 
 	/** Get the filesystem class that is configured */
@@ -671,6 +719,16 @@ class BotRunner {
 	/** Set the title of the command prompt window in Windows */
 	private function setWindowTitle(BotConfig $config): void {
 		if (self::isWindows() === false) {
+			return;
+		}
+		if (self::isWindowsUv()) {
+			// Asynchronously spawning processes is broken with ext-uv
+			// on Windows (amphp/process issue #80), so set the title
+			// with a synchronous cmd.exe builtin invocation instead.
+			// Character names are shell metacharacter-purged to keep
+			// the title command injection-safe
+			$character = Safe::pregReplace('/[^a-zA-Z0-9 _\-.]/', '', $config->main->character);
+			Terminal::readFromProcess("title {$character} - Nadybot");
 			return;
 		}
 		async(Process::start(...), "title {$config->main->character} - Nadybot")->ignore();
