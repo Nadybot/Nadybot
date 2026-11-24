@@ -63,6 +63,9 @@ class ItemDataController extends ModuleInstance {
 	/** Item data of Lost Eden, provided by the server itself */
 	public const LOST_EDEN_ITEM_DATA_URL = 'https://rubi-ka.org/api/items/export/lost-eden-items.json';
 
+	/** AOIDs not in the game on Lost Eden, provided by the server itself */
+	public const LOST_EDEN_NOT_IN_GAME_URL = 'https://rubi-ka.org/api/items/export/not-in-game.json';
+
 	/** URL of the item database */
 	#[NCA\Setting\Text(accessLevel: AccessLevel::Admin)]
 	public string $itemDataUrl = self::DEFAULT_ITEM_DATA_URL;
@@ -188,7 +191,8 @@ class ItemDataController extends ModuleInstance {
 	/**
 	 * Replace the generic default item data URL by the one for the bot's dimension
 	 *
-	 * Lost Eden provides its own export. A URL an admin has set is kept.
+	 * Lost Eden provides its own export and its own list of items not in
+	 * the game. A URL an admin has set is kept.
 	 */
 	private function setDimensionUrls(): void {
 		$isLostEden = Dimension::tryFrom($this->db->getDim()) === Dimension::LostEden;
@@ -196,6 +200,11 @@ class ItemDataController extends ModuleInstance {
 			$url = $isLostEden ? self::LOST_EDEN_ITEM_DATA_URL : (string)$this->resolveUrl(self::DEFAULT_ITEM_DATA_URL);
 			$this->itemDataUrl = $url;
 			$this->settingManager->save('item_data_url', $url);
+		}
+		if ($this->itemNotInGameUrl === self::DEFAULT_NOT_IN_GAME_URL) {
+			$url = $isLostEden ? self::LOST_EDEN_NOT_IN_GAME_URL : (string)$this->resolveUrl(self::DEFAULT_NOT_IN_GAME_URL);
+			$this->itemNotInGameUrl = $url;
+			$this->settingManager->save('item_not_in_game_url', $url);
 		}
 	}
 

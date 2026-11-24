@@ -33,7 +33,7 @@ groups:
           - 684.*1 Handed Blunt Weapons
           - 380.*Heavy Weapons
           - 1140.*Nano Pool
-          - 1187.*Jobe
+          - Jobe clusters need 1187 NP
       - command: npreq faded 99
         name: Get the NP for faded clusters at QL 99
         expect:

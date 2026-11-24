@@ -23,7 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - New location for inferno doja chips added
 - Support for the private server Lost Eden (dimension 7). It can be chosen in the setup, characters and org rosters are looked up via rubi-ka.org, and `!track addorg` works there as well. Names relayed in by server-side chat modules (like the Discord bridge in Global) are shown as `<name> (External)` and never stored.
 - Messages from GMs are marked with `(GM)` in the chat log
-- The item database is no longer part of the bot, but imported from a JSON export for the bot's dimension (`item_data_url`). The bot imports it on the first start, checks for a new version once a day, and `!itemsupdate [force]` updates it on request. Which items are not in the game comes from a separate list (`item_not_in_game_url`).
+- The item database is no longer part of the bot, but imported from a JSON export for the bot's dimension (`item_data_url`). The bot imports it on the first start, checks for a new version once a day, and `!itemsupdate [force]` updates it on request. Which items are not in the game comes from a separate list (`item_not_in_game_url`) — Lost Eden bots fetch it from rubi-ka.org, existing setups migrate there automatically.
 - Downloads of the item data are verified against the `SHA256SUMS` file served next to it in the format of `sha256sum(1)`. A checksum mismatch aborts the import with an error; hosts not serving a sums file, like the Lost Eden export, are logged as a warning.
 - `!makeitem <low id> <high id> <ql>` takes the name from the item database when no name is given
 - New `!npreq <grade> <ql>`-command to show how much Nanoprogramming every cluster needs to be implanted into an implant of that QL
