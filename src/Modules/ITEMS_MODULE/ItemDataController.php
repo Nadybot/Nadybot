@@ -16,6 +16,7 @@ use Nadybot\Core\{
 	DB,
 	Filesystem,
 	ModuleInstance,
+	Safe,
 	SettingManager,
 	Types\AccessLevel,
 	Types\Dimension,
@@ -101,6 +102,9 @@ class ItemDataController extends ModuleInstance {
 	private ItemsController $itemsController;
 
 	private bool $updateRunning = false;
+
+	/** @var array<string,?array<string,string>> Cached SHA256SUMS contents per URL directory, null if not served */
+	private array $checksums = [];
 
 	/** Import the item data right away if there is none yet */
 	#[NCA\Setup]
@@ -202,6 +206,7 @@ class ItemDataController extends ModuleInstance {
 
 	/** @param ?Closure(string):mixed $progress */
 	private function runUpdate(bool $force, ?Closure $progress): string {
+		$this->checksums = [];
 		$url = $this->resolveUrl($this->itemDataUrl);
 		if ($url === null) {
 			throw new ItemImportException('No URL for the item data configured.');
@@ -238,6 +243,7 @@ class ItemDataController extends ModuleInstance {
 		}
 		$start = microtime(true);
 		[$body, $encoding] = $this->download($url);
+		$this->verifyDecodedChecksum($url, $body, $encoding);
 		$downloadTime = microtime(true) - $start;
 		$nanoBuffs = $this->readCSV(__DIR__ . '/nano_buffs.csv');
 		$nanoTypes = $this->readCSV(__DIR__ . '/nano_types.csv');
@@ -385,7 +391,9 @@ class ItemDataController extends ModuleInstance {
 	/** @throws ItemImportException on error */
 	private function fetchVersion(string $url): string {
 		$versionUrl = "{$url}.version";
-		$version = trim($this->fetchSmall($versionUrl));
+		$raw = $this->fetchSmall($versionUrl);
+		$this->verifyChecksum($versionUrl, $raw);
+		$version = trim($raw);
 		if ($version === '') {
 			throw new ItemImportException("{$versionUrl} is empty.");
 		}
@@ -404,7 +412,9 @@ class ItemDataController extends ModuleInstance {
 			return [];
 		}
 		try {
-			$ids = json_decode($this->fetchSmall($url), true, 2);
+			$body = $this->fetchSmall($url);
+			$this->verifyChecksum($url, $body);
+			$ids = json_decode($body, true, 2);
 		} catch (JsonException $e) {
 			throw new ItemImportException("{$url} is not valid JSON.", 0, $e);
 		}
@@ -432,6 +442,101 @@ class ItemDataController extends ModuleInstance {
 		} catch (Throwable $e) {
 			throw new ItemImportException("Unable to download {$url}: " . $e->getMessage(), 0, $e);
 		}
+	}
+
+	/**
+	 * Verify $body against the SHA256SUMS file next to $url
+	 *
+	 * The sums file is expected in the format of `sha256sum(1)`, with one
+	 * entry per file, matched by file name. If the host doesn't serve
+	 * `SHA256SUMS` or has no entry for this file, the data cannot be
+	 * verified and a warning is logged instead.
+	 *
+	 * @throws ItemImportException on a checksum mismatch
+	 */
+	private function verifyChecksum(string $url, string $body): void {
+		$this->compareChecksum($url, hash('sha256', $body));
+	}
+
+	/**
+	 * Verify the decompressed data of a streamed download against the
+	 * SHA256SUMS file next to $url
+	 *
+	 * The hashes in `SHA256SUMS` are checksums of the uncompressed files,
+	 * while the export is transferred in whatever encoding the server
+	 * picks, so the body has to be decoded for hashing. The importer
+	 * iterates the decompressed data again, so it is calculated twice.
+	 *
+	 * @throws ItemImportException on a checksum mismatch
+	 */
+	private function verifyDecodedChecksum(string $url, string $body, ?string $encoding): void {
+		$hashContext = hash_init('sha256');
+		foreach ($this->decode($body, $encoding) as $chunk) {
+			hash_update($hashContext, $chunk);
+		}
+		$this->compareChecksum($url, hash_final($hashContext));
+	}
+
+	/** @throws ItemImportException on a checksum mismatch */
+	private function compareChecksum(string $url, string $hash): void {
+		$sums = $this->fetchChecksums($url);
+		if (!isset($sums)) {
+			return;
+		}
+		$fileName = substr($url, (int)\strrpos($url, '/') + 1);
+		$expected = $sums[$fileName] ?? null;
+		if ($expected === null) {
+			$this->logger->warning(
+				'"{url}" has no entry for {file}, cannot verify the download.',
+				['url' => substr($url, 0, (int)\strrpos($url, '/') + 1) . 'SHA256SUMS', 'file' => $fileName]
+			);
+			return;
+		}
+		if (!hash_equals($expected, $hash)) {
+			throw new ItemImportException(
+				"Checksum mismatch for {$url}: expected {$expected}, got {$hash}. ".
+				'Please retry later and/or check the item data source.'
+			);
+		}
+	}
+
+	/**
+	 * Read the SHA256SUMS file from the directory of $url
+	 *
+	 * @return null|array<string,string> hash per file name, null if not served
+	 */
+	private function fetchChecksums(string $url): ?array {
+		$slashPos = \strrpos($url, '/');
+		if ($slashPos === false) {
+			$this->logger->warning(
+				'Unable to verify {url}: the URL has no directory, so it cannot fetch a SHA256SUMS file.',
+				['url' => $url]
+			);
+			return null;
+		}
+		$base = substr($url, 0, $slashPos + 1);
+		if (\array_key_exists($base, $this->checksums)) {
+			return $this->checksums[$base];
+		}
+		$sumsUrl = $base . 'SHA256SUMS';
+		try {
+			$sumsBody = $this->fetchSmall($sumsUrl);
+		} catch (ItemImportException) {
+			$this->logger->warning(
+				'The host of {url} does not serve "{sumsUrl}", downloads cannot be verified.',
+				['url' => $url, 'sumsUrl' => $sumsUrl]
+			);
+			return $this->checksums[$base] = null;
+		}
+		$sums = [];
+		foreach (explode("\n", trim($sumsBody)) as $line) {
+			$matches = Safe::pregMatch('/^([0-9a-f]{64})\s+\*?(.+)$/i', $line);
+			if (!isset($matches[1], $matches[2])) {
+				continue;
+			}
+			$sums[trim($matches[2])] = strtolower($matches[1]);
+		}
+		return $this->checksums[$base] = $sums === [] ? null : $sums;
 	}
 
 	/** @throws ItemImportException on error */
