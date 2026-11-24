@@ -15,8 +15,32 @@ groups:
           - 951.*Treatment
           - 404.*Ability
           - 414.*Ability
+          - 400.*1200.*NP for
+          - 300.*900.*NP for
+          - 100.*300.*NP for
+          - npreq shiny 200.*Shiny
+          - npreq bright 200.*Bright
+          - npreq faded 200.*Faded
+          - 1250.*NP for Shiny
+          - 950.*NP for Bright
+          - 650.*NP for Faded
       - command: implant 301
         name: No info about implant QL 301
+        expect: Implants only exist
+      - command: npreq shiny 190
+        name: Get the NP for shiny clusters at QL 190
+        expect:
+          - 684.*1 Handed Blunt Weapons
+          - 380.*Heavy Weapons
+          - 1140.*Nano Pool
+          - 1187.*Jobe
+      - command: npreq faded 99
+        name: Get the NP for faded clusters at QL 99
+        expect:
+          - 178.*1 Handed Blunt Weapons
+          - 99.*Heavy Weapons
+      - command: npreq shiny 0
+        name: No NP requirements for implant QL 0
         expect: Implants only exist
       - command: implant 200 400
         name: Implant information given ability and treatment

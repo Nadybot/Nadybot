@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - The item database is no longer part of the bot, but imported from a JSON export for the bot's dimension (`item_data_url`). The bot imports it on the first start, checks for a new version once a day, and `!itemsupdate [force]` updates it on request. Which items are not in the game comes from a separate list (`item_not_in_game_url`).
 - Downloads of the item data are verified against the `SHA256SUMS` file served next to it in the format of `sha256sum(1)`. A checksum mismatch aborts the import with an error; hosts not serving a sums file, like the Lost Eden export, are logged as a warning.
 - `!makeitem <low id> <high id> <ql>` takes the name from the item database when no name is given
+- New `!npreq <grade> <ql>`-command to show how much Nanoprogramming every cluster needs to be implanted into an implant of that QL
 
 ### Changed
 
@@ -81,6 +82,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix deletion of tracked org members
 - A possible timing-attack on webserver auth was fixed
 - Bots not running on RK5 no longer process tower, mob, and worldboss feed events of RK5 as their own
+- The Nanoprogramming requirement to insert a cluster was wrong: for RK clusters it depends on the implanted skill (1x / 1.5x / 2x multiplier x QL), while for Jobe clusters it is fixed per grade and linear even above QL 200. `!implant <ql>` now shows the min-max range and links each grade to `!npreq`, as the exact requirement varies by skill
 
 ## [6.2.8] - 2024-02-21
 

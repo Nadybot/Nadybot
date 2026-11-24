@@ -6,6 +6,7 @@ use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	DB,
 	ModuleInstance,
 	Text,
 	Types\AccessLevel,
@@ -22,9 +23,17 @@ use Nadybot\Core\{
 		command: 'implant',
 		accessLevel: AccessLevel::Guest,
 		description: 'Get information about the QL of an implant',
+	),
+	NCA\DefineCommand(
+		command: 'npreq',
+		accessLevel: AccessLevel::Guest,
+		description: 'Show the Nanoprogramming needed to insert clusters into an implant',
 	)
 ]
 class ImplantController extends ModuleInstance {
+	#[NCA\Inject]
+	private DB $db;
+
 	/**
 	 * Find the highest implant QL you can equip with given attribute and treatment
 	 *
@@ -105,6 +114,50 @@ class ImplantController extends ModuleInstance {
 		$context->reply($msg . '.');
 	}
 
+	/** Show the Nanoprogramming needed to insert each type of cluster into an implant */
+	#[NCA\HandlesCommand('npreq')]
+	#[NCA\Help\Example('<symbol>npreq shiny 190')]
+	#[NCA\Help\Example('<symbol>npreq faded 99')]
+	#[NCA\Help\Epilogue(
+		"The Nanoprogramming requirement depends on the skill being implanted:\n".
+		"faded takes 1 x multiplier x QL, bright 1.5 x and shiny 2 x,\n".
+		"with the multiplier being a property of the cluster,\n".
+		"between 1.0 (e.g. Heavy Weapons) and 3.0 (Nano Pool).\n\n".
+		'The QL given is the QL of the implant, not the cluster.'
+	)]
+	public function npreqCommand(CmdContext $context, ClusterGrade $grade, int $ql): void {
+		if ($ql < 1 || $ql > 300) {
+			$msg = 'Implants only exist in QLs between 1 and 300.';
+			$context->reply($msg);
+			return;
+		}
+
+		$data = $this->db->table(Cluster::getTable())
+			->where('np_req', '>', 1)
+			->orderBy('long_name')
+			->asObj(Cluster::class);
+		$count = $data->count();
+		if ($count === 0) {
+			$context->reply('No cluster data found.');
+			return;
+		}
+
+		$blob = "<header2>NP needed to insert a {$grade->value} cluster into a QL {$ql} implant:<end>\n";
+		foreach ($data as $cluster) {
+			$np = Implant::getRequiredNPForNpReq($cluster->np_req, $grade, $ql);
+			$blob .= '<tab>'.Text::alignNumber($np, 4, 'highlight')." {$cluster->long_name}\n";
+		}
+
+		$jobeNP = Implant::getRequiredNP(true, $grade, $ql);
+		$blob .= "\n<i>All Jobe clusters need {$jobeNP} NP instead, plus their secondary tradeskill.</i>";
+
+		$msg = Text::makeBlob(
+			"NP requirement for each {$grade->value} cluster (QL {$ql} implant)",
+			$blob
+		);
+		$context->reply($msg);
+	}
+
 	/**
 	 * Render the popup-blob for a regular or jobe implant at a given QL
 	 *
@@ -139,13 +192,30 @@ class ImplantController extends ModuleInstance {
 
 		$blob .= "\n\n";
 
-		$blob .= "<header2>Requirements to build:<end>\n".
-			$indent.Text::alignNumber(Implant::getRequiredNP($jobe, ClusterGrade::Shiny, $ql), 4, 'highlight').
-			" NP for Shiny\n".
-			$indent.Text::alignNumber(Implant::getRequiredNP($jobe, ClusterGrade::Bright, $ql), 4, 'highlight').
-			" NP for Bright\n".
-			$indent.Text::alignNumber(Implant::getRequiredNP($jobe, ClusterGrade::Faded, $ql), 4, 'highlight').
-			" NP for Faded\n\n";
+		$blob .= "<header2>Requirements to build:<end>\n";
+		if ($jobe) {
+			$blob .=
+				$indent.Text::alignNumber(Implant::getRequiredNP(true, ClusterGrade::Shiny, $ql), 4, 'highlight').
+				" NP for Shiny\n".
+				$indent.Text::alignNumber(Implant::getRequiredNP(true, ClusterGrade::Bright, $ql), 4, 'highlight').
+				" NP for Bright\n".
+				$indent.Text::alignNumber(Implant::getRequiredNP(true, ClusterGrade::Faded, $ql), 4, 'highlight').
+				" NP for Faded\n".
+				$indent.'<i>Jobe clusters also require a secondary tradeskill at the same amount</i>'."\n".
+				$indent.'<i>Nano Delta (Nano Regeneration) clusters need less: 5.25 / 4 / 2.75 x QL</i>'."\n\n";
+		} else {
+			$npRanges = $this->getRKRequiredNPRange($ql);
+			foreach (ClusterGrade::cases() as $grade) {
+				$range = $npRanges[$grade->value];
+				$blob .= $indent.Text::alignNumber($range->min, 4, 'highlight').
+					'-'.
+					Text::alignNumber($range->max, 4, 'highlight').
+					' NP for '.
+					Text::makeChatcmd(ucfirst($grade->value), "/tell <myname> npreq {$grade->value} {$ql}").
+					"\n";
+			}
+			$blob .= $indent.'<i>The exact requirement depends on the implanted skill</i>'."\n\n";
+		}
 
 		$blob .= "<header2>Requirements to clean:<end>\n";
 		if ($jobe) {
@@ -193,6 +263,33 @@ class ImplantController extends ModuleInstance {
 			ClusterGrade::Faded => (int)floor($ql * 0.82),
 		};
 		return max(min($minQL, 300), 1);
+	}
+
+	/**
+	 * Get the min- and max-Nanoprogramming requirement for RK clusters,
+	 * because it varies by the skill being implanted
+	 *
+	 * @param int $ql The QL of the implant to insert the clusters into
+	 *
+	 * @return array<string,MinMax> The min- and max-requirement per grade
+	 *
+	 * @psalm-param int<1,300> $ql
+	 */
+	public function getRKRequiredNPRange(int $ql): array {
+		$npReqs = $this->db->table(Cluster::getTable())
+			->where('np_req', '>', 1)
+			->asObj(Cluster::class)
+			->map(static fn (Cluster $cluster): int => $cluster->np_req);
+		$minReq = (int)($npReqs->min() ?? 0);
+		$maxReq = (int)($npReqs->max() ?? 0);
+		$ranges = [];
+		foreach (ClusterGrade::cases() as $grade) {
+			$ranges[$grade->value] = new MinMax(
+				min: Implant::getRequiredNPForNpReq($minReq, $grade, $ql),
+				max: Implant::getRequiredNPForNpReq($maxReq, $grade, $ql),
+			);
+		}
+		return $ranges;
 	}
 
 	/**
