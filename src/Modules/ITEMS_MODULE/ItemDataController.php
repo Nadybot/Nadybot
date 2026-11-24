@@ -18,6 +18,7 @@ use Nadybot\Core\{
 	ModuleInstance,
 	SettingManager,
 	Types\AccessLevel,
+	Types\Dimension,
 	Types\SettingMode,
 	Types\Status,
 };
@@ -52,13 +53,22 @@ class ItemDataController extends ModuleInstance {
 	/** Placeholder in the URL settings for the bot's dimension */
 	public const DIMENSION_PLACEHOLDER = '{dimension}';
 
-	/** URL of the item data, "{dimension}" is replaced by the dimension of the bot */
-	#[NCA\Setting\Text(accessLevel: AccessLevel::Admin)]
-	public string $itemDataUrl = 'https://items.aobots.org/rk{dimension}-items.json';
+	/** Default of the item data URL, replaced by the URL for the bot's dimension in the setup */
+	public const DEFAULT_ITEM_DATA_URL = 'https://items.aobots.org/rk{dimension}-items.json';
 
-	/** URL of the list of items not in the game, "{dimension}" is replaced by the dimension of the bot, "none" for no list */
+	/** Default of the URL for the items not in the game, the same for all dimensions */
+	public const DEFAULT_NOT_IN_GAME_URL = 'https://items.aobots.org/rk{dimension}-not-in-game.json';
+
+	/** Item data of Lost Eden, provided by the server itself */
+	public const LOST_EDEN_ITEM_DATA_URL = 'https://rubi-ka.org/api/items/export/lost-eden-items.json';
+
+	/** URL of the item database */
 	#[NCA\Setting\Text(accessLevel: AccessLevel::Admin)]
-	public string $itemNotInGameUrl = 'https://items.aobots.org/rk{dimension}-not-in-game.json';
+	public string $itemDataUrl = self::DEFAULT_ITEM_DATA_URL;
+
+	/** URL of the list of items not in the game, "none" for no list */
+	#[NCA\Setting\Text(accessLevel: AccessLevel::Admin)]
+	public string $itemNotInGameUrl = self::DEFAULT_NOT_IN_GAME_URL;
 
 	/** Version of the imported item data */
 	#[NCA\Setting\Text(mode: SettingMode::NoEdit)]
@@ -95,6 +105,7 @@ class ItemDataController extends ModuleInstance {
 	/** Import the item data right away if there is none yet */
 	#[NCA\Setup]
 	public function setup(): void {
+		$this->setDimensionUrls();
 		if ($this->db->table(AODBEntry::getTable())->exists()) {
 			return;
 		}
@@ -168,6 +179,20 @@ class ItemDataController extends ModuleInstance {
 			return null;
 		}
 		return str_replace(self::DIMENSION_PLACEHOLDER, (string)$this->db->getDim(), $url);
+	}
+
+	/**
+	 * Replace the generic default item data URL by the one for the bot's dimension
+	 *
+	 * Lost Eden provides its own export. A URL an admin has set is kept.
+	 */
+	private function setDimensionUrls(): void {
+		$isLostEden = Dimension::tryFrom($this->db->getDim()) === Dimension::LostEden;
+		if ($this->itemDataUrl === self::DEFAULT_ITEM_DATA_URL) {
+			$url = $isLostEden ? self::LOST_EDEN_ITEM_DATA_URL : (string)$this->resolveUrl(self::DEFAULT_ITEM_DATA_URL);
+			$this->itemDataUrl = $url;
+			$this->settingManager->save('item_data_url', $url);
+		}
 	}
 
 	/** Write a progress message to the log */

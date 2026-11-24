@@ -95,6 +95,10 @@ class ItemImporterTest extends TestCase {
 	public function filtersTemplatesByName(): void {
 		$result = $this->import([
 			'version' => '1',
+			'families' => [
+				['items' => [[[1, 1], [5, 1]]]],
+				['items' => [[[6, 1]]]],
+			],
 			'templates' => [
 				'1' => ['ql' => 1, 'name' => 'Eye Implant: Sharp Obj, Faded'],
 				'2' => ['ql' => 1, 'name' => 'Blister Pack: Nano Charge'],
@@ -105,7 +109,10 @@ class ItemImporterTest extends TestCase {
 			],
 		], []);
 		$this->assertSame(4, $result->filteredTemplates);
-		$this->assertSame([5, 6], array_column($this->rows[AODBEntry::class], 'lowid'));
+		$this->assertSame(1, $result->filteredItems);
+		$this->assertSame([], $result->skipped, 'Filtered items are not skipped because of errors');
+		// 5 is in a family, so it does not become an item of its own
+		$this->assertSame([6], array_column($this->rows[AODBEntry::class], 'lowid'));
 	}
 
 	#[Test]

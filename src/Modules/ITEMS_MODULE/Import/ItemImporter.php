@@ -27,14 +27,9 @@ final class ItemImporter {
 
 	private ItemImportResult $result;
 
-	/** @var array<int,ItemTemplate> */
-	private array $templates = [];
-
-	/** @var array<int,true> */
-	private array $filtered = [];
-
-	/** @var list<array{?string,list<array{int,int,int,int}>}> */
-	private array $families = [];
+	private TemplateStore $templates;
+	private IdSet $filtered;
+	private FamilyStore $families;
 
 	/** @param Closure(list<string>):string $commonName Calculates the name of a family from the names of its templates */
 	public function __construct(
@@ -53,9 +48,9 @@ final class ItemImporter {
 	 */
 	public function import(iterable $chunks, array $notInGame): ItemImportResult {
 		$this->result = new ItemImportResult();
-		$this->templates = [];
-		$this->filtered = [];
-		$this->families = [];
+		$this->templates = new TemplateStore();
+		$this->filtered = new IdSet();
+		$this->families = new FamilyStore();
 		$splitter = new JsonElementSplitter();
 		$seen = [];
 		try {
@@ -87,9 +82,10 @@ final class ItemImporter {
 		if ($this->result->items() === 0) {
 			throw new ItemImportException('The export does not contain any items');
 		}
-		$this->templates = [];
-		$this->filtered = [];
-		$this->families = [];
+		// Free the memory right away
+		$this->templates = new TemplateStore();
+		$this->filtered = new IdSet();
+		$this->families = new FamilyStore();
 		return $this->result;
 	}
 
@@ -125,7 +121,7 @@ final class ItemImporter {
 			$items []= $parsed;
 		}
 		if (count($items)) {
-			$this->families []= [$name, $items];
+			$this->families->add($name, $items);
 		}
 	}
 
@@ -179,12 +175,12 @@ final class ItemImporter {
 		$this->addWeapon($aoid, $stats);
 
 		if (preg_match(self::IMPORT_FILTER, $name)) {
-			$this->filtered[$aoid] = true;
+			$this->filtered->add($aoid);
 			$this->result->filteredTemplates++;
 			return;
 		}
 		$ql = $template['ql'] ?? null;
-		$this->templates[$aoid] = new ItemTemplate(
+		$this->templates->add($aoid, new ItemTemplate(
 			ql: is_int($ql) ? $ql : null,
 			name: $name,
 			icon: $this->intStat($stats, ItemStat::Icon->value),
@@ -193,7 +189,7 @@ final class ItemImporter {
 			properties: $this->intStat($stats, ItemStat::Can->value),
 			itemClass: $this->intStat($stats, ItemStat::ItemClass->value),
 			froobFriendly: ($template['froob_friendly'] ?? true) !== false,
-		);
+		));
 	}
 
 	private function addBuffs(int $aoid, mixed $buffs): void {
@@ -261,28 +257,28 @@ final class ItemImporter {
 
 	/** @param array<mixed> $notInGame */
 	private function createItems(array $notInGame): void {
-		$referenced = [];
-		foreach ($this->families as [, $items]) {
+		$referenced = new IdSet();
+		foreach ($this->families->families() as [, $items]) {
 			foreach ($items as [$lowId, , $highId]) {
-				$referenced[$lowId] = true;
-				$referenced[$highId] = true;
+				$referenced->add($lowId);
+				$referenced->add($highId);
 			}
 		}
 
 		$groupId = 0;
 		$groupRowId = 0;
-		foreach ($this->families as [$name, $items]) {
+		foreach ($this->families->families() as [$name, $items]) {
 			$members = [];
 			$names = [];
 			foreach ($items as [$lowId, $lowQL, $highId, $highQL]) {
-				$low = $this->templates[$lowId] ?? null;
-				$high = $this->templates[$highId] ?? null;
+				$low = $this->templates->get($lowId);
+				$high = ($highId === $lowId) ? $low : $this->templates->get($highId);
 				if (!isset($low, $high)) {
-					$this->result->skip(
-						(isset($this->filtered[$lowId]) || isset($this->filtered[$highId]))
-							? 'item with a filtered template'
-							: 'item with an unknown template'
-					);
+					if ($this->filtered->has($lowId) || $this->filtered->has($highId)) {
+						$this->result->filteredItems++;
+					} else {
+						$this->result->skip('item with an unknown template');
+					}
 					continue;
 				}
 				$this->addItem($lowId, $lowQL, $low, $highId, $highQL, $high, $notInGame);
@@ -313,8 +309,12 @@ final class ItemImporter {
 		}
 		$this->result->groups = $groupId;
 
-		foreach ($this->templates as $aoid => $template) {
-			if (isset($referenced[$aoid])) {
+		foreach ($this->templates->aoids() as $aoid) {
+			if ($referenced->has($aoid)) {
+				continue;
+			}
+			$template = $this->templates->get($aoid);
+			if ($template === null) {
 				continue;
 			}
 			if ($template->ql === null) {

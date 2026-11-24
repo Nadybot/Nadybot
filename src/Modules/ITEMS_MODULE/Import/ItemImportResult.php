@@ -15,6 +15,9 @@ final class ItemImportResult {
 	/** Number of templates that were not turned into items by the import filter */
 	public int $filteredTemplates = 0;
 
+	/** Number of family items not created, because a template was filtered */
+	public int $filteredItems = 0;
+
 	/** Number of item rows created from families */
 	public int $familyItems = 0;
 
