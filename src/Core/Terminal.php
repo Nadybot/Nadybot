@@ -57,6 +57,44 @@ class Terminal {
 		return self::$height ??= 24;
 	}
 
+	/**
+	 * Read the output from a given command
+	 *
+	 * Do NOT pass untrustworthy input to it
+	 *
+	 * @param string|list<string> $command
+	 */
+	public static function readFromProcess(string|array $command): ?string {
+		if (!\function_exists('proc_open')) {
+			return null;
+		}
+
+		$descriptorspec = [
+			1 => ['pipe', 'w'],
+			2 => ['pipe', 'w'],
+		];
+
+		$codepage = \function_exists('sapi_windows_cp_set') ? sapi_windows_cp_get() : 0;
+
+		// @phpstan-ignore theCodingMachineSafe.function
+		if (!$process = @proc_open($command, $descriptorspec, $pipes, null, null, ['suppress_errors' => true])) {
+			return null;
+		}
+
+		$info = stream_get_contents($pipes[1]);
+		// @phpstan-ignore-next-line
+		fclose($pipes[1]);
+		// @phpstan-ignore-next-line
+		fclose($pipes[2]);
+		proc_close($process);
+
+		if ($codepage) {
+			sapi_windows_cp_set($codepage);
+		}
+
+		return $info;
+	}
+
 	/** Utility function to check whether the bot is running Windows */
 	private static function isWindows(): bool {
 		return strtoupper(substr(\PHP_OS_FAMILY, 0, 3)) === 'WIN';
@@ -148,41 +186,5 @@ class Terminal {
 	/** Runs and parses `stty -a` if it's available, suppressing any error output. */
 	private static function getSttyColumns(): ?string {
 		return self::readFromProcess(['stty', '-a']);
-	}
-
-	/**
-	 * Read the output from a given command
-	 *
-	 * @param string|list<string> $command
-	 */
-	private static function readFromProcess(string|array $command): ?string {
-		if (!\function_exists('proc_open')) {
-			return null;
-		}
-
-		$descriptorspec = [
-			1 => ['pipe', 'w'],
-			2 => ['pipe', 'w'],
-		];
-
-		$codepage = \function_exists('sapi_windows_cp_set') ? sapi_windows_cp_get() : 0;
-
-		// @phpstan-ignore theCodingMachineSafe.function
-		if (!$process = @proc_open($command, $descriptorspec, $pipes, null, null, ['suppress_errors' => true])) {
-			return null;
-		}
-
-		$info = stream_get_contents($pipes[1]);
-		// @phpstan-ignore-next-line
-		fclose($pipes[1]);
-		// @phpstan-ignore-next-line
-		fclose($pipes[2]);
-		proc_close($process);
-
-		if ($codepage) {
-			sapi_windows_cp_set($codepage);
-		}
-
-		return $info;
 	}
 }
