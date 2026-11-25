@@ -239,70 +239,84 @@ const fetchCharacters = async () => {
   return true
 }
 
+const LOST_EDEN = 7
+
+/**
+ * Look up a character in the directory matching the dimension
+ *
+ * Returns undefined if the directory could not be queried, null if the
+ * character doesn't exist, and the character's org name ('' if none) otherwise.
+ */
+const lookupCharacter = async (dimension: number, name: string): Promise<string | null | undefined> => {
+  if (dimension == LOST_EDEN) {
+    const resp = await fetch(`https://rubi-ka.org/api/directory/characters/${encodeURIComponent(name)}`)
+    if (resp.status == 404) return null
+    if (resp.status != 200) return undefined
+    const json = await resp.json()
+    return json?.org?.name ?? ''
+  }
+  const resp = await fetch(
+    `https://bork.aobots.org/character/bio/d/${dimension}/name/${encodeURIComponent(name)}/bio.xml?data_type=json`,
+  )
+  if (resp.status != 200) return undefined
+  const json = await resp.json()
+  if (json == null) return null
+  return json[1]?.['NAME'] ?? ''
+}
+
 const fetchCharacterOrg = async () => {
   loadingText.value = 'Fetching character info...'
   showLoading.value = true
-  const resp = await fetch(
-    `https://bork.aobots.org/character/bio/d/${credentials.value!.values.dimension}/name/${character.value!.values.character}/bio.xml?data_type=json`,
-  )
+  const org = await lookupCharacter(credentials.value!.values.dimension, character.value!.values.character)
   showLoading.value = false
 
-  if (resp.status == 200) {
-    const json = await resp.json()
-
-    if (json == null) {
-      errorPopupText.value = 'Could not find character'
-      showErrorPopup.value = true
-      return false
-    }
-    if (json[1] == null) orgName.value = ''
-    else orgName.value = json[1]['NAME']
-    return true
-  } else {
+  if (org === undefined) {
     errorPopupText.value = 'Error fetching character info'
     showErrorPopup.value = true
     return false
   }
+  if (org === null) {
+    errorPopupText.value = 'Could not find character'
+    showErrorPopup.value = true
+    return false
+  }
+  orgName.value = org
+  return true
 }
 
 const fetchSuperadmin = async () => {
   loadingText.value = 'Fetching superadmin info...'
   showLoading.value = true
-  let resp = await fetch(
-    `https://bork.aobots.org/character/bio/d/${credentials.value!.values.dimension}/name/${superadmin.value!.values.superadmin}/bio.xml?data_type=json`,
-  )
+  const org = await lookupCharacter(credentials.value!.values.dimension, superadmin.value!.values.superadmin)
 
-  if (resp.status == 200) {
-    const json = await resp.json()
-
-    if (json == null) {
-      showLoading.value = false
-      errorPopupText.value = 'Could not find superadmin character'
-      showErrorPopup.value = true
-      return false
-    }
-
-    loadingText.value = 'Loading databases...'
-    resp = await fetch('/specs')
-    showLoading.value = false
-
-    if (resp.status == 500) {
-      errorPopupText.value = 'Error getting database list'
-      showErrorPopup.value = true
-      return false
-    }
-
-    const specs: SystemSpecs = await resp.json()
-
-    databases.value = specs.databases
-
-    return true
-  } else {
+  if (org === undefined) {
     showLoading.value = false
     errorPopupText.value = 'Error fetching superadmin info'
     showErrorPopup.value = true
     return false
   }
+  if (org === null) {
+    showLoading.value = false
+    errorPopupText.value = 'Could not find superadmin character'
+    showErrorPopup.value = true
+    return false
+  }
+
+  loadingText.value = 'Loading databases...'
+  const resp = await fetch('/specs')
+  showLoading.value = false
+
+  if (resp.status == 500) {
+    errorPopupText.value = 'Error getting database list'
+    showErrorPopup.value = true
+    return false
+  }
+
+  const specs: SystemSpecs = await resp.json()
+
+  databases.value = specs.databases
+
+  return true
 }
 
 const fetchTimezones = async () => {

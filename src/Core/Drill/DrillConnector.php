@@ -59,6 +59,12 @@ class DrillConnector {
 			);
 			$this->logger->info('Connected to Drill server {url}', ['url' => $this->uri]);
 			return $connection;
+		} catch (\Amp\CancelledException $e) {
+			$this->logger->info('Connecting to Drill server {url} cancelled', [
+				'url' => $this->uri,
+				'exception' => $e,
+			]);
+			throw $e;
 		} catch (\Throwable $e) {
 			$this->logger->error('Drill endpoint errored: {error}', [
 				'error' => $e->getMessage(),

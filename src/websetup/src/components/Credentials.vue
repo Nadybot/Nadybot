@@ -34,6 +34,8 @@
 import { useField, useForm, type FieldContext } from 'vee-validate'
 import { ref } from 'vue'
 
+const LOST_EDEN = 7
+
 const dimensions = ref([
   {
     name: 'RK5',
@@ -42,6 +44,10 @@ const dimensions = ref([
   {
     name: 'RK19',
     value: 6,
+  },
+  {
+    name: 'Lost Eden',
+    value: 7,
   },
 ])
 
@@ -52,12 +58,15 @@ const { validate, values } = useForm({
 
       return 'Username must be between 6 and 15 characters'
     },
-    password(value: string | null) {
-      if (value != null && value.match(/^[a-zA-Z0-9-]{6,20}$/) != null) return true
+    password(value: string | null, ctx: { form: Record<string, unknown> }) {
+      // Funcom limits passwords to 20 letters, digits and dashes, Lost Eden doesn't
+      const isFuncom = ctx.form.dimension !== LOST_EDEN
 
-      if (value != null && value.length < 6) return 'Password must be at least 6 characters'
-      else if (value != null && value.length > 20) return 'Password must not exceed 20 characters'
-      else return 'Password contains invalid characters'
+      if (value == null || value.length < 6) return 'Password must be at least 6 characters'
+      if (isFuncom && value.length > 20) return 'Password must not exceed 20 characters'
+      if (isFuncom && value.match(/^[a-zA-Z0-9-]+$/) == null) return 'Password contains invalid characters'
+
+      return true
     },
   },
 })

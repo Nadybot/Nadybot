@@ -6,7 +6,7 @@ use function Amp\Socket\connect;
 use function Safe\ini_get;
 
 use Amp\ByteStream\BufferException;
-use Amp\{CancelledException, TimeoutCancellation, TimeoutException};
+use Amp\{CancelledException, CompositeCancellation, DeferredCancellation, TimeoutCancellation, TimeoutException};
 use Amp\Http\HttpStatus;
 use Amp\Http\Server\{DefaultErrorHandler, HttpServer, Request, Response, Router, SocketHttpServer};
 use Amp\Http\Server\Driver\{ConnectionLimitingClientFactory, ConnectionLimitingServerSocketFactory, SocketClientFactory};
@@ -34,7 +34,13 @@ use Throwable;
  * @author Nadyita (RK5)
  */
 class WebSetup {
+	/** Give up connecting to the Drill server after this many seconds */
+	private const DRILL_CONNECT_TIMEOUT = 15;
+
 	private ?DrillConnection $drillConnection=null;
+
+	/** Used to abort a still pending Drill connect once the setup is done */
+	private ?DeferredCancellation $drillCancellation=null;
 
 	/** @var array<string,DrillHttpConnection> */
 	private array $handlers = [];
@@ -245,12 +251,22 @@ class WebSetup {
 	}
 
 	private function setupDrill(): void {
+		$this->drillCancellation = new DeferredCancellation();
+		$cancellation = new CompositeCancellation(
+			$this->drillCancellation->getCancellation(),
+			new TimeoutCancellation(self::DRILL_CONNECT_TIMEOUT),
+		);
 		try {
 			$client = new DrillConnector(uri: 'wss://drill.nadysetup.org', logger: $this->logger);
-			$this->drillConnection = $client->connect();
+			$this->drillConnection = $client->connect($cancellation);
 			EventLoop::queue($this->sendAndReceiveDrill(...), $this->drillConnection);
+		} catch (CancelledException) {
+			if ($this->drillCancellation->isCancelled()) {
+				return;
+			}
+			$this->logger->warning('No Drill connection for this web setup (timeout)');
 		} catch (Throwable) {
-			$this->logger->warning('No Drill connection for this web  setup');
+			$this->logger->warning('No Drill connection for this web setup');
 		}
 	}
 
@@ -349,6 +365,8 @@ class WebSetup {
 				'This is not a valid config: ' . $e->getMessage(),
 			);
 		}
+		// Don't let a still pending Drill connect keep the event loop alive
+		$this->drillCancellation?->cancel();
 		$drill = $this->drillConnection;
 		if (isset($drill)) {
 			EventLoop::queue($drill->close(...));
