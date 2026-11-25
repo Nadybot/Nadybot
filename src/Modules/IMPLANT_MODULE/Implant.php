@@ -6,6 +6,9 @@ use InvalidArgumentException;
 use Nadybot\Core\Util;
 
 class Implant {
+	/** Jobe clusters can only be inserted into implants of at least this QL */
+	public const JOBE_MIN_QL = 100;
+
 	public static function getRequirement(ImplantRequirement $requirement, bool $jobe, int $ql): int {
 		return match ($jobe) {
 			false => match ($requirement) {
@@ -81,55 +84,37 @@ class Implant {
 	}
 
 	/**
-	 * The amount of Nanoprogramming needed to insert a cluster into an implant
+	 * The amount of the cluster's tradeskill needed to insert it into an implant
 	 *
-	 * For RK clusters, this depends on the skill being implanted:
-	 * Faded:  1   x multiplier x QL
-	 * Bright: 1.5 x multiplier x QL
-	 * Shiny:  2   x multiplier x QL
-	 * where the multiplier is a property of the cluster: np_req divided by 400.
+	 * RK clusters need Nanoprogramming: 1 x multiplier x QL for faded,
+	 * 1.5 x for bright and 2 x for shiny, with the multiplier being a
+	 * property of the cluster, between 1.0 (e.g. Heavy Weapons) and
+	 * 3.0 (Nano Pool).
+	 * Jobe clusters need a tradeskill depending on the cluster instead:
+	 * 3.25 x QL for faded, 4.75 x for bright and 6.25 x for shiny,
+	 * except for Nano Delta with 2.75 x, 4 x and 5.25 x.
 	 *
-	 * All Jobe clusters need the same amount of Nanoprogramming per grade:
-	 * Faded:  3.25 x QL
-	 * Bright: 4.75 x QL
-	 * Shiny:  6.25 x QL
-	 * with Nano Delta (Nano Regeneration) clusters being the only exception:
-	 * those need 2.75x, 4x and 5.25x respectively.
+	 * The factors per grade are stored in the cluster table. The requirement
+	 * scales linearly, also for refined implants above QL 200, and is rounded
+	 * to the nearest integer.
 	 *
-	 * @param null|Cluster $cluster The RK cluster to insert. Required if !$jobe,
-	 *                              because the requirement varies by the implanted skill
+	 * @param int $ql The QL of the implant, not of the cluster
+	 *
+	 * @see https://ao.tinkeringidiot.com/ao/plants
+	 * @see https://www.ao-universe.com/guides/classic-ao/tradeskill-guides-6/general-crafting-5/implant-creation
 	 */
-	public static function getRequiredNP(bool $jobe, ClusterGrade $grade, int $ql, ?Cluster $cluster=null): int {
-		if ($jobe) {
-			$multiplier = match ($grade) {
-				ClusterGrade::Shiny => 6.25,
-				ClusterGrade::Bright => 4.75,
-				ClusterGrade::Faded => 3.25,
-			};
-			return (int)floor($ql * $multiplier);
-		}
-		if (!isset($cluster)) {
-			throw new InvalidArgumentException(
-				'The Nanoprogramming requirement for RK clusters depends on the implanted skill, so a cluster is needed'
-			);
-		}
-		return self::getRequiredNPForNpReq($cluster->np_req, $grade, $ql);
+	public static function getRequiredSkill(Cluster $cluster, ClusterGrade $grade, int $ql): int {
+		return self::getRequiredSkillForFactor($cluster->getRequirementFactor($grade), $ql);
 	}
 
 	/**
-	 * The amount of Nanoprogramming needed to insert a cluster with the
-	 * given np_req into an implant
+	 * The amount of skill needed to insert a cluster with the given factor into an implant
 	 *
-	 * The npReq is the Nanoprogramming needed to insert the shiny of a skill
-	 * into a QL 200 implant (2 x multiplier x 200) and scales linearly with
-	 * the QL of the implant, also for refined implants above QL 200.
+	 * @param float $factor The factor of the implant QL, see Cluster::getRequirementFactor()
+	 * @param int   $ql     The QL of the implant, not of the cluster
 	 */
-	public static function getRequiredNPForNpReq(int $npReq, ClusterGrade $grade, int $ql): int {
-		$multiplier = match ($grade) {
-			ClusterGrade::Shiny => 2,
-			ClusterGrade::Bright => 1.5,
-			ClusterGrade::Faded => 1,
-		};
-		return (int)floor($npReq * $multiplier * $ql / 400);
+	public static function getRequiredSkillForFactor(float $factor, int $ql): int {
+		// Guard against float inaccuracies, so e.g. 3.225 x 20 is always rounded like 64.5
+		return (int)round(round($factor * $ql, 6));
 	}
 }

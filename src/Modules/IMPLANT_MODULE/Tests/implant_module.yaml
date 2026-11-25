@@ -21,9 +21,11 @@ groups:
           - npreq shiny 200.*Shiny
           - npreq bright 200.*Bright
           - npreq faded 200.*Faded
-          - 1250.*NP for Shiny
-          - 950.*NP for Bright
-          - 650.*NP for Faded
+          - npreq shiny 200 jobe.*Shiny
+          - 1050.*1250.*tradeskill for.*Shiny.*Jobe
+          - 800.*950.*tradeskill for.*Bright.*Jobe
+          - 550.*650.*tradeskill for.*Faded.*Jobe
+          - tradeskill instead of NP
       - command: implant 301
         name: No info about implant QL 301
         expect: Implants only exist
@@ -33,12 +35,35 @@ groups:
           - 684.*1 Handed Blunt Weapons
           - 380.*Heavy Weapons
           - 1140.*Nano Pool
-          - Jobe clusters need 1187 NP
-      - command: npreq faded 99
-        name: Get the NP for faded clusters at QL 99
+          - 760.*Run Speed
+          - 760.*Quantum Physics
+          - npreq shiny 190 jobe.*Jobe clusters
+      - command: npreq shiny 190 jobe
+        name: Get the tradeskill for shiny Jobe clusters at QL 190
         expect:
-          - 178.*1 Handed Blunt Weapons
-          - 99.*Heavy Weapons
+          - 1188.*Add Max NCU.*Computer Literacy
+          - 1188.*Add All Defense.*Psychology
+          - 998.*Nano Delta.*Pharmaceuticals
+      - command: npreq faded 100
+        name: Get the NP for faded clusters at QL 100
+        expect:
+          - 180.*1 Handed Blunt Weapons
+          - 100.*Heavy Weapons
+      - command: npreq faded 100 jobe
+        name: Get the tradeskill for faded Jobe clusters at QL 100
+        expect:
+          - 325.*Add Fire Damage.*Quantum
+          - 325.*Nano Interrupt.*Psychology
+          - 275.*Nano Delta.*Pharmaceuticals
+      - command: npreq bright 99
+        name: Get the NP for bright clusters at QL 99
+        expect: 149.*Heavy Weapons
+      - command: npreq bright 99 jobe
+        name: No Jobe clusters below QL 100
+        expect: Jobe clusters cannot be inserted into implants below QL 100
+      - command: clusterreq shiny 190
+        name: clusterreq is an alias for npreq
+        expect: 380.*Heavy Weapons
       - command: npreq shiny 0
         name: No NP requirements for implant QL 0
         expect: Implants only exist

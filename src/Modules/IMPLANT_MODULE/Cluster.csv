@@ -1,114 +1,114 @@
 # table: cluster
-cluster_id,effect_type_id,long_name,official_name,np_req,skill_id
-0,1,"","",0,
-2,1,"1 Handed Blunt Weapons","1h Blunt Cluster",720,102
-3,1,"1 Handed Edged Weapon","1h Edged Weapon Cluster",760,103
-4,1,"2 Handed Blunt Weapons","2h Blunt Cluster",720,107
-5,1,"2 Handed Edged Weapons","2h Edged Cluster",760,105
-6,1,Adventuring,"Adventuring",600,137
-7,2,Agility,"Agility",900,17
-8,1,"Aimed Shot","Aimed Shot",840,151
-9,1,"Assault Rifle","Assault Rif", 900,116
-10,16,"Biological Metamorphosis","Bio.Metamor",960,128
-11,1,"Body Development","Body Dev",800,152
-12,1,Bow,"Bow",800,111
-13,1,"Bow Special Attack","Bow Spc Att",800,121
-14,1,Brawling,"Brawling",660,142
-15,1,"Breaking and Entry","Break & Entry",800,165
-16,1,Burst,"Burst",840,148
-17,3,"Chemical AC","Chemical AC",800,93
-18,1,Chemistry,"Chemistry",800,163
-19,3,"Cold AC","Cold AC",800,95
-20,1,"Computer Literacy","Comp. Liter",800,161
-21,1,Concealment,"Concealment",720,164
-22,1,Dimach,"Dimach",900,144
-24,1,"Dodge Ranged Attacks","Dodge-Rng",800,154
-25,1,"Duck Explosives","Duck-Exp",800,153
-26,1,"Electrical Engineering","Elec. Engi",800,126
-27,3,"Energy AC","Energy AC",900,92
-28,1,"Evade Close Combat","Evade-ClsC",800,155
-29,1,"Fast Attack","Fast Attack",760,147
-30,3,"Fire AC","Fire AC",800,97
-31,1,"First Aid","First Aid",720,123
-32,1,"Fling Shot","Fling Shot",720,150
-33,1,"Full Auto","Full Auto",900,167
-34,1,"Grenade Throwing","Grenade",760,109
-35,1,"Heavy Weapons","Heavy Weapons",400,110
-36,3,"Projectile AC","Imp/Proj AC",900,90
-37,2,Intelligence,"Intelligence",900,19
-38,1,"Map Navigation","Map Navig",500,140
-39,1,"Martial Arts","Martial Arts",1000,100
-40,16,"Matter Creation","Matter Crea",960,130
-41,16,"Matter Metamorphosis","Matt.Metam",960,127
-42,4,"Max Health","Max Health",1000,1
-43,4,"Max Nano","Max Nano",1000,221
-44,1,"Mechanical Engineering","Mech. Engi",800,125
-45,1,"Melee Energy Weapons","Melee Ener",800,104
-46,1,"Melee Weapons Initiative","Melee. Init",800,118
-47,3,"Melee AC","Melee/Ma AC",900,91
-48,1,MG/SMG,"MG / SMG",800,114
-49,1,"Multiple Melee Weapons","Mult. Melee",900,101
-50,1,"Multiple Ranged Weapons","Multi Ranged",800,134
-51,1,"Nano Initiative","NanoC. Init",800,149
-52,1,"Nano Pool","Nano Pool",1200,132
-53,1,"Nano Programming","Nano Progra",800,160
-54,1,"Nano Resistance","Nano Resist",800,168
-55,1,Deflect,"Parry",840,145
-56,1,Perception,"Perception",800,136
-57,1,Pharmaceuticals,"Pharma Tech",800,159
-58,1,"Physical Initiative","Physic. Init",800,120
-59,1,Piercing,"Piercing",640,106
-60,1,Pistol,"Pistol",800,112
-61,2,Psychic,"Psychic",900,21
-62,16,"Psychological Modifications","Psycho Modi",960,129
-63,1,Psychology,"Psychology",800,162
-64,1,"Quantum Physics","Quantum FT",1000,157
-65,3,"Radiation AC","Radiation AC",800,94
-66,1,"Ranged Energy","Ranged Ener",800,133
-67,1,"Ranged Initiative","Ranged. Init",800,119
-68,1,Rifle,"Rifle",900,113
-69,1,Riposte,"Riposte",1000,143
-70,1,"Run Speed","Run Speed",1000,156
-71,2,Sense,"Sense",900,20
-72,16,"Sensory Improvement","Sensory Impr",880,122
-73,1,"Sharp Objects","Sharp Obj",500,108
-74,1,Shotgun,"Shotgun",680,115
-75,1,"Sneak Attack","Sneak Atck",1000,146
-76,2,Stamina,"Stamina",900,18
-77,2,Strength,"Strength",900,16
-78,1,Swimming,"Swimming",500,138
-79,16,"Time and Space","Time & Space",960,131
-80,1,"Trap Disarming","Trap Disarm",720,135
-81,1,Treatment,"Treatment",860,124
-82,1,Tutoring,"Tutoring",520,141
-83,1,"Vehicle Air","Vehicle Air",400,139
-84,1,"Vehicle Ground","Vehicle Grnd",600,166
-85,1,"Vehicle Water","Vehicle Hydr",480,117
-86,1,"Weapon Smithing","Weapon Smt",800,158
-87,15,"Nano Delta*","Nano Delta Jobe",1,364
-88,15,"Heal Delta*","Heal Delta Jobe",1,343
-89,8,"Add All Defense*","% Add All Def. Jobe",1,277
-90,9,"Add All Offense*","% Add All Off Jobe",1,276
-91,10,"Add Max NCU*","Max NCU Jobe",1,181
-92,5,"Add XP (%)*","% Add. Xp Jobe",1,319
-93,12,"Nano Interrupt (%)*","Nano Formula Interrupt Modifier Jobe",1,383
-94,6,"Add Chemical Damage*","% Add. Chem. Dam. Jobe",1,281
-95,6,"Add Energy Damage*","% Add. Energy Dam. Jobe",1,280
-96,6,"Add Fire Damage*","% Add. Fire Dam. Jobe",1,316
-97,6,"Add Melee Damage*","% Add. Melee Dam. Jobe",1,279
-98,6,"Add Poison Damage*","% Add. Poison Dam. Jobe",1,317
-99,6,"Add Projectile Damage*","% Add. Proj. Dam. Jobe",1,278
-100,6,"Add Radiation Damage*","% Add.Rad. Dam. Jobe",1,282
-101,7,"Chemical Damage Shield*","Shield Chemical AC Jobe",1,229
-102,7,"Cold Damage Shield*","Shield Cold AC Jobe",1,231
-103,7,"Energy Damage Shield*","Shield Energy AC Jobe",1,228
-104,7,"Fire Damage Shield*","Shield Fire AC Jobe",1,233
-105,7,"Melee Damage Shield*","Shield Melee AC Jobe",1,227
-106,7,"Poison Damage Shield*","Shield Poison AC Jobe",1,234
-107,7,"Projectile Damage Shield*","Shield Projectile AC Jobe",1,226
-108,7,"Radiation Damage Shield*","Shield Radiation AC Jobe",1,230
-109,11,"Skill Lock (%)*","Skill Time Lock Modifier Jobe",1,382
-110,13,"Nano Cost (%)*","Nano Point Cost Modifier Jobe",1,318
-111,14,"Add Nano Range (%)*","RangeInc. NF Jobe",1,381
-112,3,"Disease AC","Disease AC",800,96
-130,14,"Add Weapon Range (%)*","RangeInc. Weapon Jobe",1,380
+cluster_id,effect_type_id,long_name,official_name,skill_id,tradeskill_id,jobe,req_faded,req_bright,req_shiny
+0,1,"","",,,0,0,0,0
+2,1,"1 Handed Blunt Weapons","1h Blunt Cluster",102,160,0,1.8,2.7,3.6
+3,1,"1 Handed Edged Weapon","1h Edged Weapon Cluster",103,160,0,1.9,2.85,3.8
+4,1,"2 Handed Blunt Weapons","2h Blunt Cluster",107,160,0,1.8,2.7,3.6
+5,1,"2 Handed Edged Weapons","2h Edged Cluster",105,160,0,1.9,2.85,3.8
+6,1,"Adventuring","Adventuring",137,160,0,1.5,2.25,3
+7,2,"Agility","Agility",17,160,0,2.25,3.375,4.5
+8,1,"Aimed Shot","Aimed Shot",151,160,0,2.1,3.15,4.2
+9,1,"Assault Rifle","Assault Rif",116,160,0,2.25,3.375,4.5
+10,16,"Biological Metamorphosis","Bio.Metamor",128,160,0,2.4,3.6,4.8
+11,1,"Body Development","Body Dev",152,160,0,2,3,4
+12,1,"Bow","Bow",111,160,0,2,3,4
+13,1,"Bow Special Attack","Bow Spc Att",121,160,0,2,3,4
+14,1,"Brawling","Brawling",142,160,0,1.65,2.475,3.3
+15,1,"Breaking and Entry","Break & Entry",165,160,0,2,3,4
+16,1,"Burst","Burst",148,160,0,2.1,3.15,4.2
+17,3,"Chemical AC","Chemical AC",93,160,0,2,3,4
+18,1,"Chemistry","Chemistry",163,160,0,2,3,4
+19,3,"Cold AC","Cold AC",95,160,0,2,3,4
+20,1,"Computer Literacy","Comp. Liter",161,160,0,2,3,4
+21,1,"Concealment","Concealment",164,160,0,1.8,2.7,3.6
+22,1,"Dimach","Dimach",144,160,0,2.25,3.375,4.5
+24,1,"Dodge Ranged Attacks","Dodge-Rng",154,160,0,2,3,4
+25,1,"Duck Explosives","Duck-Exp",153,160,0,2,3,4
+26,1,"Electrical Engineering","Elec. Engi",126,160,0,2,3,4
+27,3,"Energy AC","Energy AC",92,160,0,2.25,3.375,4.5
+28,1,"Evade Close Combat","Evade-ClsC",155,160,0,2,3,4
+29,1,"Fast Attack","Fast Attack",147,160,0,1.9,2.85,3.8
+30,3,"Fire AC","Fire AC",97,160,0,2,3,4
+31,1,"First Aid","First Aid",123,160,0,1.8,2.7,3.6
+32,1,"Fling Shot","Fling Shot",150,160,0,1.8,2.7,3.6
+33,1,"Full Auto","Full Auto",167,160,0,2.25,3.375,4.5
+34,1,"Grenade Throwing","Grenade",109,160,0,1.9,2.85,3.8
+35,1,"Heavy Weapons","Heavy Weapons",110,160,0,1,1.5,2
+36,3,"Projectile AC","Imp/Proj AC",90,160,0,2.25,3.375,4.5
+37,2,"Intelligence","Intelligence",19,160,0,2.25,3.375,4.5
+38,1,"Map Navigation","Map Navig",140,160,0,1.25,1.875,2.5
+39,1,"Martial Arts","Martial Arts",100,160,0,2.5,3.75,5
+40,16,"Matter Creation","Matter Crea",130,160,0,2.4,3.6,4.8
+41,16,"Matter Metamorphosis","Matt.Metam",127,160,0,2.4,3.6,4.8
+42,4,"Max Health","Max Health",1,160,0,2.5,3.75,5
+43,4,"Max Nano","Max Nano",221,160,0,2.5,3.75,5
+44,1,"Mechanical Engineering","Mech. Engi",125,160,0,2,3,4
+45,1,"Melee Energy Weapons","Melee Ener",104,160,0,2,3,4
+46,1,"Melee Weapons Initiative","Melee. Init",118,160,0,2,3,4
+47,3,"Melee AC","Melee/Ma AC",91,160,0,2.25,3.375,4.5
+48,1,"MG/SMG","MG / SMG",114,160,0,2,3,4
+49,1,"Multiple Melee Weapons","Mult. Melee",101,160,0,2.25,3.375,4.5
+50,1,"Multiple Ranged Weapons","Multi Ranged",134,160,0,2,3,4
+51,1,"Nano Initiative","NanoC. Init",149,160,0,2,3,4
+52,1,"Nano Pool","Nano Pool",132,160,0,3,4.5,6
+53,1,"Nano Programming","Nano Progra",160,160,0,2,3,4
+54,1,"Nano Resistance","Nano Resist",168,160,0,2,3,4
+55,1,"Deflect","Parry",145,160,0,2.1,3.15,4.2
+56,1,"Perception","Perception",136,160,0,2,3,4
+57,1,"Pharmaceuticals","Pharma Tech",159,160,0,2,3,4
+58,1,"Physical Initiative","Physic. Init",120,160,0,2,3,4
+59,1,"Piercing","Piercing",106,160,0,1.6,2.4,3.2
+60,1,"Pistol","Pistol",112,160,0,2,3,4
+61,2,"Psychic","Psychic",21,160,0,2.25,3.375,4.5
+62,16,"Psychological Modifications","Psycho Modi",129,160,0,2.4,3.6,4.8
+63,1,"Psychology","Psychology",162,160,0,2,3,4
+64,1,"Quantum Physics","Quantum FT",157,160,0,2,3,4
+65,3,"Radiation AC","Radiation AC",94,160,0,2,3,4
+66,1,"Ranged Energy","Ranged Ener",133,160,0,2,3,4
+67,1,"Ranged Initiative","Ranged. Init",119,160,0,2,3,4
+68,1,"Rifle","Rifle",113,160,0,2.25,3.375,4.5
+69,1,"Riposte","Riposte",143,160,0,2.5,3.75,5
+70,1,"Run Speed","Run Speed",156,160,0,2,3,4
+71,2,"Sense","Sense",20,160,0,2.25,3.375,4.5
+72,16,"Sensory Improvement","Sensory Impr",122,160,0,2.2,3.3,4.4
+73,1,"Sharp Objects","Sharp Obj",108,160,0,1.25,1.875,2.5
+74,1,"Shotgun","Shotgun",115,160,0,1.7,2.55,3.4
+75,1,"Sneak Attack","Sneak Atck",146,160,0,2.5,3.75,5
+76,2,"Stamina","Stamina",18,160,0,2.25,3.375,4.5
+77,2,"Strength","Strength",16,160,0,2.25,3.375,4.5
+78,1,"Swimming","Swimming",138,160,0,1.25,1.875,2.5
+79,16,"Time and Space","Time & Space",131,160,0,2.4,3.6,4.8
+80,1,"Trap Disarming","Trap Disarm",135,160,0,1.8,2.7,3.6
+81,1,"Treatment","Treatment",124,160,0,2.15,3.225,4.3
+82,1,"Tutoring","Tutoring",141,160,0,1.3,1.95,2.6
+83,1,"Vehicle Air","Vehicle Air",139,160,0,1,1.5,2
+84,1,"Vehicle Ground","Vehicle Grnd",166,160,0,1.5,2.25,3
+85,1,"Vehicle Water","Vehicle Hydr",117,160,0,1.2,1.8,2.4
+86,1,"Weapon Smithing","Weapon Smt",158,160,0,2,3,4
+87,15,"Nano Delta*","Nano Delta Jobe",364,159,1,2.75,4,5.25
+88,15,"Heal Delta*","Heal Delta Jobe",343,159,1,3.25,4.75,6.25
+89,8,"Add All Defense*","% Add All Def. Jobe",277,162,1,3.25,4.75,6.25
+90,9,"Add All Offense*","% Add All Off Jobe",276,162,1,3.25,4.75,6.25
+91,10,"Add Max NCU*","Max NCU Jobe",181,161,1,3.25,4.75,6.25
+92,5,"Add XP (%)*","% Add. Xp Jobe",319,162,1,3.25,4.75,6.25
+93,12,"Nano Interrupt (%)*","Nano Formula Interrupt Modifier Jobe",383,162,1,3.25,4.75,6.25
+94,6,"Add Chemical Damage*","% Add. Chem. Dam. Jobe",281,157,1,3.25,4.75,6.25
+95,6,"Add Energy Damage*","% Add. Energy Dam. Jobe",280,157,1,3.25,4.75,6.25
+96,6,"Add Fire Damage*","% Add. Fire Dam. Jobe",316,157,1,3.25,4.75,6.25
+97,6,"Add Melee Damage*","% Add. Melee Dam. Jobe",279,157,1,3.25,4.75,6.25
+98,6,"Add Poison Damage*","% Add. Poison Dam. Jobe",317,157,1,3.25,4.75,6.25
+99,6,"Add Projectile Damage*","% Add. Proj. Dam. Jobe",278,157,1,3.25,4.75,6.25
+100,6,"Add Radiation Damage*","% Add.Rad. Dam. Jobe",282,157,1,3.25,4.75,6.25
+101,7,"Chemical Damage Shield*","Shield Chemical AC Jobe",229,157,1,3.25,4.75,6.25
+102,7,"Cold Damage Shield*","Shield Cold AC Jobe",231,157,1,3.25,4.75,6.25
+103,7,"Energy Damage Shield*","Shield Energy AC Jobe",228,157,1,3.25,4.75,6.25
+104,7,"Fire Damage Shield*","Shield Fire AC Jobe",233,157,1,3.25,4.75,6.25
+105,7,"Melee Damage Shield*","Shield Melee AC Jobe",227,157,1,3.25,4.75,6.25
+106,7,"Poison Damage Shield*","Shield Poison AC Jobe",234,157,1,3.25,4.75,6.25
+107,7,"Projectile Damage Shield*","Shield Projectile AC Jobe",226,157,1,3.25,4.75,6.25
+108,7,"Radiation Damage Shield*","Shield Radiation AC Jobe",230,157,1,3.25,4.75,6.25
+109,11,"Skill Lock (%)*","Skill Time Lock Modifier Jobe",382,162,1,3.25,4.75,6.25
+110,13,"Nano Cost (%)*","Nano Point Cost Modifier Jobe",318,157,1,3.25,4.75,6.25
+111,14,"Add Nano Range (%)*","RangeInc. NF Jobe",381,160,1,3.25,4.75,6.25
+112,3,"Disease AC","Disease AC",96,160,0,1.75,2.625,3.5
+130,14,"Add Weapon Range (%)*","RangeInc. Weapon Jobe",380,158,1,3.25,4.75,6.25
