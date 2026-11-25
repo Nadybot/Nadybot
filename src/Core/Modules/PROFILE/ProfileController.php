@@ -9,6 +9,7 @@ use Exception;
 use Nadybot\Core\{
 	Attributes as NCA,
 	CmdContext,
+	CommandAlias,
 	CommandManager,
 	Config\BotConfig,
 	DB,
@@ -71,6 +72,9 @@ class ProfileController extends ModuleInstance {
 
 	#[NCA\Inject]
 	private CommandManager $commandManager;
+
+	#[NCA\Inject]
+	private CommandAlias $commandAlias;
 
 	#[NCA\Inject]
 	private SubcommandManager $subcommandManager;
@@ -511,5 +515,7 @@ class ProfileController extends ModuleInstance {
 		$this->commandManager->loadPermsetMappings();
 		$this->commandManager->loadCommands();
 		$this->subcommandManager->loadSubcommands();
+		// The aliases were removed from all permission sets above, as well
+		$this->commandAlias->loadAliases();
 	}
 }
