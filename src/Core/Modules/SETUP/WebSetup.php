@@ -35,7 +35,7 @@ use Throwable;
  */
 class WebSetup {
 	/** Give up connecting to the Drill server after this many seconds */
-	private const DRILL_CONNECT_TIMEOUT = 15;
+	private const int DRILL_CONNECT_TIMEOUT = 15;
 
 	private ?DrillConnection $drillConnection=null;
 

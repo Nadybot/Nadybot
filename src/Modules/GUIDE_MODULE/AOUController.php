@@ -36,7 +36,7 @@ use Throwable;
 	)
 ]
 class AOUController extends ModuleInstance {
-	public const AOU_URL = 'https://www.ao-universe.com/mobile/parser.php?bot=nadybot';
+	public const string AOU_URL = 'https://www.ao-universe.com/mobile/parser.php?bot=nadybot';
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;
 

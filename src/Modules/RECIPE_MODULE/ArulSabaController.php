@@ -32,9 +32,9 @@ use Nadybot\Modules\ITEMS_MODULE\{
 	)
 ]
 class ArulSabaController extends ModuleInstance {
-	public const ME = 125;
-	public const EE = 126;
-	public const AGI = 17;
+	public const int ME = 125;
+	public const int EE = 126;
+	public const int AGI = 17;
 
 	/** Show images for the Arul Saba steps */
 	#[NCA\Setting\Options(options: [

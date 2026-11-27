@@ -43,8 +43,8 @@ use Throwable;
  */
 #[NCA\Instance]
 class EventFeed {
-	public const URI = 'wss://ws.nadybot.org';
-	public const RECONNECT_DELAY = 5;
+	public const string URI = 'wss://ws.nadybot.org';
+	public const int RECONNECT_DELAY = 5;
 
 	/**
 	 * The event feed handlers for each Highway room

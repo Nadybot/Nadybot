@@ -24,7 +24,7 @@ use Psr\Log\LoggerInterface;
 #[NCA\RelayStackMember(name: 'aes-gcm-encryption')]
 class AesGcmEncryption implements RelayLayerInterface {
 	/** @var string */
-	public const CIPHER = 'aes-256-gcm';
+	public const string CIPHER = 'aes-256-gcm';
 	protected string $password;
 	protected int $ivLength;
 
@@ -35,7 +35,7 @@ class AesGcmEncryption implements RelayLayerInterface {
 
 	/** @param string $password The password to derive our encryption key from */
 	public function __construct(
-		#[NCA\Param(type: ParamType::Secret)] string $password
+		#[NCA\Param(type: ParamType::Secret), \SensitiveParameter] string $password
 	) {
 		$this->password = openssl_digest($password, 'SHA256', true);
 		$ivLength = openssl_cipher_iv_length(static::CIPHER);

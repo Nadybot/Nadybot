@@ -8,7 +8,7 @@ class AttackerOrg {
 	use StringableTrait;
 
 	/** @var array<string,null|string|int> */
-	public const EXAMPLE_TOKENS = [
+	public const array EXAMPLE_TOKENS = [
 		'att-org-name' => 'Team Rainbow',
 		'c-att-org-name' => '<clan>Team Rainbow<end>',
 		'att-org' => 'Team Rainbow',

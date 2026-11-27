@@ -79,10 +79,10 @@ use Throwable;
  */
 #[NCA\Instance]
 class Nadybot {
-	public const PING_IDENTIFIER = 'Nadybot';
+	public const string PING_IDENTIFIER = 'Nadybot';
 
 	/** Name of the org channel if no one is logged into the game */
-	public const UNKNOWN_ORG = 'Clan (name unknown)';
+	public const string UNKNOWN_ORG = 'Clan (name unknown)';
 
 	/** The actual AO client to send and receive packets from */
 	public MultiClient $aoClient;

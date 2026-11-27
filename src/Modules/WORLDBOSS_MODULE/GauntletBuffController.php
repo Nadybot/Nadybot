@@ -61,10 +61,10 @@ use ValueError;
 	),
 ]
 class GauntletBuffController extends ModuleInstance implements MessageEmitter {
-	public const SIDE_NONE = 'none';
+	public const string SIDE_NONE = 'none';
 
 	/** @var string */
-	public const GAUNTLET_API = 'https://timers.aobots.org/api/v1.1/gaubuffs';
+	public const string GAUNTLET_API = 'https://timers.aobots.org/api/v1.1/gaubuffs';
 
 	/** Times to display gaubuff timer alerts */
 	#[NCA\Setting\Text(

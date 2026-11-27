@@ -34,7 +34,7 @@ use Psr\Log\LoggerInterface;
  * @license GPL
  */
 class Setup {
-	private const INDENT = 13;
+	private const int INDENT = 13;
 
 	public function __construct(
 		private BotConfig $configFile,

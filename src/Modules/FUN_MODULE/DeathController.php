@@ -46,9 +46,9 @@ use Nadybot\Core\Modules\{
 	),
 ]
 class DeathController extends ModuleInstance {
-	public const DISPLAY_DONT = 0;
-	public const DISPLAY_BEFORE = 1;
-	public const DISPLAY_POPUP = 2;
+	public const int DISPLAY_DONT = 0;
+	public const int DISPLAY_BEFORE = 1;
+	public const int DISPLAY_POPUP = 2;
 
 	/** Automatically register someone's char when they use death +1 */
 	#[NCA\Setting\Boolean]
@@ -431,20 +431,20 @@ class DeathController extends ModuleInstance {
 	/**
 	 * Check if the given death-check applies to the player
 	 *
-	 * @param string $token The token to check (main, name, prof)
+	 * @param string $field The field to check (main, name, prof)
 	 * @param string $value The value to check against
 	 * @param Death  $death The death properties
 	 *
 	 * @return bool true (matches) or false (doesn't match)
 	 */
-	private function matchesDeathCheck(string $token, string $operator, string $value, Death $death): bool {
+	private function matchesDeathCheck(string $field, string $operator, string $value, Death $death): bool {
 		$comparison = match ($operator) {
 			'>' => static fn (string|int|bool $a, string|int|bool $b): bool => $a > $b,
 			'<' => static fn (string|int|bool $a, string|int|bool $b): bool => $a < $b,
 			'!=' => static fn (string|int|bool $a, string|int|bool $b): bool => $a !== $b,
 			default => static fn (string|int|bool $a, string|int|bool $b): bool => $a === $b,
 		};
-		switch ($token) {
+		switch ($field) {
 			case 'main':
 				return $comparison($this->altsController->getMainOf($death->character), Utils::normalizeCharacter($value));
 			case 'name':
@@ -461,7 +461,7 @@ class DeathController extends ModuleInstance {
 		if (!isset($player)) {
 			return false;
 		}
-		return match ($token) {
+		return match ($field) {
 			'prof','profession' => $comparison($player->profession?->is($value) ?? false, true),
 			'faction','side' => $comparison(strtolower($player->faction->value), strtolower($value)),
 			'gender','sex' => $comparison(strtolower($player->gender), strtolower($value)),

@@ -80,11 +80,11 @@ use Safe\Exceptions\JsonException;
 	),
 ]
 class HighnetController extends ModuleInstance implements EventFeedHandler {
-	public const FILTERS = 'highnet list filters';
-	public const PERM_FILTERS = 'highnet manage permanent filters';
-	public const TEMP_FILTERS = 'highnet manage temporary filters';
+	public const string FILTERS = 'highnet list filters';
+	public const string PERM_FILTERS = 'highnet manage permanent filters';
+	public const string TEMP_FILTERS = 'highnet manage temporary filters';
 
-	public const CHANNELS = [
+	public const array CHANNELS = [
 		'PVM',
 		'PVP',
 		'Chat',

@@ -54,8 +54,8 @@ use Throwable;
 /** The management class for handling commands, adding and removing them */
 #[NCA\Instance]
 class CommandManager implements MessageEmitter {
-	private const DIRECT = 1;
-	private const PUBLIC = 2;
+	private const int DIRECT = 1;
+	private const int PUBLIC = 2;
 
 	/** @var array<string,array<string,CommandHandler>> */
 	public array $commands;

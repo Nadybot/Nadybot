@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 /** A blob represents a blob of AO markup */
 class Blob implements \Stringable {
 	/** @var string */
-	public const LITERAL = "\x00lit\x00";
+	public const string LITERAL = "\x00lit\x00";
 	private LoggerInterface $logger;
 	private SettingManager $settingManager;
 

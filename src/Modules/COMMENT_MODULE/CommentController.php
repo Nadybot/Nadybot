@@ -49,7 +49,7 @@ use ValueError;
 	),
 ]
 class CommentController extends ModuleInstance {
-	public const ADMIN = 'admin';
+	public const string ADMIN = 'admin';
 
 	/** How long is the cool-down between leaving 2 comments for the same character */
 	#[NCA\Setting\TimeOrOff(options: ['off', '1h', '6h', '24h'])]

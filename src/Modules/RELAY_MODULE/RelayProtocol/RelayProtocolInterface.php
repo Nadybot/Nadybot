@@ -6,9 +6,9 @@ use Nadybot\Core\Routing\RoutableEvent;
 use Nadybot\Modules\RELAY_MODULE\{RelayMessage, RelayStackMemberInterface};
 
 interface RelayProtocolInterface extends RelayStackMemberInterface {
-	public const F_NONE = 0;
-	public const F_ONLINE_SYNC = 1;
-	public const F_EVENT_SYNC = 2;
+	public const int F_NONE = 0;
+	public const int F_ONLINE_SYNC = 1;
+	public const int F_EVENT_SYNC = 2;
 
 	/**
 	 * Render a routable event into a string that we use to send as

@@ -44,18 +44,18 @@ use Psr\Log\LoggerInterface;
 	),
 ]
 class GreetController extends ModuleInstance {
-	public const PER_CHARACTER = 'per-character';
-	public const PER_MAIN = 'per-main';
-	public const PER_JOIN = 'per-join';
+	public const string PER_CHARACTER = 'per-character';
+	public const string PER_MAIN = 'per-main';
+	public const string PER_JOIN = 'per-join';
 
-	public const TELL = 'tell';
-	public const SOURCE_CHANNEL = 'source';
+	public const string TELL = 'tell';
+	public const string SOURCE_CHANNEL = 'source';
 
-	public const TYPE = 'greeting';
-	public const TYPE_CUSTOM = 'greeting-custom';
-	public const PREF = 'greeting';
-	public const PREF_ON = 'on';
-	public const PREF_OFF = 'off';
+	public const string TYPE = 'greeting';
+	public const string TYPE_CUSTOM = 'greeting-custom';
+	public const string PREF = 'greeting';
+	public const string PREF_ON = 'on';
+	public const string PREF_OFF = 'off';
 
 	/** How often to consider the greet probability when someone joins */
 	#[NCA\Setting\Number(
@@ -303,12 +303,12 @@ class GreetController extends ModuleInstance {
 	/**
 	 * Check if the given greeting-check applies to the player
 	 *
-	 * @param string $token  The token to check (main, name, prof)
+	 * @param string $field  The field to check (main, name, prof)
 	 * @param string $value  The value to check against
 	 * @param string $target The name of the character to check against
 	 */
-	protected function matchesGreetingCheck(string $token, string $value, string $target): bool {
-		switch ($token) {
+	protected function matchesGreetingCheck(string $field, string $value, string $target): bool {
+		switch ($field) {
 			case 'main':
 				return $this->altsController->getMainOf($target) === Utils::normalizeCharacter($value);
 			case 'name':
@@ -322,7 +322,7 @@ class GreetController extends ModuleInstance {
 		if (!isset($player)) {
 			return false;
 		}
-		return match ($token) {
+		return match ($field) {
 			'prof','profession' => $player->profession?->is($value) ?? false,
 			'faction','side' => strtolower($player->faction->value) === strtolower($value),
 			'gender','sex' => strtolower($player->gender) === strtolower($value),

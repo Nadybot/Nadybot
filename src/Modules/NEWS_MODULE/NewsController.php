@@ -51,7 +51,7 @@ use Throwable;
 	),
 ]
 class NewsController extends ModuleInstance {
-	public const CMD_NEWS_MANAGE = 'news add/change/delete';
+	public const string CMD_NEWS_MANAGE = 'news add/change/delete';
 
 	/** Maximum number of news items shown */
 	#[NCA\Setting\Number(options: [5, 10, 15, 20])]

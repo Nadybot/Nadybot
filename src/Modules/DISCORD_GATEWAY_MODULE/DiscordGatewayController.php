@@ -126,7 +126,7 @@ use Throwable;
 	),
 ]
 class DiscordGatewayController extends ModuleInstance {
-	public const RENAME_OFF = 'Off';
+	public const string RENAME_OFF = 'Off';
 
 	/** Game the bot is shown to play on Discord */
 	#[NCA\Setting\Text]
@@ -290,7 +290,7 @@ class DiscordGatewayController extends ModuleInstance {
 	#[NCA\SettingChangeHandler('discord_activity_name')]
 	public function updatePresence(string $settingName, string $oldValue, string $newValue): void {
 		if (!isset($this->client)) {
-			EventLoop::delay(1, function (string $token) use ($settingName, $oldValue, $newValue): void {
+			EventLoop::delay(1, function (string $callbackId) use ($settingName, $oldValue, $newValue): void {
 				$this->updatePresence($settingName, $oldValue, $newValue);
 			});
 			return;

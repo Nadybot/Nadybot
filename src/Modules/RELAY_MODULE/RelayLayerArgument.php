@@ -29,8 +29,8 @@ class RelayLayerArgument extends DBTable {
 		$this->id = $id ?? Uuid::uuid7();
 	}
 
-	public function toString(bool $isSecret): string {
-		if ($isSecret) {
+	public function toString(bool $hideValue): string {
+		if ($hideValue) {
 			return "{$this->name}=&lt;hidden&gt;";
 		}
 		if (Safe::pregMatches("/^(true|false|\d+)$/", $this->value)) {

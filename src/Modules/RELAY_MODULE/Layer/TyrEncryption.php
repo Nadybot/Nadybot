@@ -10,7 +10,7 @@ use Nadybot\Core\Types\ParamType;
 class TyrEncryption extends Fernet {
 	/** @param string $password The password to encrypt with */
 	public function __construct(
-		#[NCA\Param(type: ParamType::Secret)] string $password
+		#[NCA\Param(type: ParamType::Secret), \SensitiveParameter] string $password
 	) {
 		parent::__construct($password, 'tyrbot', 'sha256', 10_000);
 	}

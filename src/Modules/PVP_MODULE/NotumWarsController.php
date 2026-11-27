@@ -117,16 +117,16 @@ use Safe\Exceptions\JsonException;
 	),
 ]*/
 class NotumWarsController extends ModuleInstance {
-	public const TOWER_API = 'https://towers.aobots.org/api/sites/';
-	public const ATTACKS_API = 'https://towers.aobots.org/api/attacks/';
-	public const OUTCOMES_API = 'https://towers.aobots.org/api/outcomes/';
+	public const string TOWER_API = 'https://towers.aobots.org/api/sites/';
+	public const string ATTACKS_API = 'https://towers.aobots.org/api/attacks/';
+	public const string OUTCOMES_API = 'https://towers.aobots.org/api/outcomes/';
 
 	/**
 	 * Breakpoints of QLs that start a new tower type
 	 *
 	 * @var array<int,int>
 	 */
-	public const TOWER_TYPE_QLS = [
+	public const array TOWER_TYPE_QLS = [
 		34 => 2,
 		82 => 3,
 		129 => 4,

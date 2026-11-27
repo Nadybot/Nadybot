@@ -59,7 +59,7 @@ use Ramsey\Uuid\Uuid;
 ]
 class ProfileController extends ModuleInstance {
 	/** @var string */
-	public const FILE_EXT = '.txt';
+	public const string FILE_EXT = '.txt';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;

@@ -40,7 +40,7 @@ use Throwable;
 	),
 ]
 class SiteTrackerController extends ModuleInstance {
-	public const EVENTS = [
+	public const array EVENTS = [
 		'gas-change',
 		'site-hot',
 		'site-cold',

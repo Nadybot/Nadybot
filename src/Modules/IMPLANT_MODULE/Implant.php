@@ -7,7 +7,7 @@ use Nadybot\Core\Util;
 
 class Implant {
 	/** Jobe clusters can only be inserted into implants of at least this QL */
-	public const JOBE_MIN_QL = 100;
+	public const int JOBE_MIN_QL = 100;
 
 	public static function getRequirement(ImplantRequirement $requirement, bool $jobe, int $ql): int {
 		return match ($jobe) {

@@ -26,8 +26,8 @@ use Revolt\EventLoop;
 	),
 ]
 class CountdownController extends ModuleInstance {
-	public const LOC_PRIV = 1;
-	public const LOC_ORG = 2;
+	public const int LOC_PRIV = 1;
+	public const int LOC_ORG = 2;
 
 	/** Where to display countdowns received via tells */
 	#[NCA\Setting\Options(options: [
@@ -94,13 +94,13 @@ class CountdownController extends ModuleInstance {
 				$color = '<yellow>';
 			}
 			$msg = "[{$color}-------&gt; {$i} &lt;-------<end>]";
-			EventLoop::delay(6 - $i, static function (string $token) use ($callback, $msg): void {
+			EventLoop::delay(6 - $i, static function (string $callbackId) use ($callback, $msg): void {
 				$callback($msg);
 			});
 		}
 
 		$msg = "[<green>------&gt; {$message} &lt;-------<end>]";
-		EventLoop::delay(6, static function (string $token) use ($callback, $msg): void {
+		EventLoop::delay(6, static function (string $callbackId) use ($callback, $msg): void {
 			$callback($msg);
 		});
 	}

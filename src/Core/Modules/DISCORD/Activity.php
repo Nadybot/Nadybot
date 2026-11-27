@@ -9,12 +9,12 @@ use Stringable;
 class Activity implements Stringable {
 	use ReducedStringableTrait;
 
-	public const ACTIVITY_GAME = 0;
-	public const ACTIVITY_STREAMING = 1;
-	public const ACTIVITY_LISTENING = 2;
-	public const ACTIVITY_WATCHING = 3;
-	public const ACTIVITY_CUSTOM = 4;
-	public const ACTIVITY_COMPETING = 5;
+	public const int ACTIVITY_GAME = 0;
+	public const int ACTIVITY_STREAMING = 1;
+	public const int ACTIVITY_LISTENING = 2;
+	public const int ACTIVITY_WATCHING = 3;
+	public const int ACTIVITY_CUSTOM = 4;
+	public const int ACTIVITY_COMPETING = 5;
 
 	/** unix timestamp of when the activity was added to the user's session */
 	public int $created_at;

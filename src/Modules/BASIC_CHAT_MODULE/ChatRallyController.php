@@ -35,7 +35,7 @@ use Nadybot\Core\{
 	),
 ]
 class ChatRallyController extends ModuleInstance {
-	public const CMD_RALLY_SET = 'rally set/clear';
+	public const string CMD_RALLY_SET = 'rally set/clear';
 
 	/** Rally waypoint for topic */
 	#[NCA\Setting\Text(mode: SettingMode::NoEdit)]

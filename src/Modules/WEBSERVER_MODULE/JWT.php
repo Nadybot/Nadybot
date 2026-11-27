@@ -18,9 +18,9 @@ use UnexpectedValueException;
  * Based on https://github.com/firebase/php-jwt
  */
 class JWT {
-	public const ASN1_INTEGER = 0x02;
-	public const ASN1_SEQUENCE = 0x10;
-	public const ASN1_BIT_STRING = 0x03;
+	public const int ASN1_INTEGER = 0x02;
+	public const int ASN1_SEQUENCE = 0x10;
+	public const int ASN1_BIT_STRING = 0x03;
 
 	/**
 	 * When checking nbf, iat or expiration times,

@@ -8,16 +8,16 @@ use Stringable;
 class DiscordScheduledEvent implements Stringable {
 	use ReducedStringableTrait;
 
-	public const PRIVACY_GUILD=2;
+	public const int PRIVACY_GUILD=2;
 
-	public const STATUS_SCHEDULED=1;
-	public const STATUS_ACTIVE=2;
-	public const STATUS_COMPLETED=3;
-	public const STATUS_CANCELED=4;
+	public const int STATUS_SCHEDULED=1;
+	public const int STATUS_ACTIVE=2;
+	public const int STATUS_COMPLETED=3;
+	public const int STATUS_CANCELED=4;
 
-	public const TYPE_STAGE_INSTANCE=1;
-	public const TYPE_VOICE=2;
-	public const TYPE_EXTERNAL=3;
+	public const int TYPE_STAGE_INSTANCE=1;
+	public const int TYPE_VOICE=2;
+	public const int TYPE_EXTERNAL=3;
 
 	/**
 	 * @param string                         $id                   the id of the scheduled event

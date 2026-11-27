@@ -31,7 +31,7 @@ class ClassLoader {
 	 *
 	 * @var list<string>
 	 */
-	public const INTEGRATED_MODULES = [
+	public const array INTEGRATED_MODULES = [
 		'ALLIANCE_RELAY_MODULE',
 		'SPAWNTIME_MODULE',
 		'BIGBOSS_MODULE',

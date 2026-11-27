@@ -33,7 +33,7 @@ use Revolt\EventLoop;
 
 #[NCA\Instance]
 class MgmtInterfaceController extends ModuleInstance {
-	public const TYPE_NONE = 'None';
+	public const string TYPE_NONE = 'None';
 
 	/**
 	 * The type and path of the management interface.

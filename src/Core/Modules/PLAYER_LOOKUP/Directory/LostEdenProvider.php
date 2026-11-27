@@ -31,15 +31,15 @@ use Throwable;
  * @see https://rubi-ka.org/api/directory/
  */
 class LostEdenProvider implements CharacterProvider, OrgRosterProvider {
-	public const BASE_URL = 'https://rubi-ka.org/api/directory';
-	public const DIMENSION = 7;
-	public const SOURCE = 'rubi-ka.org';
+	public const string BASE_URL = 'https://rubi-ka.org/api/directory';
+	public const int DIMENSION = 7;
+	public const string SOURCE = 'rubi-ka.org';
 
 	/** The API allows one request per second */
-	private const MIN_REQUEST_INTERVAL = 1.0;
+	private const float MIN_REQUEST_INTERVAL = 1.0;
 
 	/** Give up on a request, including waiting for rate-limits, after this many seconds */
-	private const REQUEST_TIMEOUT = 10;
+	private const int REQUEST_TIMEOUT = 10;
 
 	#[NCA\Inject]
 	private HttpClientBuilder $builder;

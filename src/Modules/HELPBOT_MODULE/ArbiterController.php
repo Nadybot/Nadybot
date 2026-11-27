@@ -38,16 +38,16 @@ use Safe\Exceptions\DatetimeException;
 ]
 class ArbiterController extends ModuleInstance {
 	/** @var string */
-	public const DIO = 'dio';
+	public const string DIO = 'dio';
 
 	/** @var string */
-	public const AI = 'ai';
+	public const string AI = 'ai';
 
 	/** @var string */
-	public const BS = 'bs';
+	public const string BS = 'bs';
 
 	/** @var int */
-	public const CYCLE_LENGTH = 3_628_800;
+	public const int CYCLE_LENGTH = 3_628_800;
 
 	#[NCA\Inject]
 	private DB $db;

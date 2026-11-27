@@ -27,7 +27,7 @@ use Nadybot\Core\{
 ]
 class ReputationController extends ModuleInstance {
 	/** @var string */
-	public const CAT_REPUTATION = 'reputation';
+	public const string CAT_REPUTATION = 'reputation';
 
 	#[NCA\Inject]
 	private BotConfig $config;

@@ -35,7 +35,7 @@ use Throwable;
  * All instances share their caches, because the data format is identical.
  */
 class PorkProvider implements CharacterProvider, OrgRosterProvider, OrgListProvider {
-	public const ORGLIST_CHUNKS = [
+	public const array ORGLIST_CHUNKS = [
 		'a', 'b', 'c', 'd', 'e', 'f', 'g', 'h', 'i', 'j', 'k', 'l', 'm',
 		'n', 'o', 'p', 'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
 		'others',

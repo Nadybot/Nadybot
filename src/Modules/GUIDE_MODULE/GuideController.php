@@ -32,7 +32,7 @@ use Nadybot\Core\{
 	)
 ]
 class GuideController extends ModuleInstance {
-	private const FILE_EXT = '.txt';
+	private const string FILE_EXT = '.txt';
 
 	#[NCA\Inject]
 	private Filesystem $fs;

@@ -8,7 +8,7 @@ use Nadybot\Core\DBTable;
 #[Table(name: 'playfields', shared: Shared::Yes)]
 class Playfield extends DBTable {
 	/** @var array<string,null|string|int> */
-	public const EXAMPLE_TOKENS = [
+	public const array EXAMPLE_TOKENS = [
 		'pf-id' => 551,
 		'pf-long' => 'Wailing Wastes',
 		'pf-short' => 'WW',

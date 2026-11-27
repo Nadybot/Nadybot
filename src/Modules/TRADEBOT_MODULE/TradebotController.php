@@ -46,14 +46,14 @@ use Revolt\EventLoop;
 	),
 ]
 class TradebotController extends ModuleInstance {
-	public const NONE = 'None';
-	private const JOIN = 'join';
-	private const LEAVE = 'leave';
-	private const MATCH = 'match';
-	private const IGNORE = 'ignore';
+	public const string NONE = 'None';
+	private const string JOIN = 'join';
+	private const string LEAVE = 'leave';
+	private const string MATCH = 'match';
+	private const string IGNORE = 'ignore';
 
 	/** @var array<string,array{'join':list<string>,'leave':list<string>,'match':string,'ignore':list<string>}> */
-	private const BOT_DATA = [
+	private const array BOT_DATA = [
 		'Darknet' => [
 			self::JOIN => ['!register'],
 			self::LEAVE => ['!autoinvite off', '!unregister'],

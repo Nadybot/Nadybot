@@ -6,11 +6,11 @@ use Nadybot\Core\Types\Dimension;
 use Nadybot\Modules\MOB_MODULE\Mob;
 
 class Base {
-	public const CORPSE = 'corpse';
-	public const DEATH = 'death';
-	public const SPAWN = 'spawn';
-	public const HP = 'hp';
-	public const OOR = 'out_of_range';
+	public const string CORPSE = 'corpse';
+	public const string DEATH = 'death';
+	public const string SPAWN = 'spawn';
+	public const string HP = 'hp';
+	public const string OOR = 'out_of_range';
 
 	/** The dimension this event is for */
 	public int $dimension;

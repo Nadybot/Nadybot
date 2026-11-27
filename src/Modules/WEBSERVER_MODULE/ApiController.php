@@ -193,7 +193,7 @@ class ApiController extends ModuleInstance {
 	public function apiauthDeleteCommand(
 		CmdContext $context,
 		#[Remove] string $action,
-		string $token
+		#[\SensitiveParameter] string $token
 	): void {
 		$key = $this->db->table(ApiKey::getTable())
 			->where('token', $token)
@@ -219,7 +219,7 @@ class ApiController extends ModuleInstance {
 	public function apiauthResetCommand(
 		CmdContext $context,
 		#[Str('reset')] string $action,
-		string $token
+		#[\SensitiveParameter] string $token
 	): void {
 		$key = $this->db->table(ApiKey::getTable())
 			->where('token', $token)

@@ -38,8 +38,8 @@ use Throwable;
 /** This class sets up the bot before passing execution to it */
 class BotRunner {
 	/** Nadybot's current version */
-	public const VERSION = '7.0.0.alpha';
-	public const COMMIT = '';
+	public const string VERSION = '7.0.0.alpha';
+	public const string COMMIT = '';
 
 	/** The parsed command line arguments */
 	private static Options $arguments;

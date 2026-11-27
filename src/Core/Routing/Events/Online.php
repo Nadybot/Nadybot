@@ -14,7 +14,7 @@ use Nadybot\Core\StringableTrait;
 class Online extends Base {
 	use StringableTrait;
 
-	public const TYPE = 'online';
+	public const string TYPE = 'online';
 
 	/**
 	 * @param null|Character $char       The character

@@ -3,9 +3,9 @@
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
 class NadyRequest {
-	public const READ = 1;
-	public const WRITE = 2;
-	public const CREATE = 3;
+	public const int READ = 1;
+	public const int WRITE = 2;
+	public const int CREATE = 3;
 
 	/** @param ?mixed[] $data */
 	public function __construct(

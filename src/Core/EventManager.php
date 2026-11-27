@@ -33,7 +33,7 @@ use Revolt\EventLoop;
 /** The central event manager for Nadybot */
 #[NCA\Instance]
 class EventManager {
-	public const TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
+	public const string TIMER_EVENT_REGEX = '/timer\(([0-9a-z]+)\)/';
 	protected bool $eventsReady = false;
 
 	/**

@@ -11,10 +11,10 @@ use stdClass;
 #[NCA\Event(mask: 'event')]
 class RoutableEvent extends Event {
 	/** @var 'message' */
-	public const TYPE_MESSAGE = 'message';
+	public const string TYPE_MESSAGE = 'message';
 
 	/** @var 'event' */
-	public const TYPE_EVENT = 'event';
+	public const string TYPE_EVENT = 'event';
 
 	/**
 	 * @param string                              $type          The type of the event

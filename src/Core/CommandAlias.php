@@ -18,7 +18,7 @@ class CommandAlias {
 	 *
 	 * @var string
 	 */
-	public const ALIAS_HANDLER = 'CommandAlias.process';
+	public const string ALIAS_HANDLER = 'CommandAlias.process';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;

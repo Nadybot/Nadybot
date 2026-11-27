@@ -52,16 +52,16 @@ use ZipArchive;
 ]
 class PackageController extends ModuleInstance {
 	/** @var int */
-	public const EXTRA = 2;
+	public const int EXTRA = 2;
 
 	/** @var int */
-	public const BUILT_INT = 1;
+	public const int BUILT_INT = 1;
 
 	/** @var int */
-	public const UNINST = 0;
+	public const int UNINST = 0;
 
 	/** @var string */
-	public const API = 'https://pkg.aobots.org/api';
+	public const string API = 'https://pkg.aobots.org/api';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;

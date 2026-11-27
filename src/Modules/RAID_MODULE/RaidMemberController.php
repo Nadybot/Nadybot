@@ -47,12 +47,12 @@ use Nadybot\Core\{
 	NCA\EmitsMessages('raid', 'kick'),
 ]
 class RaidMemberController extends ModuleInstance {
-	public const CMD_RAID_JOIN_LEAVE = 'raid join/leave';
-	public const CMD_RAID_KICK_ADD = 'raid kick/add';
+	public const string CMD_RAID_JOIN_LEAVE = 'raid join/leave';
+	public const string CMD_RAID_KICK_ADD = 'raid kick/add';
 
-	public const ANNOUNCE_OFF = 0;
-	public const ANNOUNCE_RAID_FULL = 1;
-	public const ANNOUNCE_RAID_OPEN = 2;
+	public const int ANNOUNCE_OFF = 0;
+	public const int ANNOUNCE_RAID_FULL = 1;
+	public const int ANNOUNCE_RAID_OPEN = 2;
 
 	/** Send a tell to people being added/removed to/from the raid */
 	#[NCA\Setting\Boolean]

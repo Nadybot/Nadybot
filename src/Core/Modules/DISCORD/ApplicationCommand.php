@@ -10,13 +10,13 @@ class ApplicationCommand implements Stringable {
 	use ReducedStringableTrait;
 
 	/** Slash commands; a text-based command that shows up when a user types / */
-	public const TYPE_CHAT_INPUT = 1;
+	public const int TYPE_CHAT_INPUT = 1;
 
 	/** A UI-based command that shows up when you right click or tap on a user */
-	public const TYPE_USER = 2;
+	public const int TYPE_USER = 2;
 
 	/** A UI-based command that shows up when you right click or tap on a message */
-	public const TYPE_MESSAGE = 3;
+	public const int TYPE_MESSAGE = 3;
 
 	/**
 	 * @param ?string                     $id                         Unique ID of command

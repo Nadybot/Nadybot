@@ -15,7 +15,7 @@ class ApiKey extends DBTable {
 
 	public function __construct(
 		public string $character,
-		public string $token,
+		#[\SensitiveParameter] public string $token,
 		public string $pubkey,
 		?UuidInterface $id=null,
 		public int $last_sequence_nr=0,

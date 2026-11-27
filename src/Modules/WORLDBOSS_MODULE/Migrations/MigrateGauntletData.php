@@ -23,8 +23,8 @@ use stdClass;
 
 #[NCA\Migration(order: 2021_10_23_19_20_50)]
 class MigrateGauntletData implements SchemaMigration {
-	private const GAUNTLET_TABLE = 'gauntlet';
-	private const BIGBOSS_TABLE = 'bigboss_timers';
+	private const string GAUNTLET_TABLE = 'gauntlet';
+	private const string BIGBOSS_TABLE = 'bigboss_timers';
 
 	#[NCA\Inject]
 	private WorldBossController $worldBossController;

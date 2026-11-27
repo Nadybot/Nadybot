@@ -46,25 +46,25 @@ use Throwable;
 ]
 class ItemDataController extends ModuleInstance {
 	/** Number of bytes passed to the importer at once */
-	public const CHUNK_SIZE = 65_536;
+	public const int CHUNK_SIZE = 65_536;
 
 	/** Maximum size of the downloaded export */
-	public const MAX_SIZE = 256 * 1_024 * 1_024;
+	public const int MAX_SIZE = 256 * 1_024 * 1_024;
 
 	/** Placeholder in the URL settings for the bot's dimension */
-	public const DIMENSION_PLACEHOLDER = '{dimension}';
+	public const string DIMENSION_PLACEHOLDER = '{dimension}';
 
 	/** Default of the item data URL, replaced by the URL for the bot's dimension in the setup */
-	public const DEFAULT_ITEM_DATA_URL = 'https://items.aobots.org/rk{dimension}-items.json';
+	public const string DEFAULT_ITEM_DATA_URL = 'https://items.aobots.org/rk{dimension}-items.json';
 
 	/** Default of the URL for the items not in the game, the same for all dimensions */
-	public const DEFAULT_NOT_IN_GAME_URL = 'https://items.aobots.org/rk{dimension}-not-in-game.json';
+	public const string DEFAULT_NOT_IN_GAME_URL = 'https://items.aobots.org/rk{dimension}-not-in-game.json';
 
 	/** Item data of Lost Eden, provided by the server itself */
-	public const LOST_EDEN_ITEM_DATA_URL = 'https://rubi-ka.org/api/items/export/lost-eden-items.json';
+	public const string LOST_EDEN_ITEM_DATA_URL = 'https://rubi-ka.org/api/items/export/lost-eden-items.json';
 
 	/** AOIDs not in the game on Lost Eden, provided by the server itself */
-	public const LOST_EDEN_NOT_IN_GAME_URL = 'https://rubi-ka.org/api/items/export/not-in-game.json';
+	public const string LOST_EDEN_NOT_IN_GAME_URL = 'https://rubi-ka.org/api/items/export/not-in-game.json';
 
 	/** URL of the item database */
 	#[NCA\Setting\Text(accessLevel: AccessLevel::Admin)]

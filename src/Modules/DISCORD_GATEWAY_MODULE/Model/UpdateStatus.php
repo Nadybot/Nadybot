@@ -10,11 +10,11 @@ use Stringable;
 class UpdateStatus implements Stringable {
 	use ReducedStringableTrait;
 
-	public const STATUS_ONLINE = 'online';
-	public const STATUS_DND = 'dnd';
-	public const STATUS_IDLE = 'idle';
-	public const STATUS_INVISIBLE = 'invisible';
-	public const STATUS_OFFLINE = 'offline';
+	public const string STATUS_ONLINE = 'online';
+	public const string STATUS_DND = 'dnd';
+	public const string STATUS_IDLE = 'idle';
+	public const string STATUS_INVISIBLE = 'invisible';
+	public const string STATUS_OFFLINE = 'offline';
 
 	/**
 	 * @param ?int        $since      unix time (in milliseconds) of when the client went idle,

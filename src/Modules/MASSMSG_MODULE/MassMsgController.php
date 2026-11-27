@@ -59,22 +59,22 @@ use Safe\DateTimeImmutable;
 ]
 class MassMsgController extends ModuleInstance {
 	/** @var string */
-	public const BLOCKED = 'blocked';
+	public const string BLOCKED = 'blocked';
 
 	/** @var string */
-	public const IN_CHAT = 'in chat';
+	public const string IN_CHAT = 'in chat';
 
 	/** @var string */
-	public const IN_ORG  = 'in org';
+	public const string IN_ORG  = 'in org';
 
 	/** @var string */
-	public const SENT    = 'sent';
+	public const string SENT    = 'sent';
 
 	/** @var string */
-	public const PREF_MSGS = 'massmsgs';
+	public const string PREF_MSGS = 'massmsgs';
 
 	/** @var string */
-	public const PREF_INVITES = 'massinvites';
+	public const string PREF_INVITES = 'massinvites';
 
 	/** Color for mass messages/invites */
 	#[NCA\Setting\Color]

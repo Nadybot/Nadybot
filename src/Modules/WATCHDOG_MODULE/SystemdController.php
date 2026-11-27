@@ -21,7 +21,7 @@ use Socket;
 
 #[NCA\Instance]
 class SystemdController extends ModuleInstance {
-	public const EINVAL = 22;
+	public const int EINVAL = 22;
 
 	protected bool $enabled = false;
 	protected int $watchdogInterval = 0;

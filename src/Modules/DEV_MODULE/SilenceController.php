@@ -33,7 +33,7 @@ use Psr\Log\LoggerInterface;
 	)
 ]
 class SilenceController extends ModuleInstance {
-	public const NULL_COMMAND_HANDLER = 'SilenceController.nullCommand';
+	public const string NULL_COMMAND_HANDLER = 'SilenceController.nullCommand';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;

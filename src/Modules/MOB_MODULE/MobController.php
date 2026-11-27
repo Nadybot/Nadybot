@@ -78,7 +78,7 @@ use Safe\Exceptions\JsonException;
 	),
 ]
 class MobController extends ModuleInstance {
-	public const MOB_API = 'https://mobs.aobots.org/api/';
+	public const string MOB_API = 'https://mobs.aobots.org/api/';
 
 	/** @var array<string,array<string,Mob>> */
 	public array $mobs = [];

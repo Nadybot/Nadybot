@@ -10,7 +10,7 @@ class TowerAttack {
 	use StringableTrait;
 
 	/** @var array<string,null|string|int> */
-	public const EXAMPLE_TOKENS = [
+	public const array EXAMPLE_TOKENS = [
 		...Attacker::EXAMPLE_TOKENS,
 		...DefenderOrg::EXAMPLE_TOKENS,
 		'pf-id' => 551,

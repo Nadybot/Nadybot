@@ -96,7 +96,7 @@ class Chunker implements RelayLayerInterface {
 			}
 			if (!isset($this->timerHandler)) {
 				$this->logger->debug('Setup new cleanup call');
-				$this->timerHandler = EventLoop::delay(10, function (string $token): void {
+				$this->timerHandler = EventLoop::delay(10, function (string $callbackId): void {
 					$this->cleanStaleChunks();
 				});
 			}
@@ -162,7 +162,7 @@ class Chunker implements RelayLayerInterface {
 		}
 		if (count($this->queue)) {
 			$this->logger->debug('Calling cleanup in 10');
-			$this->timerHandler = EventLoop::delay(10, function (string $token): void {
+			$this->timerHandler = EventLoop::delay(10, function (string $callbackId): void {
 				$this->cleanStaleChunks();
 			});
 		} else {

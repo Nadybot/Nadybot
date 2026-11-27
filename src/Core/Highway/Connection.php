@@ -14,7 +14,7 @@ use Nadylib\IMEX\JSON;
 
 /** A connection to a highway server */
 class Connection implements LogWrapInterface {
-	public const SUPPORTED_VERSIONS = ['~0.1.1', '~0.2.0-alpha.1'];
+	public const array SUPPORTED_VERSIONS = ['~0.1.1', '~0.2.0-alpha.1'];
 
 	#[NCA\Logger]
 	private LoggerWrapper $logger;

@@ -8,14 +8,14 @@ use Nadybot\Core\{Attributes as NCA, Hydrator, LoggerWrapper};
 
 /** This is a class to parse highway packages into PHP classes */
 class Parser {
-	public const SUPPORTED_VERSIONS = ['~0.1.1', '~0.2.0-alpha.1'];
+	public const array SUPPORTED_VERSIONS = ['~0.1.1', '~0.2.0-alpha.1'];
 
 	/**
 	 * Map package type to class that implements this type
 	 *
 	 * @var array<string,class-string>
 	 */
-	private const PKG_CLASSES = [
+	private const array PKG_CLASSES = [
 		'hello' => In\Hello::class,
 		'error' => In\Error::class,
 		'success' => In\Success::class,

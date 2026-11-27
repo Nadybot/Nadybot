@@ -13,7 +13,7 @@ class SiteUpdate {
 	use StringableTrait;
 
 	/** @var array<string,null|string|int> */
-	public const EXAMPLE_TOKENS = [
+	public const array EXAMPLE_TOKENS = [
 		'site-pf-id' => 660,
 		'site-id' => 6,
 		'site-nr' => 6,

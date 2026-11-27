@@ -5,8 +5,8 @@ namespace Nadybot\Modules\PACKAGE_MODULE;
 use Nadybot\Core\{SemanticVersion, Types\CommandReply};
 
 class PackageAction {
-	public const INSTALL = 1;
-	public const UPGRADE = 2;
+	public const int INSTALL = 1;
+	public const int UPGRADE = 2;
 
 	public function __construct(
 		public string $package,

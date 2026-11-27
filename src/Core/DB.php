@@ -50,7 +50,7 @@ class DB {
 	 *
 	 * @var string
 	 */
-	public const SQLITE_MIN_VERSION = '3.24.0';
+	public const string SQLITE_MIN_VERSION = '3.24.0';
 
 	/**
 	 * The maximum amount of placeholders (`?`) to use in a single database

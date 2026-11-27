@@ -10,7 +10,7 @@ use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2021_04_28_08_33_08)]
 class MigrateFromV1 implements SchemaMigration {
-	public const DB_OLD_VOTE = 'vote_<myname>';
+	public const string DB_OLD_VOTE = 'vote_<myname>';
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		if (!$db->schema()->hasTable(self::DB_OLD_VOTE)) {

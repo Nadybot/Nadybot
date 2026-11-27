@@ -8,7 +8,7 @@ class DefenderOrg {
 	use StringableTrait;
 
 	/** @var array<string,null|int|string> */
-	public const EXAMPLE_TOKENS = [
+	public const array EXAMPLE_TOKENS = [
 		'def-org' => 'Troet',
 		'c-def-org' => '<neutral>Troet<end>',
 		'def-faction' => 'Neutral',

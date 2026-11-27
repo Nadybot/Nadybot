@@ -46,7 +46,7 @@ use Psr\Log\LoggerInterface;
 	),
 ]
 class HelpController extends ModuleInstance {
-	public const LEGEND_PREF = 'help_legend';
+	public const string LEGEND_PREF = 'help_legend';
 
 	/** Show mods the required access level for each command */
 	#[NCA\Setting\Boolean] public bool $helpShowAL = true;

@@ -24,7 +24,7 @@ class IdentifyPacket implements Stringable {
 	 * @psalm-param ?list<int> $shard
 	 */
 	public function __construct(
-		public string $token,
+		#[\SensitiveParameter] public string $token,
 		public ?bool $compress=null,
 		public ?int $large_threshold=null,
 		#[CastListToType('int')] public ?array $shard=null,

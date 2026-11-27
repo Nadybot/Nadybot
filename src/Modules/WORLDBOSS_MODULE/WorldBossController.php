@@ -112,68 +112,68 @@ use Throwable;
 	),
 ]
 class WorldBossController extends ModuleInstance {
-	public const CMD_TARA_UPDATE = 'tara set/delete';
-	public const CMD_FATHER_UPDATE = 'father set/delete';
-	public const CMD_GAUNTLET_UPDATE = 'gauntlet set/delete';
-	public const CMD_LOREN_UPDATE = 'loren set/delete';
-	public const CMD_REAPER_UPDATE = 'reaper set/delete';
+	public const string CMD_TARA_UPDATE = 'tara set/delete';
+	public const string CMD_FATHER_UPDATE = 'father set/delete';
+	public const string CMD_GAUNTLET_UPDATE = 'gauntlet set/delete';
+	public const string CMD_LOREN_UPDATE = 'loren set/delete';
+	public const string CMD_REAPER_UPDATE = 'reaper set/delete';
 
 	/** @var string */
-	public const WORLDBOSS_API = 'https://timers.aobots.org/api/v1.1/bosses';
+	public const string WORLDBOSS_API = 'https://timers.aobots.org/api/v1.1/bosses';
 
 	/** @var "interval" */
-	public const INTERVAL = 'interval';
+	public const string INTERVAL = 'interval';
 
 	/** @var "immortal" */
-	public const IMMORTAL = 'immortal';
+	public const string IMMORTAL = 'immortal';
 
 	/** @var "coordinates" */
-	public const COORDS = 'coordinates';
+	public const string COORDS = 'coordinates';
 
 	/** @var "usual_interval" */
-	public const INTERVAL2 = 'usual_interval';
+	public const string INTERVAL2 = 'usual_interval';
 
 	/** @var "spawn_chance" */
-	public const CHANCE = 'spawn_chance';
+	public const string CHANCE = 'spawn_chance';
 
 	/** @var "aou_link" */
-	public const AOU = 'aou_link';
+	public const string AOU = 'aou_link';
 
 	/** @var string */
-	public const TARA = 'Tarasque';
+	public const string TARA = 'Tarasque';
 
 	/** @var string */
-	public const REAPER = 'The Hollow Reaper';
+	public const string REAPER = 'The Hollow Reaper';
 
 	/** @var string */
-	public const LOREN = 'Loren Warr';
+	public const string LOREN = 'Loren Warr';
 
 	/** @var string */
-	public const VIZARESH = 'Vizaresh';
+	public const string VIZARESH = 'Vizaresh';
 
 	/** @var string */
-	public const FATHER_TIME = 'Father Time';
+	public const string FATHER_TIME = 'Father Time';
 
 	/** @var string */
-	public const DESERT_RIDER = 'The Desert Rider';
+	public const string DESERT_RIDER = 'The Desert Rider';
 
 	/** @var string */
-	public const ZAAL = 'Zaal The Immortal';
+	public const string ZAAL = 'Zaal The Immortal';
 
 	/** @var string */
-	public const CERUBIN = 'Cerubin The Reborn';
+	public const string CERUBIN = 'Cerubin The Reborn';
 
 	/** @var string */
-	public const TAM = 'T.A.M.';
+	public const string TAM = 'T.A.M.';
 
 	/** @var string */
-	public const ATMA = 'Atma';
+	public const string ATMA = 'Atma';
 
 	/** @var string */
-	public const ABMOUTH = 'Abmouth Indomitus';
+	public const string ABMOUTH = 'Abmouth Indomitus';
 
 	/** @psalm-var array<string,string> */
-	public const BOSS_MAP = [
+	public const array BOSS_MAP = [
 		self::TARA => 'tara',
 		self::REAPER => 'reaper',
 		self::LOREN => 'loren',
@@ -188,7 +188,7 @@ class WorldBossController extends ModuleInstance {
 	];
 
 	/** @var array<string,array{interval?:int,usual_interval?:int,immortal:int,coordinates?:list{int,int,int},aou_link:int,spawn_chance?:int}> */
-	public const BOSS_DATA = [
+	public const array BOSS_DATA = [
 		self::TARA => [
 			self::INTERVAL => 9*3_600,
 			self::IMMORTAL => 30*60,
@@ -258,9 +258,9 @@ class WorldBossController extends ModuleInstance {
 		],
 	];
 
-	public const SPAWN_SHOW = 1;
-	public const SPAWN_SHOULD = 2;
-	public const SPAWN_EVENT = 3;
+	public const int SPAWN_SHOW = 1;
+	public const int SPAWN_SHOULD = 2;
+	public const int SPAWN_EVENT = 3;
 
 	public HttpClientBuilder $http;
 

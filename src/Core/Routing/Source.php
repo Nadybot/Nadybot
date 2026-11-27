@@ -8,43 +8,43 @@ use Nadybot\Core\{Collection, Config\BotConfig, DBSchema\RouteHopFormat, Registr
 /** This represents a hop where messages pass by, can be created at, or forwarded to */
 class Source {
 	/** @var string */
-	public const RELAY = 'relay';
+	public const string RELAY = 'relay';
 
 	/** @var string */
-	public const ORG = 'aoorg';
+	public const string ORG = 'aoorg';
 
 	/** @var string */
-	public const PUB = 'aopub';
+	public const string PUB = 'aopub';
 
 	/** @var string */
-	public const PRIV = 'aopriv';
+	public const string PRIV = 'aopriv';
 
 	/** @var string */
-	public const TELL = 'aotell';
+	public const string TELL = 'aotell';
 
 	/** @var string */
-	public const WEB = 'web';
+	public const string WEB = 'web';
 
 	/** @var string */
-	public const DISCORD_PRIV = 'discordpriv';
+	public const string DISCORD_PRIV = 'discordpriv';
 
 	/** @var string */
-	public const DISCORD_MSG = 'discordmsg';
+	public const string DISCORD_MSG = 'discordmsg';
 
 	/** @var string */
-	public const TRADEBOT = 'tradebot';
+	public const string TRADEBOT = 'tradebot';
 
 	/** @var string */
-	public const IRC = 'irc';
+	public const string IRC = 'irc';
 
 	/** @var string */
-	public const LOG = 'log';
+	public const string LOG = 'log';
 
 	/** @var string */
-	public const SYSTEM = 'system';
+	public const string SYSTEM = 'system';
 
 	/** @var string */
-	public const CONSOLE = 'console';
+	public const string CONSOLE = 'console';
 
 	/** The AO dimension this source belongs to */
 	public int $server;

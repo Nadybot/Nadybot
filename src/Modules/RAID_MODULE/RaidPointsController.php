@@ -73,10 +73,10 @@ use Throwable;
 	NCA\EmitsMessages('raid', 'points-modified'),
 ]
 class RaidPointsController extends ModuleInstance {
-	public const CMD_RAID_REWARD_PUNISH = 'raid reward/punish';
-	public const CMD_POINTS_OTHER = 'points see other';
-	public const CMD_POINTS_MODIFY = 'points modify';
-	public const CMD_REWARD_EDIT = 'reward add/change/delete';
+	public const string CMD_RAID_REWARD_PUNISH = 'raid reward/punish';
+	public const string CMD_POINTS_OTHER = 'points see other';
+	public const string CMD_POINTS_MODIFY = 'points modify';
+	public const string CMD_REWARD_EDIT = 'reward add/change/delete';
 
 	/** Share raid points across all alts */
 	#[NCA\Setting\Boolean]

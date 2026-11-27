@@ -47,11 +47,11 @@ use Throwable;
 	),
 ]
 class WebserverController extends ModuleInstance implements RequestHandler {
-	public const AUTH_AOAUTH = 'aoauth';
-	public const AUTH_BASIC = 'webauth';
+	public const string AUTH_AOAUTH = 'aoauth';
+	public const string AUTH_BASIC = 'webauth';
 
-	public const USER = __NAMESPACE__ . '::user';
-	public const BODY = __NAMESPACE__ . '::body';
+	public const string USER = __NAMESPACE__ . '::user';
+	public const string BODY = __NAMESPACE__ . '::body';
 
 	/** Enable webserver */
 	#[NCA\Setting\Boolean(accessLevel: AccessLevel::Superadmin)]
@@ -555,7 +555,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	 *
 	 * @return null|string null if token is wrong, the username that was sent if correct
 	 */
-	private function checkJWTAuthentication(string $token): ?string {
+	private function checkJWTAuthentication(#[\SensitiveParameter] string $token): ?string {
 		$aoAuthPubKey = $this->aoAuthPubKey ?? null;
 		if (!isset($aoAuthPubKey)) {
 			$this->logger->error('No public key found to validate JWT');
@@ -628,7 +628,7 @@ class WebserverController extends ModuleInstance implements RequestHandler {
 	 *
 	 * @return null|string null if password is wrong, the username that was sent if correct
 	 */
-	private function checkAuthentication(string $user, string $password): ?string {
+	private function checkAuthentication(string $user, #[\SensitiveParameter] string $password): ?string {
 		$user = Utils::normalizeCharacter($user);
 		if (!isset($this->authentications[$user])) {
 			return null;

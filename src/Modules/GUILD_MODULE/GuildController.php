@@ -93,7 +93,7 @@ use Throwable;
 	),
 ]
 class GuildController extends ModuleInstance {
-	private const CONSECUTIVE_BAD_UPDATES = 2;
+	private const int CONSECUTIVE_BAD_UPDATES = 2;
 
 	/** Maximum characters a logon message can have */
 	#[NCA\Setting\Number(options: [100, 200, 300, 400])]

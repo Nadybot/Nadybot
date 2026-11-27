@@ -79,7 +79,7 @@ use Nadybot\Modules\{
 	),
 ]
 class LootController extends ModuleInstance {
-	public const CMD_LOOT_MANAGE = 'loot add/change/delete';
+	public const string CMD_LOOT_MANAGE = 'loot add/change/delete';
 
 	/** Confirmation messages for adding to loot */
 	#[NCA\Setting\Options(options: [

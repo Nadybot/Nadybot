@@ -10,10 +10,10 @@ class InteractionCallbackData implements Stringable {
 	use ReducedStringableTrait;
 
 	/** do not include any embeds when serializing this message */
-	public const SUPPRESS_EMBEDS = 4;
+	public const int SUPPRESS_EMBEDS = 4;
 
 	/** this message is only visible to the user who invoked the Interaction */
-	public const EPHEMERAL = 64;
+	public const int EPHEMERAL = 64;
 
 	/**
 	 * @param ?bool                        $tts              is the response TTS

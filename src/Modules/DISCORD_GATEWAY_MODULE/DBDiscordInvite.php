@@ -11,7 +11,7 @@ class DBDiscordInvite extends DBTable {
 
 	public function __construct(
 		public string $character,
-		public string $token,
+		#[\SensitiveParameter] public string $token,
 		public ?int $expires=null,
 		?UuidInterface $id=null,
 	) {

@@ -9,7 +9,7 @@ use Psr\Log\LoggerInterface;
 
 #[NCA\Migration(order: 2023_03_09_08_34_20)]
 class ImportExistingAttacksAndVictories implements SchemaMigration {
-	private const CHUNK_SIZE = 100;
+	private const int CHUNK_SIZE = 100;
 
 	public function migrate(LoggerInterface $logger, DB $db): void {
 		$offset = 0;

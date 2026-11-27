@@ -30,7 +30,7 @@ use Throwable;
  */
 #[NCA\Instance]
 class DiscordAPIClient extends ModuleInstance {
-	public const DISCORD_API = 'https://discord.com/api/v10';
+	public const string DISCORD_API = 'https://discord.com/api/v10';
 
 	/** @var list<ChannelQueueItem> */
 	protected array $outQueue = [];

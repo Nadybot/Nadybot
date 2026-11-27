@@ -37,15 +37,15 @@ use Nadybot\Core\{
 ]
 class RaidBlockController extends ModuleInstance {
 	/** @var string */
-	public const POINTS_GAIN = 'points';
+	public const string POINTS_GAIN = 'points';
 
 	/** @var string */
-	public const JOIN_RAIDS = 'join';
+	public const string JOIN_RAIDS = 'join';
 
 	/** @var string */
-	public const AUCTION_BIDS = 'bid';
+	public const string AUCTION_BIDS = 'bid';
 
-	public const CMD_RAIDBLOCK_EDIT = 'raidblock add/remove';
+	public const string CMD_RAIDBLOCK_EDIT = 'raidblock add/remove';
 
 	public int $lastExpiration = 0;
 

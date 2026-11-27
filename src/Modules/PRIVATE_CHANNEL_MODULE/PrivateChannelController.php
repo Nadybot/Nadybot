@@ -866,7 +866,7 @@ class PrivateChannelController extends ModuleInstance implements AccessLevelProv
 	public function kickallCommand(CmdContext $context): void {
 		$msg = "Everyone will be kicked from this channel in 10 seconds. [by <highlight>{$context->char->name}<end>]";
 		$this->chatBot->sendPrivate($msg);
-		EventLoop::delay(10, function (string $token): void {
+		EventLoop::delay(10, function (string $callbackId): void {
 			$this->chatBot->sendPackage(
 				package: new Package\Out\PrivateChannelKickAll()
 			);

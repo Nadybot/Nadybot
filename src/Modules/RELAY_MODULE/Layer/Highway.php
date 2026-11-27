@@ -31,14 +31,14 @@ use Safe\Exceptions\JsonException;
  */
 #[NCA\RelayStackMember(name: 'highway')]
 class Highway implements RelayLayerInterface, StatusProvider {
-	public const TYPE_MESSAGE = 'message';
-	public const TYPE_JOIN = 'join';
-	public const TYPE_LEAVE = 'leave';
-	public const TYPE_ROOM_INFO_0_1 = 'room-info';
-	public const TYPE_ROOM_INFO = 'room_info';
-	public const TYPE_SUCCESS = 'success';
-	public const TYPE_ERROR = 'error';
-	public const TYPE_HELLO = 'hello';
+	public const string TYPE_MESSAGE = 'message';
+	public const string TYPE_JOIN = 'join';
+	public const string TYPE_LEAVE = 'leave';
+	public const string TYPE_ROOM_INFO_0_1 = 'room-info';
+	public const string TYPE_ROOM_INFO = 'room_info';
+	public const string TYPE_SUCCESS = 'success';
+	public const string TYPE_ERROR = 'error';
+	public const string TYPE_HELLO = 'hello';
 
 	/** @var list<string> */
 	protected array $rooms = [];

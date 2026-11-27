@@ -9,7 +9,7 @@ class ResumePacket implements Stringable {
 	use ReducedStringableTrait;
 
 	public function __construct(
-		public string $token,
+		#[\SensitiveParameter] public string $token,
 		public string $session_id,
 		public int $seq,
 	) {

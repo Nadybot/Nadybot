@@ -40,10 +40,10 @@ use Nadybot\Modules\TIMERS_MODULE\{
 ]
 class CityWaveController extends ModuleInstance implements MessageEmitter {
 	/** @var string */
-	public const TIMER_NAME = 'City Raid';
+	public const string TIMER_NAME = 'City Raid';
 
 	/** @var string */
-	public const WAVE = 'wave';
+	public const string WAVE = 'wave';
 
 	/** Times to display timer alerts */
 	#[NCA\Setting\Text(

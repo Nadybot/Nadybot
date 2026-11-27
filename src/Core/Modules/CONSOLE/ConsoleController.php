@@ -31,7 +31,7 @@ use Safe\Exceptions\{ReadlineException, StreamException};
 
 #[NCA\Instance]
 class ConsoleController extends ModuleInstance {
-	public const PLACEHOLDERS = 'placeholders';
+	public const string PLACEHOLDERS = 'placeholders';
 
 	/** Use ANSI colors */
 	#[NCA\Setting\Boolean] public bool $consoleColor = false;

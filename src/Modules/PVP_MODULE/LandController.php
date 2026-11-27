@@ -32,7 +32,7 @@ use Nadybot\Core\{
 	)
 ]
 class LandController extends ModuleInstance {
-	public const LC_CMD = 'nw lc';
+	public const string LC_CMD = 'nw lc';
 
 	#[NCA\Inject]
 	private NotumWarsController $nwCtrl;

@@ -7,15 +7,15 @@ use Nadybot\Core\Types\SettingMode;
 
 /** A setting of the bot */
 class ModuleSetting {
-	public const TYPE_BOOL = 'bool';
-	public const TYPE_TEXT = 'text';
-	public const TYPE_NUMBER = 'number';
-	public const TYPE_DISCORD_CHANNEL = 'discord_channel';
-	public const TYPE_COLOR = 'color';
-	public const TYPE_TIME = 'time';
-	public const TYPE_OPTIONS = 'options';
-	public const TYPE_INT_OPTIONS = 'int_options';
-	public const TYPE_RANK = 'rank';
+	public const string TYPE_BOOL = 'bool';
+	public const string TYPE_TEXT = 'text';
+	public const string TYPE_NUMBER = 'number';
+	public const string TYPE_DISCORD_CHANNEL = 'discord_channel';
+	public const string TYPE_COLOR = 'color';
+	public const string TYPE_TIME = 'time';
+	public const string TYPE_OPTIONS = 'options';
+	public const string TYPE_INT_OPTIONS = 'int_options';
+	public const string TYPE_RANK = 'rank';
 
 	/**
 	 * @param string                                      $name        The name of the setting

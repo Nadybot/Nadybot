@@ -32,7 +32,7 @@ use Nadybot\Core\{
 	),
 ]
 class ChatTopicController extends ModuleInstance {
-	public const CMD_TOPIC_SET = 'topic set/clear';
+	public const string CMD_TOPIC_SET = 'topic set/clear';
 
 	/** Topic for Private Channel */
 	#[NCA\Setting\Text(mode: SettingMode::NoEdit)]

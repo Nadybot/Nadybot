@@ -8,7 +8,7 @@ use Nadybot\Core\Types\{AccessLevel, SettingMode};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class AiModel extends DefineSetting {
-	public const TYPE = 'ai_model';
+	public const string TYPE = 'ai_model';
 
 	/**
 	 * {@inheritDoc}

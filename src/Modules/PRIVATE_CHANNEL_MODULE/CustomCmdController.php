@@ -31,7 +31,7 @@ use Psr\Log\LoggerInterface;
 	NCA\Instance,
 ]
 class CustomCmdController extends ModuleInstance {
-	public const OFF = 'off';
+	public const string OFF = 'off';
 
 	#[NCA\Setting\Text(
 		options: [

@@ -6,21 +6,21 @@ use EventSauce\ObjectHydrator\MapFrom;
 use Nadybot\Core\Types\Playfield;
 
 class Mob {
-	public const T_PRISONER = 'prisoner';
-	public const T_HAG = 'hag';
-	public const T_DREAD = 'dreadloch';
-	public const T_UNIQUES = 'unique';
-	public const T_LEGCHOPPER = 'legchopper';
-	public const T_RECK = 'reck';
-	public const T_HI = 'hi';
+	public const string T_PRISONER = 'prisoner';
+	public const string T_HAG = 'hag';
+	public const string T_DREAD = 'dreadloch';
+	public const string T_UNIQUES = 'unique';
+	public const string T_LEGCHOPPER = 'legchopper';
+	public const string T_RECK = 'reck';
+	public const string T_HI = 'hi';
 
-	public const STATUS_UP = 'up';
-	public const STATUS_DOWN = 'down';
-	public const STATUS_ATTACKED = 'under_attack';
-	public const STATUS_OUT_OF_RANGE = 'out_of_range';
-	public const STATUS_UNKNOWN = 'unknown';
+	public const string STATUS_UP = 'up';
+	public const string STATUS_DOWN = 'down';
+	public const string STATUS_ATTACKED = 'under_attack';
+	public const string STATUS_OUT_OF_RANGE = 'out_of_range';
+	public const string STATUS_UNKNOWN = 'unknown';
 
-	private const NAME_MAPPING = [
+	private const array NAME_MAPPING = [
 		self::T_HAG => [
 			'omni-zn' => 'Omni Hag 1 - ZN (%s)',
 			'omni-or' => 'Omni Hag 2 - OR (%s)',

@@ -66,14 +66,14 @@ use Throwable;
 	),
 ]
 class AttacksController extends ModuleInstance {
-	public const CMD_ATTACKS = 'nw attacks';
-	public const CMD_OUTCOMES = 'nw victory';
-	public const CMD_STATS = 'nw stats';
+	public const string CMD_ATTACKS = 'nw attacks';
+	public const string CMD_OUTCOMES = 'nw victory';
+	public const string CMD_STATS = 'nw stats';
 
-	private const ATT_FMT_NORMAL = '{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} '.
+	private const string ATT_FMT_NORMAL = '{?att-org:{c-att-org}}{!att-org:{c-att-name}} attacked {c-def-org} '.
 		'{?att-org:- {c-att-name} }{?att-level:({c-att-level}/{c-att-ai-level},{?att-gender: {att-gender} {att-breed}} {c-att-profession}{?att-org-rank:, {att-org-rank}})}';
-	private const VICTORY_FMT_NORMAL = '{c-winning-org} won against {c-losing-org} in <highlight>{pf-short} {site-id}<end>';
-	private const ABANDONED_FMT_NORMAL = '{c-losing-org} abandoned <highlight>{pf-short} {site-id}<end>';
+	private const string VICTORY_FMT_NORMAL = '{c-winning-org} won against {c-losing-org} in <highlight>{pf-short} {site-id}<end>';
+	private const string ABANDONED_FMT_NORMAL = '{c-losing-org} abandoned <highlight>{pf-short} {site-id}<end>';
 
 	/** Display format for tower attacks */
 	#[NCA\Setting\Template(

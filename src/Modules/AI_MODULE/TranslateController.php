@@ -38,9 +38,9 @@ use Psr\Log\LoggerInterface;
 	),
 ]
 class TranslateController extends ModuleInstance {
-	private const TRANSLATE_AI = 'https://translate.nadybot.org';
+	private const string TRANSLATE_AI = 'https://translate.nadybot.org';
 
-	private const TRANSLATE_BOT = 'Translatore';
+	private const string TRANSLATE_BOT = 'Translatore';
 
 	#[NCA\Inject]
 	private HttpClientBuilder $http;

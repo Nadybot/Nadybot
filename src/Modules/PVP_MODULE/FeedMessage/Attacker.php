@@ -8,7 +8,7 @@ class Attacker {
 	use StringableTrait;
 
 	/** @var array<string,null|string|int> */
-	public const EXAMPLE_TOKENS = [
+	public const array EXAMPLE_TOKENS = [
 		...AttackerOrg::EXAMPLE_TOKENS,
 
 		'att-name' => 'Nady',

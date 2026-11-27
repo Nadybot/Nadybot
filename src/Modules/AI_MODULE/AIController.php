@@ -36,36 +36,36 @@ use Throwable;
 	)
 ]
 class AIController extends ModuleInstance {
-	private const GROQ = 'https://api.groq.com/openai/v1';
-	private const OPEN_ROUTER = 'https://openrouter.ai/api/v1';
-	private const CHATGPT = 'https://api.openai.com/v1';
-	private const LOCAL = 'http://127.0.0.1:11434/v1';
-	private const GEMINI = 'https://generativelanguage.googleapis.com/v1beta/openai';
+	private const string GROQ = 'https://api.groq.com/openai/v1';
+	private const string OPEN_ROUTER = 'https://openrouter.ai/api/v1';
+	private const string CHATGPT = 'https://api.openai.com/v1';
+	private const string LOCAL = 'http://127.0.0.1:11434/v1';
+	private const string GEMINI = 'https://generativelanguage.googleapis.com/v1beta/openai';
 
 	/** Drop old turns when the history exceeds this size */
-	private const MAX_HISTORY_EXPIRE = 20;
+	private const int MAX_HISTORY_EXPIRE = 20;
 
 	/** Maximum history size before triggering a summary compaction */
-	private const MAX_HISTORY_COMPACT = 25;
+	private const int MAX_HISTORY_COMPACT = 25;
 
 	/** Number of recent messages to preserve during compaction */
-	private const COMPACT_KEEP_MESSAGES = 5;
+	private const int COMPACT_KEEP_MESSAGES = 5;
 
 	/** Mode identifier: silently drop old turns */
-	private const HISTORY_MODE_EXPIRE = 'expire';
+	private const string HISTORY_MODE_EXPIRE = 'expire';
 
 	/** Mode identifier: replace old turns with a generated summary */
-	private const HISTORY_MODE_COMPACT = 'compact';
+	private const string HISTORY_MODE_COMPACT = 'compact';
 
 	/** Prompt sent to the LLM to produce a conversation summary */
-	private const COMPACT_SUMMARY_PROMPT = 'Summarize our conversation so far. '.
+	private const string COMPACT_SUMMARY_PROMPT = 'Summarize our conversation so far. '.
 		'Keep all important facts, decisions, context and open questions. '.
 		'Be concise but complete enough to continue the conversation.';
 
 	/** Special LLM response that forwards the result of the last tool call */
-	private const FORWARD_LAST_TOOL_OUTPUT = 'FORWARD_LAST_TOOL_OUTPUT';
+	private const string FORWARD_LAST_TOOL_OUTPUT = 'FORWARD_LAST_TOOL_OUTPUT';
 
-	private const ADDED_SYSTEM_PROMPT = 'Every incoming message to you will be prefixed '.
+	private const string ADDED_SYSTEM_PROMPT = 'Every incoming message to you will be prefixed '.
 		"with the sender's name in the format [Username] Message. ".
 		'Please use this information to track who said what during the conversation, '.
 		'but don\'t add any prefix yourself. '.

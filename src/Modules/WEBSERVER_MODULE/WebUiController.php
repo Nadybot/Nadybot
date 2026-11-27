@@ -37,7 +37,7 @@ use ZipArchive;
 	NCA\HasMigrations
 ]
 class WebUiController extends ModuleInstance {
-	public const ARTIFACTS = 'https://artifacts.on.nadybot.org/nadyui/%s.zip';
+	public const string ARTIFACTS = 'https://artifacts.on.nadybot.org/nadyui/%s.zip';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;

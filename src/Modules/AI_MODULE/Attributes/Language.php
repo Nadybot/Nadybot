@@ -8,7 +8,7 @@ use Nadybot\Core\Types\{AccessLevel, SettingMode};
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Language extends DefineSetting {
-	public const TYPE = 'language';
+	public const string TYPE = 'language';
 
 	/**
 	 * {@inheritDoc}

@@ -164,14 +164,14 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 							$reconnect = true;
 						} else {
 							$this->client = null;
-							$this->retryHandler = EventLoop::delay(10, function (string $token): void {
+							$this->retryHandler = EventLoop::delay(10, function (string $callbackId): void {
 								$this->relay->init();
 							});
 							return;
 						}
 					} else {
 						$this->client = null;
-						$this->retryHandler = EventLoop::delay(10, function (string $token): void {
+						$this->retryHandler = EventLoop::delay(10, function (string $callbackId): void {
 							$this->relay->init();
 						});
 						return;
@@ -234,7 +234,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 			]);
 			$this->status = new RelayStatus(RelayStatusType::INIT, $e->getMessage());
 			$this->client = null;
-			$this->retryHandler = EventLoop::delay(10, function (string $token): void {
+			$this->retryHandler = EventLoop::delay(10, function (string $callbackId): void {
 				$this->relay->init();
 			});
 			return;
@@ -245,7 +245,7 @@ class Websocket implements TransportInterface, StatusProvider, LogWrapInterface 
 		}
 		$this->client = null;
 		$this->logger->notice('Reconnecting.');
-		$this->retryHandler = EventLoop::defer(function (string $token): void {
+		$this->retryHandler = EventLoop::defer(function (string $callbackId): void {
 			$this->relay->init();
 		});
 	}

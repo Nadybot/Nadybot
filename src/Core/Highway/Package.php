@@ -9,13 +9,13 @@ use Stringable;
 abstract class Package implements Stringable {
 	use StringableTrait;
 
-	public const HELLO = 'hello';
-	public const JOIN = 'join';
-	public const LEAVE = 'leave';
-	public const MESSAGE = 'message';
-	public const ROOM_INFO = 'room_info';
-	public const ERROR = 'error';
-	public const SUCCESS = 'success';
+	public const string HELLO = 'hello';
+	public const string JOIN = 'join';
+	public const string LEAVE = 'leave';
+	public const string MESSAGE = 'message';
+	public const string ROOM_INFO = 'room_info';
+	public const string ERROR = 'error';
+	public const string SUCCESS = 'success';
 
 	/** @param string $type The type of the package */
 	public function __construct(

@@ -48,15 +48,15 @@ use Nadybot\Core\{
 	),
 ]
 class VoteController extends ModuleInstance implements MessageEmitter {
-	public const DELIMITER = '|';
+	public const string DELIMITER = '|';
 
 	// status indicates the last alert that happened (not the next alert that will happen)
-	public const STATUS_CREATED = 0;
-	public const STATUS_STARTED = 1;
-	public const STATUS_60_MINUTES_LEFT = 2;
-	public const STATUS_15_MINUTES_LEFT = 3;
-	public const STATUS_60_SECONDS_LEFT = 4;
-	public const STATUS_ENDED = 9;
+	public const int STATUS_CREATED = 0;
+	public const int STATUS_STARTED = 1;
+	public const int STATUS_60_MINUTES_LEFT = 2;
+	public const int STATUS_15_MINUTES_LEFT = 3;
+	public const int STATUS_60_SECONDS_LEFT = 4;
+	public const int STATUS_ENDED = 9;
 
 	#[NCA\Inject]
 	private DB $db;

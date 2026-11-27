@@ -72,7 +72,7 @@ use Throwable;
 	),
 ]
 class RelayController extends ModuleInstance implements AccessLevelProvider {
-	private const NONE = 'none';
+	private const string NONE = 'none';
 
 	/** @var array<string,Relay> */
 	public array $relays = [];

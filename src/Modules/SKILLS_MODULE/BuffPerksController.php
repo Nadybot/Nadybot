@@ -46,8 +46,8 @@ use Throwable;
 	)
 ]
 class BuffPerksController extends ModuleInstance {
-	public const ALIEN_INVASION = 'ai';
-	public const SHADOWLANDS = 'sl';
+	public const string ALIEN_INVASION = 'ai';
+	public const string SHADOWLANDS = 'sl';
 
 	/** DB version of perks */
 	#[NCA\Setting\Timestamp(mode: SettingMode::NoEdit)]

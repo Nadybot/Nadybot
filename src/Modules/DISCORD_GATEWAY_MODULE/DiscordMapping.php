@@ -11,7 +11,7 @@ class DiscordMapping extends DBTable {
 		#[PK] public string $name,
 		#[PK] public string $discord_id,
 		public int $created,
-		public ?string $token=null,
+		#[\SensitiveParameter] public ?string $token=null,
 		public ?int $confirmed=null,
 	) {
 	}

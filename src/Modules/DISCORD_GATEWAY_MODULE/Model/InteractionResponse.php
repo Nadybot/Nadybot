@@ -8,13 +8,13 @@ use Stringable;
 class InteractionResponse implements Stringable {
 	use ReducedStringableTrait;
 
-	public const TYPE_PONG = 1;
-	public const TYPE_CHANNEL_MESSAGE_WITH_SOURCE = 4;
-	public const TYPE_DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5;
-	public const TYPE_DEFERRED_UPDATE_MESSAGE = 6;
-	public const TYPE_UPDATE_MESSAGE = 7;
-	public const TYPE_APPLICATION_COMMAND_AUTOCOMPLETE_RESULT = 8;
-	public const TYPE_MODAL = 9;
+	public const int TYPE_PONG = 1;
+	public const int TYPE_CHANNEL_MESSAGE_WITH_SOURCE = 4;
+	public const int TYPE_DEFERRED_CHANNEL_MESSAGE_WITH_SOURCE = 5;
+	public const int TYPE_DEFERRED_UPDATE_MESSAGE = 6;
+	public const int TYPE_UPDATE_MESSAGE = 7;
+	public const int TYPE_APPLICATION_COMMAND_AUTOCOMPLETE_RESULT = 8;
+	public const int TYPE_MODAL = 9;
 
 	/**
 	 * @param int                      $type the type of response

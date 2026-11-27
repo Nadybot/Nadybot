@@ -60,38 +60,38 @@ use Throwable;
 ]
 class TrackerController extends ModuleInstance implements MessageEmitter {
 	/** @var 'tracking' */
-	public const REASON_TRACKER = 'tracking';
+	public const string REASON_TRACKER = 'tracking';
 
 	/** @var 'tracking_org' */
-	public const REASON_ORG_TRACKER = 'tracking_org';
+	public const string REASON_ORG_TRACKER = 'tracking_org';
 
 	/** No grouping, just sorting */
-	public const GROUP_NONE = 0;
+	public const int GROUP_NONE = 0;
 
 	/** Group by title level */
-	public const GROUP_TL = 1;
+	public const int GROUP_TL = 1;
 
 	/** Group by profession */
-	public const GROUP_PROF = 2;
+	public const int GROUP_PROF = 2;
 
 	/** Group by faction */
-	public const GROUP_FACTION = 3;
+	public const int GROUP_FACTION = 3;
 
 	/** Group by org */
-	public const GROUP_ORG = 4;
+	public const int GROUP_ORG = 4;
 
 	/** Group by breed */
-	public const GROUP_BREED = 5;
+	public const int GROUP_BREED = 5;
 
 	/** Group by gender */
-	public const GROUP_GENDER = 6;
+	public const int GROUP_GENDER = 6;
 
-	public const ATT_NONE = 0;
-	public const ATT_OWN_ORG = 1;
-	public const ATT_MEMBER_ORG = 2;
-	public const ATT_CLAN = 4;
-	public const ATT_OMNI = 8;
-	public const ATT_NEUTRAL = 16;
+	public const int ATT_NONE = 0;
+	public const int ATT_OWN_ORG = 1;
+	public const int ATT_MEMBER_ORG = 2;
+	public const int ATT_CLAN = 4;
+	public const int ATT_OMNI = 8;
+	public const int ATT_NEUTRAL = 16;
 
 	/** Tracker logon-message */
 	#[NCA\DefineSetting(

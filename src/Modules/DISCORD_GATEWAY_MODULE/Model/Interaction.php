@@ -8,11 +8,11 @@ use Stringable;
 class Interaction implements Stringable {
 	use ReducedStringableTrait;
 
-	public const TYPE_PING = 1;
-	public const TYPE_APPLICATION_COMMAND = 2;
-	public const TYPE_MESSAGE_COMPONENT = 3;
-	public const TYPE_APPLICATION_COMMAND_AUTOCOMPLETE = 4;
-	public const TYPE_MODAL_SUBMIT = 5;
+	public const int TYPE_PING = 1;
+	public const int TYPE_APPLICATION_COMMAND = 2;
+	public const int TYPE_MESSAGE_COMPONENT = 3;
+	public const int TYPE_APPLICATION_COMMAND_AUTOCOMPLETE = 4;
+	public const int TYPE_MODAL_SUBMIT = 5;
 
 	/**
 	 * @param string            $id             id of the interaction
@@ -36,7 +36,7 @@ class Interaction implements Stringable {
 		public string $id,
 		public string $application_id,
 		public int $type,
-		public string $token,
+		#[\SensitiveParameter] public string $token,
 		public int $version,
 		public ?InteractionData $data=null,
 		public ?string $guild_id=null,

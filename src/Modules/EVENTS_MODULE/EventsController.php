@@ -54,7 +54,7 @@ use Throwable;
 	),
 ]
 class EventsController extends ModuleInstance implements ImporterInterface, ExporterInterface {
-	public const CMD_EVENT_MANAGE = 'events add/change/delete';
+	public const string CMD_EVENT_MANAGE = 'events add/change/delete';
 
 	/** Maximum number of events shown */
 	#[NCA\Setting\Number(options: [5, 10, 15, 20])]

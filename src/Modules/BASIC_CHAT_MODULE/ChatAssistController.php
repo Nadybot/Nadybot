@@ -41,7 +41,7 @@ use Throwable;
 	),
 ]
 class ChatAssistController extends ModuleInstance {
-	public const CMD_SET_ADD_CLEAR = 'assist set/add/clear';
+	public const string CMD_SET_ADD_CLEAR = 'assist set/add/clear';
 
 	/** Max stored undo steps */
 	#[NCA\Setting\Number]

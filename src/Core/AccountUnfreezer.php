@@ -21,16 +21,16 @@ use Throwable;
 
 /** This class handles unfreezing a frozen account */
 class AccountUnfreezer {
-	public const LOGIN_URL = 'https://account.anarchy-online.com/';
-	public const ACCOUNT_URL = 'https://account.anarchy-online.com/account/';
-	public const SUBSCRIPTION_URL = 'https://account.anarchy-online.com/subscription/%s';
-	public const UNFREEZE_URL = 'https://account.anarchy-online.com/uncancel_sub';
-	public const LOGOUT_URL = 'https://account.anarchy-online.com/log_out';
+	public const string LOGIN_URL = 'https://account.anarchy-online.com/';
+	public const string ACCOUNT_URL = 'https://account.anarchy-online.com/account/';
+	public const string SUBSCRIPTION_URL = 'https://account.anarchy-online.com/subscription/%s';
+	public const string UNFREEZE_URL = 'https://account.anarchy-online.com/uncancel_sub';
+	public const string LOGOUT_URL = 'https://account.anarchy-online.com/log_out';
 
-	public const DEFAULT_UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0';
+	public const string DEFAULT_UA = 'Mozilla/5.0 (X11; Linux x86_64; rv:109.0) Gecko/20100101 Firefox/110.0';
 
-	private const PROXY_HOST = 'proxy.nadybot.org';
-	private const PROXY_PORT = 22_222;
+	private const string PROXY_HOST = 'proxy.nadybot.org';
+	private const int PROXY_PORT = 22_222;
 
 	protected ?string $userAgent = null;
 

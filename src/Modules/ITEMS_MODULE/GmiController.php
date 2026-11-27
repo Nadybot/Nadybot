@@ -31,8 +31,8 @@ use Throwable;
 	),
 ]
 class GmiController extends ModuleInstance {
-	public const EU_GMI_API = 'https://gmi.eu.nadybot.org/v1.0';
-	public const US_GMI_API = 'https://gmi.us.nadybot.org/v1.0';
+	public const string EU_GMI_API = 'https://gmi.eu.nadybot.org/v1.0';
+	public const string US_GMI_API = 'https://gmi.us.nadybot.org/v1.0';
 
 	/** GMI API to use */
 	#[NCA\Setting\Text(options: [self::EU_GMI_API, self::US_GMI_API])]

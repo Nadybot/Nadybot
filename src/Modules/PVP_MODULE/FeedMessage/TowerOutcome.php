@@ -10,7 +10,7 @@ class TowerOutcome {
 	use StringableTrait;
 
 	/** @var array<string,null|int|string> */
-	public const EXAMPLE_TOKENS = [
+	public const array EXAMPLE_TOKENS = [
 			'pf-id' => 551,
 			'site-id' => 6,
 			'timestamp' => '11-Mar-2023 20:12 UTC',
@@ -25,7 +25,7 @@ class TowerOutcome {
 		];
 
 	/** @var array<string,null|int|string> */
-	public const EXAMPLE_ABANDON_TOKENS = [
+	public const array EXAMPLE_ABANDON_TOKENS = [
 			'pf-id' => 551,
 			'site-id' => 6,
 			'timestamp' => '11-Mar-2023 20:12 UTC',

@@ -15,7 +15,7 @@ use Throwable;
 	NCA\Instance,
 ]
 class PlayerFeedHandler extends ModuleInstance implements EventFeedHandler {
-	public const FEED_ROOM = 'bork_updates';
+	public const string FEED_ROOM = 'bork_updates';
 
 	/** Receive dynamic character updates via Highway bots */
 	#[NCA\Setting\Boolean]

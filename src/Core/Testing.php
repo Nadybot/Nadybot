@@ -17,8 +17,8 @@ use ReflectionClass;
 use Safe\Exceptions\YamlException;
 
 class Testing {
-	private const ERROR_INDENT = '               ';
-	private const VALID_ID_REGEX = '/^[a-z0-9_-]+$/D';
+	private const string ERROR_INDENT = '               ';
+	private const string VALID_ID_REGEX = '/^[a-z0-9_-]+$/D';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;

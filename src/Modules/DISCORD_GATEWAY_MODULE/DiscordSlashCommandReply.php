@@ -48,7 +48,7 @@ class DiscordSlashCommandReply implements CommandReply {
 	public function __construct(
 		public string $applicationId,
 		public string $interactionId,
-		public string $interactionToken,
+		#[\SensitiveParameter] public string $interactionToken,
 		public ?string $channelId,
 		public bool $isDirectMsg=false,
 	) {

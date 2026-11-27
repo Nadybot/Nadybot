@@ -41,7 +41,7 @@ use Throwable;
 	),
 ]
 class GSPController extends ModuleInstance implements MessageEmitter {
-	public const GSP_URL = 'https://gsp.torontocast.stream/streaminfo/';
+	public const string GSP_URL = 'https://gsp.torontocast.stream/streaminfo/';
 
 	/** Show on logon if there is a running GSP show */
 	#[NCA\Setting\Boolean]

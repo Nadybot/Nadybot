@@ -4,10 +4,10 @@ namespace Nadybot\Core\Modules\SYSTEM;
 
 /** A public channel */
 class ChannelInfo {
-	public const ORG = 3;
-	public const READ_ONLY = 10;
-	public const NEWS = 12;
-	public const OOC = 135;
+	public const int ORG = 3;
+	public const int READ_ONLY = 10;
+	public const int NEWS = 12;
+	public const int OOC = 135;
 
 	/**
 	 * @param string $name  The name of the public channel

@@ -23,7 +23,7 @@ use Throwable;
 
 /** This is an extended SQL query builder */
 class QueryBuilder extends Builder {
-	private const CLASS_SEP = '⚡️';
+	private const string CLASS_SEP = '⚡️';
 
 	#[NCA\Inject]
 	private BotConfig $config;

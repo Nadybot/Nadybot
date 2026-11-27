@@ -29,7 +29,7 @@ class Util {
 	 *
 	 * @var string
 	 */
-	public const DATETIME = 'd-M-Y H:i T';
+	public const string DATETIME = 'd-M-Y H:i T';
 
 	/**
 	 * The date/time format to use when displaying a date in the bot
@@ -38,7 +38,7 @@ class Util {
 	 *
 	 * @var string
 	 */
-	public const DATE = 'd-M-Y';
+	public const string DATE = 'd-M-Y';
 
 	#[NCA\Inject]
 	private BotConfig $config;

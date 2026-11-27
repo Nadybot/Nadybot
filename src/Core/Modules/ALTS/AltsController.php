@@ -64,10 +64,10 @@ use Nadybot\Core\Attributes\ExposeToAI;
 ]
 class AltsController extends ModuleInstance {
 	/** @var string */
-	public const ALT_VALIDATE = 'altvalidate';
+	public const string ALT_VALIDATE = 'altvalidate';
 
 	/** @var string */
-	public const MAIN_VALIDATE = 'mainvalidate';
+	public const string MAIN_VALIDATE = 'mainvalidate';
 
 	/** Adding alt requires confirmation from alt */
 	#[NCA\Setting\Boolean]

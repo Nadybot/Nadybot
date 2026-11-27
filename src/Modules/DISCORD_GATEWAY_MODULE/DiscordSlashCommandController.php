@@ -54,17 +54,17 @@ use Throwable;
 ]
 class DiscordSlashCommandController extends ModuleInstance {
 	/** Slash-commands are disabled */
-	public const SLASH_OFF = 0;
+	public const int SLASH_OFF = 0;
 
 	/** Slash-commands are treated like regular commands and shown to everyone */
-	public const SLASH_REGULAR = 1;
+	public const int SLASH_REGULAR = 1;
 
 	/** Slash-commands are only shown to the sender */
-	public const SLASH_EPHEMERAL = 2;
+	public const int SLASH_EPHEMERAL = 2;
 
-	public const APP_TYPE_NO_PARAMS = 0;
-	public const APP_TYPE_OPT_PARAMS = 1;
-	public const APP_TYPE_REQ_PARAMS = 2;
+	public const int APP_TYPE_NO_PARAMS = 0;
+	public const int APP_TYPE_OPT_PARAMS = 1;
+	public const int APP_TYPE_REQ_PARAMS = 2;
 
 	/** How to handle Discord Slash-commands */
 	#[NCA\Setting\Options(options: [

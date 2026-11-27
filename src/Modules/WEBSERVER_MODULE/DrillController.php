@@ -26,7 +26,7 @@ use Throwable;
 
 #[NCA\Instance]
 class DrillController extends ModuleInstance {
-	public const OFF = 'off';
+	public const string OFF = 'off';
 
 	/** Service to make the webserver publicly accessible */
 	#[NCA\Setting\Text(

@@ -19,10 +19,10 @@ use Psr\Log\LoggerInterface;
  */
 #[NCA\Instance]
 class DirectoryRegistry extends ModuleInstance {
-	public const PORK_URL = 'http://people.anarchy-online.com';
-	public const BORK_URL = 'https://bork.aobots.org';
-	public const AOBOTS_HISTORY_URL = 'https://history.aobots.org/?server={dimension}&name={name}';
-	public const JKBFF_HISTORY_URL = 'https://pork.jkbff.com/pork/history.php?server={dimension}&name={name}';
+	public const string PORK_URL = 'http://people.anarchy-online.com';
+	public const string BORK_URL = 'https://bork.aobots.org';
+	public const string AOBOTS_HISTORY_URL = 'https://history.aobots.org/?server={dimension}&name={name}';
+	public const string JKBFF_HISTORY_URL = 'https://pork.jkbff.com/pork/history.php?server={dimension}&name={name}';
 
 	#[NCA\Logger]
 	private LoggerInterface $logger;

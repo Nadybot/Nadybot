@@ -3,13 +3,13 @@
 namespace Nadybot\Modules\WEBSOCKET_MODULE;
 
 class WebsocketCommand {
-	public const EVENT = 'event';
-	public const SUBSCRIBE = 'subscribe';
-	public const REQUEST = 'request';
-	public const RESPONSE = 'response';
+	public const string EVENT = 'event';
+	public const string SUBSCRIBE = 'subscribe';
+	public const string REQUEST = 'request';
+	public const string RESPONSE = 'response';
 
 	/** @var string[] */
-	public const ALLOWED_COMMANDS = [
+	public const array ALLOWED_COMMANDS = [
 		self::EVENT,
 		self::SUBSCRIBE,
 		self::REQUEST,

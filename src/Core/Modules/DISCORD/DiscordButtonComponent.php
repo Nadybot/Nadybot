@@ -7,11 +7,11 @@ use Stringable;
 class DiscordButtonComponent implements Stringable {
 	use ReducedStringableTrait;
 
-	public const STYLE_PRIMARY = 1;
-	public const STYLE_SECONDARY = 2;
-	public const STYLE_SUCCESS = 3;
-	public const STYLE_DANGER = 4;
-	public const STYLE_LINK = 5;
+	public const int STYLE_PRIMARY = 1;
+	public const int STYLE_SECONDARY = 2;
+	public const int STYLE_SUCCESS = 3;
+	public const int STYLE_DANGER = 4;
+	public const int STYLE_LINK = 5;
 
 	/**
 	 * @param int     $style     one of button styles

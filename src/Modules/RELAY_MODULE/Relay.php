@@ -27,9 +27,9 @@ use Psr\Log\LoggerInterface;
 use Revolt\EventLoop;
 
 class Relay implements MessageReceiver {
-	public const ALLOW_NONE = 0;
-	public const ALLOW_IN = 1;
-	public const ALLOW_OUT = 2;
+	public const int ALLOW_NONE = 0;
+	public const int ALLOW_IN = 1;
+	public const int ALLOW_OUT = 2;
 	public bool $registerAsReceiver = true;
 	public bool $registerAsEmitter = true;
 
@@ -281,7 +281,7 @@ class Relay implements MessageReceiver {
 			if (isset($callback)) {
 				$callback();
 			}
-			EventLoop::delay(10, function (string $token): void {
+			EventLoop::delay(10, function (string $callbackId): void {
 				if ($this->initialized) {
 					foreach ($this->msgQueue as $message) {
 						$this->receive($message, $this->getName());

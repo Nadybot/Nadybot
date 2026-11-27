@@ -58,11 +58,11 @@ use Safe\DateTimeImmutable;
 	NCA\EmitsMessages('auction', 'reimburse'),
 ]
 class AuctionController extends ModuleInstance {
-	public const CMD_BID_AUCTION = 'bid auction';
-	public const CMD_BID_REIMBURSE = 'bid reimburse';
+	public const string CMD_BID_AUCTION = 'bid auction';
+	public const string CMD_BID_REIMBURSE = 'bid reimburse';
 
 	/** @var string */
-	public const ERR_NO_AUCTION = "There's currently nothing being auctioned.";
+	public const string ERR_NO_AUCTION = "There's currently nothing being auctioned.";
 
 	/** Allow auctions only for people in the raid */
 	#[NCA\Setting\Boolean(accessLevel: AccessLevel::RaidAdmin2)]
@@ -564,7 +564,7 @@ class AuctionController extends ModuleInstance {
 		if (isset($this->auctionTimer)) {
 			if ($this->auctionEnds - time() < $minTime) {
 				EventLoop::cancel($this->auctionTimer);
-				$this->auctionTimer = EventLoop::delay($minTime, function (string $token): void {
+				$this->auctionTimer = EventLoop::delay($minTime, function (string $callbackId): void {
 					$this->endAuction();
 				});
 				$this->auctionEnds = time() + $minTime;
@@ -584,7 +584,7 @@ class AuctionController extends ModuleInstance {
 		$this->auction = $auction;
 		$this->auctionTimer = EventLoop::delay(
 			$auction->end - time(),
-			function (string $token): void {
+			function (string $callbackId): void {
 				$this->endAuction();
 			}
 		);

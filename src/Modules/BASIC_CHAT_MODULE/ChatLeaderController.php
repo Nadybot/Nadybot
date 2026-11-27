@@ -40,7 +40,7 @@ use Nadybot\Core\{
 	),
 ]
 class ChatLeaderController extends ModuleInstance implements AccessLevelProvider {
-	public const CMD_LEADER_SET = 'leader set leader';
+	public const string CMD_LEADER_SET = 'leader set leader';
 
 	/** Repeat the text of the leader */
 	#[NCA\Setting\Boolean(mode: SettingMode::NoEdit)]

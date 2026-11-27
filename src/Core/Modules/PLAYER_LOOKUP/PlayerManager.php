@@ -28,7 +28,7 @@ use Revolt\EventLoop;
 #[NCA\Instance]
 class PlayerManager extends ModuleInstance {
 	/** @var int */
-	public const CACHE_GRACE_TIME = 87_000;
+	public const int CACHE_GRACE_TIME = 87_000;
 
 	/** How many jobs in parallel to run to lookup missing character data */
 	#[NCA\Setting\Options(options: ['Off' => 0, 1, 2, 3, 4, 5, 10])]

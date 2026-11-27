@@ -21,7 +21,7 @@ use Nadybot\Modules\ONLINE_MODULE\Online;
 	)
 ]
 class ChatCheckController extends ModuleInstance {
-	public const CHANNEL_TYPE = 'priv';
+	public const string CHANNEL_TYPE = 'priv';
 	#[NCA\Inject]
 	private DB $db;
 

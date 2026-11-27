@@ -33,7 +33,7 @@ class Fernet implements RelayLayerInterface {
 	 * @psalm-param positive-int     $iterations
 	 */
 	public function __construct(
-		#[NCA\Param(type: ParamType::Secret)] string $password,
+		#[NCA\Param(type: ParamType::Secret), \SensitiveParameter] string $password,
 		#[NCA\Param(type: ParamType::Secret)] string $salt,
 		#[NCA\Param(name: 'hash')] string $hashAlgo='sha256',
 		#[NCA\Param] int $iterations=10_000,

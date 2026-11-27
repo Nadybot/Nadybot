@@ -45,8 +45,8 @@ use Throwable;
 	)
 ]
 class FormulaController extends ModuleInstance {
-	public const FORMULA_MODIFY = 'formula modify';
-	public const FORMULA = 'formula';
+	public const string FORMULA_MODIFY = 'formula modify';
+	public const string FORMULA = 'formula';
 
 	/** How to show multiplications in calculations */
 	#[NCA\Setting\Text(
