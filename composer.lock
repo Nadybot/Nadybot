@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "c823cf853cf265a06fd09e7dfbf939c9",
+    "content-hash": "c3d43396762b018e495da16a2536cfc9",
     "packages": [
         {
             "name": "amphp/amp",
@@ -3578,6 +3578,83 @@
                 "source": "https://github.com/Nadybot/aolib/tree/0.1.13"
             },
             "time": "2026-11-13T07:10:34+00:00"
+        },
+        {
+            "name": "nadybot/aomarkup",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/Nadybot/AOMarkup.git",
+                "reference": "3a1fa71df32dae03c13276d1be644e1694da34fd"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/Nadybot/AOMarkup/zipball/3a1fa71df32dae03c13276d1be644e1694da34fd",
+                "reference": "3a1fa71df32dae03c13276d1be644e1694da34fd",
+                "shasum": ""
+            },
+            "require": {
+                "ext-mbstring": "*",
+                "php": ">=8.3",
+                "psr/log": "^1|^2|^3",
+                "thecodingmachine/safe": "^2.0|^3.0"
+            },
+            "require-dev": {
+                "beste/psr-testlogger": "^1.0",
+                "composer-phar/php-cs-fixer": "^3.51.0",
+                "league/commonmark": "^2.8",
+                "nadybot/nadystyle": "^1.0.0",
+                "phpstan/phpstan": "^2.1",
+                "phpunit/phpunit": "^10.0",
+                "squizlabs/php_codesniffer": "^3.8",
+                "thecodingmachine/phpstan-safe-rule": "^1.4"
+            },
+            "suggest": {
+                "league/commonmark": "Required for the Markdown importer"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "AO\\Markup\\": "src"
+                }
+            },
+            "autoload-dev": {
+                "psr-4": {
+                    "AO\\Markup\\Tests\\": "tests"
+                }
+            },
+            "scripts": {
+                "tests": [
+                    "phpunit -c phpunit.xml",
+                    "phpstan analyse --memory-limit 512M --no-progress --no-ansi",
+                    "phpcs --no-colors --report=checkstyle -q src tests",
+                    "(command -v mago && mago lint) || true"
+                ]
+            },
+            "license": [
+                "AGPL-3.0-or-later"
+            ],
+            "authors": [
+                {
+                    "name": "Nadyita",
+                    "email": "nadyita@hodorraid.org",
+                    "homepage": "https://nadybot.org",
+                    "role": "Developer"
+                }
+            ],
+            "description": "AoXML: a structured markup language for Anarchy Online bots, with importers and exporters for AOML, lepanel, ANSI, plain text, HTML and Discord",
+            "keywords": [
+                "anarchy-online",
+                "aoml",
+                "bot",
+                "markup"
+            ],
+            "support": {
+                "source": "https://github.com/Nadybot/AOMarkup/tree/main",
+                "issues": "https://github.com/Nadybot/AOMarkup/issues"
+            },
+            "time": "2026-11-27T15:00:22+00:00"
         },
         {
             "name": "nadybot/math-parser",
@@ -10594,12 +10671,13 @@
     "aliases": [],
     "minimum-stability": "stable",
     "stability-flags": {
-        "amphp/http-tunnel": 10
+        "amphp/http-tunnel": 10,
+        "nadybot/aomarkup": 20
     },
     "prefer-stable": false,
     "prefer-lowest": false,
     "platform": {
-        "php": ">=8.1.17",
+        "php": ">=8.3",
         "ext-sqlite3": "*",
         "ext-curl": "*",
         "ext-sockets": "*",
@@ -10618,5 +10696,5 @@
         "ext-dom": "*"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.11.0"
 }

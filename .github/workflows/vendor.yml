@@ -14,7 +14,7 @@ jobs:
       - name: Setup PHP
         uses: shivammathur/setup-php@v2
         with:
-          php-version: 8.1.17
+          php-version: 8.3
           coverage: none
           extensions: sqlite3, sockets, pdo_sqlite, pdo_mysql
       - name: Install dependencies

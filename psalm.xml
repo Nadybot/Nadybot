@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <psalm
-    phpVersion="8.2"
+    phpVersion="8.3"
     errorLevel="1"
     findUnusedPsalmSuppress="true"
     findUnusedCode="false"

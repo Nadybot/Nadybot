@@ -55,7 +55,7 @@ jobs:
             echo ::set-output name=tag::$(echo ${TAG})
             echo ::set-output name=version::$(echo ${VERSION})
             echo ::set-output name=branch::$(echo ${BRANCH})
-        - name: Build and push the tagged Docker PHP 8.2 image
+        - name: Build and push the tagged Docker PHP 8.3 image
           shell: bash
           run: |
             docker buildx build --push --platform linux/amd64,linux/arm64 --file Dockerfile --build-arg VERSION="${{steps.vars.outputs.version}}" \

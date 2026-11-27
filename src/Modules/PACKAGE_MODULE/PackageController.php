@@ -1062,7 +1062,7 @@ class PackageController extends ModuleInstance {
 	}
 
 	/** Check if the action in $cmd can be done version-wise */
-	private function checkCanInstallVersion(PackageAction $cmd): bool {
+	private function checkCanInstallVersion(PackageAction $cmd): true {
 		if (!isset($cmd->version)) {
 			throw new UserException(
 				"<highlight>{$cmd->package}<end> is not installed and doesn't provide proper version info."
